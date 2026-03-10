@@ -5,12 +5,12 @@ paths:
 
 # ドキュメントルール
 
-- `docs/reqs/` が上流（canonical）。`docs/specs/` は `docs/reqs/` から導出する
+- `docs/reqs/` が企画（canonical）。`docs/specs/` は `docs/reqs/` から導出する
 - `docs/reqs/` と `docs/specs/` が矛盾したら `docs/reqs/` が正しい
 - 実装は `docs/specs/` を参照する。`docs/reqs/` を直接パースして実装しない
 - 不明な点は推測で実装せず TODO コメントを残す
 
-## ドキュメントの流れ（上流→下流）
+## ドキュメントの流れ（企画→設計）
 
 ```
 docs/reqs/product-goals（PG一覧・確信度）
