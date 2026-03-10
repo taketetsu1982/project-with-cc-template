@@ -13,8 +13,8 @@
 ├── frontend/         # {フロントエンドフレームワーク}
 │   └── src/
 ├── docs/
-│   ├── reqs/         # 上流（canonical）: product-goals / pg0 / mrd / prd / conceptual-model / user-stories
-│   └── specs/        # 下流（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / test-spec
+│   ├── reqs/         # 企画（canonical）: product-goals / pg0 / mrd / prd / conceptual-model / user-stories
+│   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / test-spec
 ├── .claude/
 │   ├── rules/        # 開発ルール
 │   └── teams/        # Agent Teams 定義
@@ -23,7 +23,7 @@
 
 ## Docs map
 
-### 上流（reqs/ — canonical）
+### 企画（reqs/ — canonical）
 - Product Goals（一覧・確信度）: @docs/reqs/product-goals.md
 - PG0: @docs/reqs/pg0.md
 - 市場・ユーザー定義: @docs/reqs/mrd.md
@@ -31,7 +31,7 @@
 - 概念モデル: @docs/reqs/conceptual-model.md
 - ユーザーストーリー: @docs/reqs/user-stories.md
 
-### 下流（specs/ — reqs/ から導出）
+### 設計（specs/ — reqs/ から導出）
 - DB設計: @docs/specs/db-schema.md
 - API設計: @docs/specs/api-spec.md
 - 認証・認可: @docs/specs/auth-spec.md
