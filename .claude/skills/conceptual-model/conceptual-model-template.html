@@ -976,6 +976,29 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  // 矢印キー: 選択中ノードを移動（親のdirectionに応じて）
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedPath && selectedPath.length > 0 && !isInputFocused()) {
+    const parent = getParentByPath(selectedPath);
+    if (!parent) return;
+    const dir = parent.direction || 'vertical';
+    const idx = selectedPath[selectedPath.length - 1];
+    let delta = 0;
+    if (dir === 'horizontal' && e.key === 'ArrowLeft') delta = -1;
+    if (dir === 'horizontal' && e.key === 'ArrowRight') delta = 1;
+    if (dir === 'vertical' && e.key === 'ArrowUp') delta = -1;
+    if (dir === 'vertical' && e.key === 'ArrowDown') delta = 1;
+    if (delta === 0) return;
+    const newIdx = idx + delta;
+    if (newIdx < 0 || newIdx >= parent.children.length) return;
+    e.preventDefault();
+    pushUndo();
+    const [removed] = parent.children.splice(idx, 1);
+    parent.children.splice(newIdx, 0, removed);
+    selectedPath = [...selectedPath.slice(0, -1), newIdx];
+    render();
+    return;
+  }
+
   // ⌘S: 手動保存（接続済みならすぐ保存、未接続ならConnect）
   if (isMeta && e.key === 's') {
     e.preventDefault();
