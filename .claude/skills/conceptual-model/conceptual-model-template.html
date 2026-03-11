@@ -328,8 +328,6 @@
 
   /* ===== Auto Save ステータス ===== */
   .save-status {
-    font-size: 11px;
-    color: #999;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -482,7 +480,7 @@ function updateSaveStatus(state, label) {
 
 async function connectFile() {
   if (!('showDirectoryPicker' in window)) {
-    alert('このブラウザはFile System Access APIに対応していません。Copy JSONを使ってください。');
+    alert('このブラウザはFile System Access APIに対応していません。JSONファイルをドロップして接続してください。');
     return;
   }
   const filename = CM_FILENAME || 'conceptual-model.json';
@@ -520,7 +518,7 @@ async function writeToFile() {
     if (e.name === 'NotAllowedError') {
       fileHandle = null;
       updateSaveStatus('', '未接続（権限切れ）');
-      document.getElementById('btnConnect').textContent = 'Connect File';
+      document.getElementById('btnConnect').textContent = 'Connect';
     }
   } finally {
     isSaving = false;
@@ -531,29 +529,6 @@ function scheduleAutoSave() {
   if (!fileHandle) return;
   clearTimeout(autoSaveTimer);
   autoSaveTimer = setTimeout(() => writeToFile(), AUTO_SAVE_DELAY);
-}
-
-async function doCopy() {
-  const json = JSON.stringify(model, null, 2) + '\n';
-  try {
-    await navigator.clipboard.writeText(json);
-    flashStatus('Copied!');
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = json;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    flashStatus('Copied!');
-  }
-}
-
-function flashStatus(text) {
-  const lbl = document.getElementById('saveLabel');
-  const prev = lbl.textContent;
-  lbl.textContent = text;
-  setTimeout(() => { lbl.textContent = prev; }, 1200);
 }
 
 // ===== JSON パネル =====
@@ -630,7 +605,6 @@ function onDrop(e, targetPath) {
   // グループへのドロップ: 子に追加
   if (targetNode && targetNode.children) {
     pushUndo();
-    const srcNode = getNodeByPath(dragPath);
     const srcParent = dragPath.length === 0 ? model : getParentByPath(dragPath);
     const srcIdx = dragPath[dragPath.length - 1];
 
