@@ -869,6 +869,12 @@ function renderEntity(node, path) {
     const keyStr = colonIdx >= 0 ? attr.substring(0, colonIdx).trim() : attr.trim();
     const valStr = colonIdx >= 0 ? attr.substring(colonIdx + 1).trim() : '';
 
+    const commitAttr = () => {
+      pushUndo();
+      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
+      updateJsonPanel();
+    };
+
     const keyInput = document.createElement('input');
     keyInput.className = 'attr-key';
     keyInput.value = keyStr;
@@ -876,11 +882,7 @@ function renderEntity(node, path) {
     requestAnimationFrame(() => fitInputWidth(keyInput));
     keyInput.addEventListener('click', e => e.stopPropagation());
     keyInput.addEventListener('input', () => fitInputWidth(keyInput));
-    keyInput.addEventListener('change', () => {
-      pushUndo();
-      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
-      updateJsonPanel();
-    });
+    keyInput.addEventListener('change', commitAttr);
     tag.appendChild(keyInput);
 
     const sep = document.createElement('span');
@@ -895,11 +897,7 @@ function renderEntity(node, path) {
     requestAnimationFrame(() => fitInputWidth(valInput));
     valInput.addEventListener('click', e => e.stopPropagation());
     valInput.addEventListener('input', () => fitInputWidth(valInput));
-    valInput.addEventListener('change', () => {
-      pushUndo();
-      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
-      updateJsonPanel();
-    });
+    valInput.addEventListener('change', commitAttr);
     tag.appendChild(valInput);
 
     const remove = document.createElement('span');
