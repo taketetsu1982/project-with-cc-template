@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe Index</title>
+<style>
+  :root {
+    --text-primary: #333;
+    --text-secondary: #555;
+    --text-tertiary: #888;
+    --text-muted: #B0B0B0;
+    --bg-page: #F8F8F8;
+    --bg-surface: #FFF;
+    --bg-panel: #FAFAFA;
+    --bg-subtle: #F0F0F0;
+    --bg-placeholder: #E8E8E8;
+    --bg-dark: #333;
+    --border-default: #E0E0E0;
+    --border-light: #F0F0F0;
+    --accent: #4A90D9;
+    --accent-bg: #E8F0FE;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --font-sm: 12px;
+    --font-base: 16px;
+    --font-lg: 24px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--font-base);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 320px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Toolbar ── */
+  #idx-toolbar {
+    grid-column: 1 / -1;
+    height: 48px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-lg);
+    font-size: var(--font-sm);
+  }
+
+  #idx-toolbar-title {
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  #idx-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  #idx-save-status {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  .idx-btn {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .idx-btn:hover { background: var(--bg-placeholder); }
+
+  /* ── Left panel: view list ── */
+  #idx-list-panel {
+    border-right: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    overflow-y: auto;
+    padding: var(--space-md);
+  }
+
+  .idx-entity-group {
+    margin-bottom: var(--space-md);
+  }
+
+  .idx-entity-name {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: var(--space-xs);
+  }
+
+  .idx-view-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 14px;
+  }
+  .idx-view-item:hover { background: var(--bg-subtle); }
+  .idx-view-item.selected { background: var(--accent-bg); color: var(--accent); }
+
+  .idx-view-context { color: var(--text-secondary); }
+  .idx-view-type {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  .idx-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    width: 100%;
+    padding: var(--space-sm);
+    margin-top: var(--space-md);
+    background: none;
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .idx-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Right panel: detail ── */
+  #idx-detail-panel {
+    overflow-y: auto;
+    padding: var(--space-xl);
+  }
+
+  #idx-detail-empty {
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 100px;
+    font-size: var(--font-sm);
+  }
+
+  #idx-detail-content { display: none; }
+
+  .idx-detail-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+  }
+
+  .idx-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .idx-detail-table th {
+    text-align: left;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-default);
+    width: 120px;
+  }
+  .idx-detail-table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .idx-open-btn {
+    margin-top: var(--space-lg);
+    background: var(--bg-dark);
+    color: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .idx-open-btn:hover { opacity: 0.85; }
+
+  /* ── Modal ── */
+  #idx-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #idx-modal-overlay.show { display: flex; }
+
+  #idx-modal {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    width: 400px;
+    max-width: 90vw;
+  }
+
+  #idx-modal h2 {
+    font-size: 18px;
+    margin-bottom: var(--space-md);
+  }
+
+  .idx-form-group {
+    margin-bottom: var(--space-md);
+  }
+  .idx-form-group label {
+    display: block;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+  .idx-form-group input,
+  .idx-form-group select {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--font-sans);
+  }
+
+  .idx-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  #idx-modal-result {
+    display: none;
+    margin-top: var(--space-md);
+    padding: var(--space-sm);
+    background: var(--bg-subtle);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    font-family: monospace;
+    white-space: pre-wrap;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+
+<div id="idx-toolbar">
+  <span id="idx-toolbar-title">Wireframe Index</span>
+  <div id="idx-toolbar-actions">
+    <span id="idx-save-status"></span>
+    <button class="idx-btn" id="idx-connect-btn" onclick="connectFile()">Connect</button>
+  </div>
+</div>
+
+<div id="idx-list-panel">
+  <div id="idx-view-list"></div>
+  <button class="idx-add-btn" onclick="showAddModal()">+ ビューを追加</button>
+</div>
+
+<div id="idx-detail-panel">
+  <div id="idx-detail-empty">ビューを選択してください</div>
+  <div id="idx-detail-content">
+    <div class="idx-detail-title" id="idx-detail-title"></div>
+    <table class="idx-detail-table">
+      <tr><th>Entity</th><td id="idx-detail-entity"></td></tr>
+      <tr><th>Context</th><td id="idx-detail-context"></td></tr>
+      <tr><th>File</th><td id="idx-detail-file"></td></tr>
+      <tr><th>HTML</th><td id="idx-detail-html"></td></tr>
+    </table>
+    <button class="idx-open-btn" id="idx-open-btn" onclick="openView()">HTMLプレビューを開く</button>
+  </div>
+</div>
+
+<!-- モーダル -->
+<div id="idx-modal-overlay">
+  <div id="idx-modal">
+    <h2>ビューを追加</h2>
+    <div class="idx-form-group">
+      <label>エンティティ名</label>
+      <input type="text" id="idx-add-entity" placeholder="例: タスク">
+    </div>
+    <div class="idx-form-group">
+      <label>コンテキスト</label>
+      <input type="text" id="idx-add-context" placeholder="例: 一覧、詳細">
+    </div>
+    <div class="idx-form-group">
+      <label>Primary Type</label>
+      <select id="idx-add-type">
+        <option value="table">table</option>
+        <option value="card">card</option>
+        <option value="form">form</option>
+        <option value="detail">detail</option>
+        <option value="dashboard">dashboard</option>
+      </select>
+    </div>
+    <div id="idx-modal-result"></div>
+    <div class="idx-modal-actions">
+      <button class="idx-btn" onclick="closeModal()">キャンセル</button>
+      <button class="idx-btn" onclick="addView()" style="background: var(--bg-dark); color: var(--bg-surface);">追加</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const INDEX_DATA = null; // スキル実行時に置換される
+
+let data = INDEX_DATA || { views: [] };
+let selectedIdx = -1;
+let fileHandle = null;
+let dirHandle = null;
+let saveTimer = null;
+
+// ── Render ──
+
+function renderList() {
+  const list = document.getElementById('idx-view-list');
+  list.innerHTML = '';
+
+  // エンティティでグルーピング
+  const groups = {};
+  data.views.forEach((v, i) => {
+    const key = v.entity || '(未分類)';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({ view: v, index: i });
+  });
+
+  for (const [entity, items] of Object.entries(groups)) {
+    const group = document.createElement('div');
+    group.className = 'idx-entity-group';
+
+    const name = document.createElement('div');
+    name.className = 'idx-entity-name';
+    name.textContent = entity;
+    group.appendChild(name);
+
+    items.forEach(({ view, index }) => {
+      const item = document.createElement('div');
+      item.className = 'idx-view-item' + (index === selectedIdx ? ' selected' : '');
+      item.innerHTML = `<span class="idx-view-context">${view.context || view.name}</span><span class="idx-view-type">${view.file ? '' : '(未生成)'}</span>`;
+      item.addEventListener('click', () => selectView(index));
+      group.appendChild(item);
+    });
+
+    list.appendChild(group);
+  }
+
+  if (data.views.length === 0) {
+    list.innerHTML = '<div style="color: var(--text-muted); font-size: var(--font-sm); text-align: center; padding: var(--space-lg);">ビューがありません</div>';
+  }
+}
+
+function selectView(idx) {
+  selectedIdx = idx;
+  const v = data.views[idx];
+
+  document.getElementById('idx-detail-empty').style.display = 'none';
+  document.getElementById('idx-detail-content').style.display = 'block';
+  document.getElementById('idx-detail-title').textContent = v.name;
+  document.getElementById('idx-detail-entity').textContent = v.entity || '';
+  document.getElementById('idx-detail-context').textContent = v.context || '';
+  document.getElementById('idx-detail-file').textContent = v.file || '(未生成)';
+  document.getElementById('idx-detail-html').textContent = v.html || '(未生成)';
+
+  renderList();
+}
+
+function openView() {
+  if (selectedIdx < 0) return;
+  const v = data.views[selectedIdx];
+  if (v.html) {
+    window.open(v.html, '_blank');
+  }
+}
+
+// ── Add view ──
+
+function showAddModal() {
+  document.getElementById('idx-modal-overlay').classList.add('show');
+  document.getElementById('idx-modal-result').style.display = 'none';
+  document.getElementById('idx-add-entity').value = '';
+  document.getElementById('idx-add-context').value = '';
+  document.getElementById('idx-add-entity').focus();
+}
+
+function closeModal() {
+  document.getElementById('idx-modal-overlay').classList.remove('show');
+}
+
+function addView() {
+  const entity = document.getElementById('idx-add-entity').value.trim();
+  const context = document.getElementById('idx-add-context').value.trim();
+  const primaryType = document.getElementById('idx-add-type').value;
+
+  if (!entity || !context) {
+    alert('エンティティ名とコンテキストを入力してください');
+    return;
+  }
+
+  // スラッグ生成
+  const slug = (entity + '-' + context).replace(/[^\w\u3000-\u9FFF]/g, '-').replace(/-+/g, '-').toLowerCase();
+  const fileName = slug + '.wireframe.json';
+  const htmlName = slug + '.wireframe.html';
+
+  const newView = {
+    name: entity + ' ' + context,
+    entity: entity,
+    context: context,
+    file: fileName,
+    html: htmlName
+  };
+
+  data.views.push(newView);
+  scheduleAutoSave();
+
+  // Claude Codeへの指示文を表示
+  const result = document.getElementById('idx-modal-result');
+  result.style.display = 'block';
+  result.textContent = `index.jsonに追加しました。\n\n次のコマンドでwireframe JSONとHTMLを生成してください：\n/wireframe ${entity} ${context} (${primaryType})`;
+
+  renderList();
+  selectView(data.views.length - 1);
+}
+
+// ── Connect & Auto-save ──
+
+async function connectFile() {
+  try {
+    dirHandle = await window.showDirectoryPicker({ id: 'wf-index-dir', mode: 'readwrite' });
+    fileHandle = await dirHandle.getFileHandle('index.json', { create: true });
+    updateSaveStatus('Connected');
+    scheduleAutoSave();
+    document.getElementById('idx-connect-btn').textContent = 'Connected';
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    updateSaveStatus('Connect failed');
+  }
+}
+
+function updateSaveStatus(text) {
+  document.getElementById('idx-save-status').textContent = text;
+}
+
+async function writeToFile() {
+  if (!fileHandle) return;
+  try {
+    const json = JSON.stringify(data, null, 2);
+    const writable = await fileHandle.createWritable();
+    await writable.write(json);
+    await writable.close();
+    updateSaveStatus('Saved');
+  } catch (err) {
+    updateSaveStatus('Save failed');
+  }
+}
+
+function scheduleAutoSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  if (!fileHandle) return;
+  saveTimer = setTimeout(() => writeToFile(), 500);
+}
+
+// ドラッグ&ドロップでファイル接続
+document.body.addEventListener('dragover', e => {
+  if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+});
+document.body.addEventListener('drop', async e => {
+  if (!e.dataTransfer.types.includes('Files')) return;
+  e.preventDefault();
+  const items = e.dataTransfer.items;
+  for (const item of items) {
+    if (item.kind !== 'file') continue;
+    const handle = await item.getAsFileSystemHandle();
+    if (handle.kind === 'file' && handle.name === 'index.json') {
+      fileHandle = handle;
+      updateSaveStatus('Connected');
+      scheduleAutoSave();
+      document.getElementById('idx-connect-btn').textContent = 'Connected';
+      return;
+    }
+  }
+  updateSaveStatus('index.jsonをドロップしてください');
+});
+
+// モーダル外クリックで閉じる
+document.getElementById('idx-modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// 初期化
+renderList();
+</script>
+</body>
+</html>
