@@ -120,6 +120,11 @@
     border-radius: var(--radius-full);
   }
 
+  #wf-toolbar-center {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
   #wf-toolbar-actions {
     display: flex;
     gap: var(--space-sm);
@@ -267,7 +272,21 @@
   #wf-save-status {
     font-size: var(--font-sm);
     color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
   }
+
+  .wf-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .wf-status-dot.connected { background: #4CAF50; }
+  .wf-status-dot.saving { background: #FF9800; }
+  .wf-status-dot.error { background: #F44336; }
 
   #wf-json-content {
     flex: 1;
@@ -588,6 +607,10 @@
   <div id="wf-toolbar-left">
     <span id="wf-toolbar-title"></span>
     <span id="wf-edited-badge">Edited</span>
+  </div>
+  <div id="wf-toolbar-center">
+    <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
+    <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
   </div>
   <div id="wf-toolbar-actions">
     <button class="wf-btn wf-btn-toggle" id="wf-toggle-btn" onclick="toggleJSONPanel()" aria-pressed="true" title="Toggle JSON panel"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
@@ -910,17 +933,19 @@ async function connectFile() {
     dirHandle = await window.showDirectoryPicker({ id: 'wf-dir', mode: 'readwrite' });
     const fh = await dirHandle.getFileHandle(originalFilename, { create: true });
     fileHandle = fh;
-    updateSaveStatus('Connected');
+    updateSaveStatus('connected', originalFilename + ' (自動保存)');
     scheduleAutoSave();
-    document.getElementById('wf-connect-btn').textContent = 'Connected';
+    document.getElementById('wf-connect-btn').textContent = 'Reconnect';
   } catch (err) {
     if (err.name === 'AbortError') return;
-    updateSaveStatus('Connect failed');
+    updateSaveStatus('error', 'Connect failed');
   }
 }
 
-function updateSaveStatus(text) {
-  document.getElementById('wf-save-status').textContent = text;
+function updateSaveStatus(state, text) {
+  const el = document.getElementById('wf-save-status');
+  const dotClass = state === 'connected' ? 'connected' : state === 'saving' ? 'saving' : state === 'error' ? 'error' : '';
+  el.innerHTML = `<span class="wf-status-dot ${dotClass}"></span>${text || ''}`;
 }
 
 async function writeToFile() {
@@ -930,9 +955,9 @@ async function writeToFile() {
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
-    updateSaveStatus('Saved');
+    updateSaveStatus('connected', 'Saved');
   } catch (err) {
-    updateSaveStatus('Save failed');
+    updateSaveStatus('error', 'Save failed');
   }
 }
 
@@ -955,17 +980,18 @@ document.getElementById('wf-viewport-wrap').addEventListener('drop', async e => 
     const handle = await item.getAsFileSystemHandle();
     if (handle.kind === 'file' && handle.name.endsWith('.json')) {
       fileHandle = handle;
-      updateSaveStatus('Connected');
+      updateSaveStatus('connected', handle.name + ' (自動保存)');
       scheduleAutoSave();
-      document.getElementById('wf-connect-btn').textContent = 'Connected';
+      document.getElementById('wf-connect-btn').textContent = 'Reconnect';
       return;
     }
   }
-  updateSaveStatus('JSONファイルをドロップしてください');
+  updateSaveStatus('error', 'JSONファイルをドロップしてください');
 });
 
 function markModified() {
-  markModified();
+  modified = true;
+  document.getElementById('wf-edited-badge').style.display = 'inline';
   scheduleAutoSave();
 }
 
@@ -1076,32 +1102,84 @@ function handleDelete() {
   showToast(`Deleted: ${name}`);
 }
 
+function isInputFocused() {
+  const el = document.activeElement;
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
 function handleKeyDown(e) {
-  // Delete/Backspace（修飾キーなし）
-  if ((e.key === 'Delete' || e.key === 'Backspace') && !e.metaKey && !e.ctrlKey) {
-    if (selectedPath === null) return;
-    handleDelete();
+  const isMeta = e.metaKey || e.ctrlKey;
+
+  // ⌘Z: Undo
+  if (isMeta && !e.shiftKey && e.key === 'z') {
     e.preventDefault();
+    handleUndo();
     return;
   }
 
-  const isMeta = e.metaKey || e.ctrlKey;
-  if (!isMeta) return;
-
-  if (e.key === 'z' && e.shiftKey) {
+  // ⌘⇧Z: Redo
+  if (isMeta && e.shiftKey && e.key === 'z') {
+    e.preventDefault();
     handleRedo();
+    return;
+  }
+
+  // ⌘S: 手動保存
+  if (isMeta && e.key === 's') {
     e.preventDefault();
-  } else if (e.key === 'z') {
-    handleUndo();
-    e.preventDefault();
-  } else if (e.key === 'c') {
-    // JSONパネルのテキスト選択中はブラウザのコピーを優先
+    if (fileHandle) { writeToFile(); } else { connectFile(); }
+    return;
+  }
+
+  // ⌘C: コピー
+  if (isMeta && e.key === 'c' && selectedPath !== null && !isInputFocused()) {
     if (window.getSelection()?.toString()) return;
+    e.preventDefault();
     handleCopy();
+    return;
+  }
+
+  // ⌘V: ペースト
+  if (isMeta && e.key === 'v' && !isInputFocused()) {
     e.preventDefault();
-  } else if (e.key === 'v') {
     handlePaste();
+    return;
+  }
+
+  // Delete / Backspace: 削除
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPath !== null && !isInputFocused()) {
     e.preventDefault();
+    handleDelete();
+    return;
+  }
+
+  // 矢印キー: 選択中ノードを移動（親のdirectionに応じて）
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedPath !== null && !isInputFocused()) {
+    const info = getNodeByPath(selectedPath);
+    if (!info) return;
+    const parent = info.parent;
+    const dir = parent.direction || 'vertical';
+    const idx = info.index;
+    let delta = 0;
+    if (dir === 'horizontal' && e.key === 'ArrowLeft') delta = -1;
+    if (dir === 'horizontal' && e.key === 'ArrowRight') delta = 1;
+    if (dir === 'vertical' && e.key === 'ArrowUp') delta = -1;
+    if (dir === 'vertical' && e.key === 'ArrowDown') delta = 1;
+    if (delta === 0) return;
+    const newIdx = idx + delta;
+    if (newIdx < 0 || newIdx >= parent.children.length) return;
+    e.preventDefault();
+    saveSnapshot();
+    const [removed] = parent.children.splice(idx, 1);
+    parent.children.splice(newIdx, 0, removed);
+    // 移動後のパスを更新
+    const parts = String(selectedPath).split('.');
+    parts[parts.length - 1] = String(newIdx);
+    selectedPath = parts.join('.');
+    markModified();
+    render();
+    updateJSONPanel();
+    return;
   }
 }
 
