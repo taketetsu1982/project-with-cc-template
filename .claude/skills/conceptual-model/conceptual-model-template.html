@@ -632,9 +632,7 @@ function onDrop(e, targetPath) {
     const srcIdx = dragPath[dragPath.length - 1];
     const tgtIdx = targetPath[targetPath.length - 1];
     const [removed] = srcParent.children.splice(srcIdx, 1);
-    // 挿入先のインデックス調整
-    const adjustedIdx = (pathEquals(dragPath.slice(0, -1), targetPath.slice(0, -1)) && srcIdx < tgtIdx) ? tgtIdx - 1 : tgtIdx;
-    tgtParent.children.splice(adjustedIdx, 0, removed);
+    tgtParent.children.splice(tgtIdx, 0, removed);
     dragPath = null;
     selectedPath = null;
     render();
@@ -1014,7 +1012,7 @@ document.addEventListener('drop', async e => {
     }
   }
   // getAsFileSystemHandle 非対応の場合
-  updateSaveStatus('error', 'ドロップ接続非対応 — Connect Fileを使用');
+  updateSaveStatus('error', 'ドロップ接続非対応 — Connectを使用');
 });
 
 // ===== 初期レンダリング =====
