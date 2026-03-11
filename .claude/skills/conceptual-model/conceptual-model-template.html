@@ -291,16 +291,25 @@
     cursor: default;
   }
 
-  .attr-tag .attr-text {
+  .attr-tag .attr-key,
+  .attr-tag .attr-val {
     border: none;
     background: none;
     outline: none;
     font-size: 13px;
-    color: #555;
     width: 30px; /* JS で動的に設定 */
     min-width: 20px;
   }
-  .attr-tag .attr-text:focus { color: #333; }
+  .attr-tag .attr-key { color: #333; font-weight: 600; }
+  .attr-tag .attr-val { color: #666; }
+  .attr-tag .attr-key:focus,
+  .attr-tag .attr-val:focus { color: #111; }
+  .attr-tag .attr-sep {
+    color: #aaa;
+    font-size: 13px;
+    margin: 0 1px;
+    flex-shrink: 0;
+  }
 
   .attr-tag .attr-remove {
     cursor: pointer;
@@ -855,21 +864,43 @@ function renderEntity(node, path) {
     const tag = document.createElement('span');
     tag.className = 'attr-tag';
 
-    const text = document.createElement('input');
-    text.className = 'attr-text';
-    text.value = attr;
-    // 初期幅を計測して設定（レンダリング後にも再計測）
-    requestAnimationFrame(() => fitInputWidth(text));
-    text.addEventListener('click', e => e.stopPropagation());
-    text.addEventListener('input', e => {
-      fitInputWidth(text);
-    });
-    text.addEventListener('change', e => {
+    // "key: value" 形式をパース（最初の : で分割）
+    const colonIdx = attr.indexOf(':');
+    const keyStr = colonIdx >= 0 ? attr.substring(0, colonIdx).trim() : attr.trim();
+    const valStr = colonIdx >= 0 ? attr.substring(colonIdx + 1).trim() : '';
+
+    const keyInput = document.createElement('input');
+    keyInput.className = 'attr-key';
+    keyInput.value = keyStr;
+    keyInput.placeholder = 'field';
+    requestAnimationFrame(() => fitInputWidth(keyInput));
+    keyInput.addEventListener('click', e => e.stopPropagation());
+    keyInput.addEventListener('input', () => fitInputWidth(keyInput));
+    keyInput.addEventListener('change', () => {
       pushUndo();
-      node.attributes[i] = e.target.value;
+      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
       updateJsonPanel();
     });
-    tag.appendChild(text);
+    tag.appendChild(keyInput);
+
+    const sep = document.createElement('span');
+    sep.className = 'attr-sep';
+    sep.textContent = ':';
+    tag.appendChild(sep);
+
+    const valInput = document.createElement('input');
+    valInput.className = 'attr-val';
+    valInput.value = valStr;
+    valInput.placeholder = '説明';
+    requestAnimationFrame(() => fitInputWidth(valInput));
+    valInput.addEventListener('click', e => e.stopPropagation());
+    valInput.addEventListener('input', () => fitInputWidth(valInput));
+    valInput.addEventListener('change', () => {
+      pushUndo();
+      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
+      updateJsonPanel();
+    });
+    tag.appendChild(valInput);
 
     const remove = document.createElement('span');
     remove.className = 'attr-remove';
@@ -892,7 +923,7 @@ function renderEntity(node, path) {
   addBtn.addEventListener('click', e => {
     e.stopPropagation();
     pushUndo();
-    node.attributes.push('新規属性');
+    node.attributes.push('field: 説明');
     render();
   });
   attrs.appendChild(addBtn);
