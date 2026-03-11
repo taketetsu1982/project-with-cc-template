@@ -102,4 +102,6 @@ Conceptual Model generated:
 
 HTMLエディタで「Connect File」→ docs/reqs/ フォルダを選択すると、
 以降の変更が conceptual-model.json に自動保存されます。
+
+次のステップ: /wireframe でビューを定義してください。
 ```
