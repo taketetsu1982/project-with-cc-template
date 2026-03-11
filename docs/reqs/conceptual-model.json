@@ -1,0 +1,8 @@
+{
+  "name": "Conceptual Model",
+  "root": {
+    "name": "ルート",
+    "direction": "vertical",
+    "children": []
+  }
+}
