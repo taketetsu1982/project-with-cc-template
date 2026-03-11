@@ -111,7 +111,9 @@ index.json が存在しない場合は新規作成する。
 python3 -c "
 t = open('.claude/skills/wireframe/wireframe-template.html').read()
 d = open('docs/specs/wireframes/{screen-name}.wireframe.json').read()
-open('docs/specs/wireframes/{screen-name}.wireframe.html', 'w').write(t.replace('const WIREFRAME_DATA = null;', 'const WIREFRAME_DATA = ' + d + ';'))
+h = t.replace('const WIREFRAME_DATA = null;', 'const WIREFRAME_DATA = ' + d + ';')
+h = h.replace(\"const WF_FILENAME = null;\", \"const WF_FILENAME = '{screen-name}.wireframe.json';\")
+open('docs/specs/wireframes/{screen-name}.wireframe.html', 'w').write(h)
 "
 ```
 
