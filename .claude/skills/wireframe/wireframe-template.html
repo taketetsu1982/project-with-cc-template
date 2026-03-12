@@ -1626,8 +1626,17 @@ function handleKeyDown(e) {
 }
 
 function handleNodeClick(e) {
-  // direction toggleやgrab bar内のボタンクリックは無視
-  if (e.target.closest('.wf-dir-toggle') || e.target.closest('button')) return;
+  // direction toggleは無視
+  if (e.target.closest('.wf-dir-toggle')) return;
+
+  // グラブバークリック → そのコンテナを選択
+  const grabBar = e.target.closest('.wf-grab-bar');
+  if (grabBar) {
+    e.stopPropagation();
+    const nodeEl = grabBar.closest('[data-path]');
+    if (nodeEl) selectNode(nodeEl.dataset.path);
+    return;
+  }
 
   const nodeEl = e.target.closest('[data-path]');
   if (!nodeEl) return;
