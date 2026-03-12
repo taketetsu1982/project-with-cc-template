@@ -837,17 +837,16 @@ function disconnectFile() {
 async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
-  if (!('showSaveFilePicker' in window)) {
+  if (!('showOpenFilePicker' in window)) {
     alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
     return;
   }
-  const filename = CM_FILENAME || 'conceptual-model.json';
   try {
-    fileHandle = await window.showSaveFilePicker({
+    const [handle] = await window.showOpenFilePicker({
       id: 'cm-editor',
-      suggestedName: filename,
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
+    fileHandle = handle;
     updateSaveStatus('connected', fileHandle.name);
     await writeToFile();
   } catch (e) {
