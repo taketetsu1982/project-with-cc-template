@@ -846,7 +846,7 @@
 <div id="wf-entity-panel">
   <div id="wf-entity-panel-header">
     <span>View</span>
-    <a class="panel-header-link" href="conceptual-model.html" target="_blank">Edit in Conceptual Model</a>
+    <a class="panel-header-link" href="../../reqs/conceptual-model.html" target="_blank">Edit in Conceptual Model</a>
   </div>
   <div id="wf-view-info"></div>
   <div class="wf-tab-bar">
@@ -1207,16 +1207,18 @@ function disconnectFile() {
 async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
-  if (!('showDirectoryPicker' in window)) {
+  if (!('showSaveFilePicker' in window)) {
     alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
     return;
   }
   const rawName = WF_FILENAME || originalFilename;
-  // パストラバーサル防止: パス区切りの末尾（ファイル名部分）のみ抽出
   const filename = rawName.split(/[/\\]/).pop() || 'wireframe.json';
   try {
-    const dirHandle = await window.showDirectoryPicker({ id: 'wf-editor', mode: 'readwrite' });
-    fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+    fileHandle = await window.showSaveFilePicker({
+      id: 'wf-editor',
+      suggestedName: filename,
+      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+    });
     updateSaveStatus('connected', fileHandle.name);
     await writeToFile();
   } catch (err) {
