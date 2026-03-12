@@ -6,8 +6,8 @@
 - チャットでの指示で仕様が変わるような大きな変更の場合も同様に reqs → specs → 実装の順で進める（指示内容によっては specs からの変更でも可）
 
 ## スキル発動ルール
-- PRD・MRDが固まり conceptual-model の作成・更新に入ったら、`/conceptual-model` スキルを実行して JSON + HTMLエディタを生成する
-- ユーザーからワイヤーフレームの生成・設計の指示があったら、`/wireframe` スキルを実行して各ビューのレイアウトを生成する
+- PRD・MRDが固まり conceptual-model の作成・更新に入ったら、`/conceptual-model` スキルを実行してエンティティ + ビュー定義の JSON + HTMLエディタを生成する
+- `conceptual-model.json` にビュー情報がありワイヤーフレームが必要な場合（設計指示・画面設計など）、`/wireframe` スキルを実行して各ビューのレイアウトを生成する
 
 ## 実装フェーズ
 - Spec変更が必要になったら、実装前にSpec文書を更新する
