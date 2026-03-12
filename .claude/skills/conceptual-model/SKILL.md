@@ -123,8 +123,8 @@ Conceptual Model generated:
 - JSON: docs/reqs/conceptual-model.json
 - Editor: docs/reqs/conceptual-model.html (opened in browser)
 
-HTMLエディタで「Connect File」→ docs/reqs/ フォルダを選択すると、
-以降の変更が conceptual-model.json に自動保存されます。
+HTMLエディタで「Connect File」→ conceptual-model.json を選択すると、
+以降の変更が自動保存されます。
 
 1. HTMLエディタでエンティティ・ビュー定義を微調整（必要に応じて）
 2. 確定後、/wireframe を実行して各ビューのレイアウトを生成
