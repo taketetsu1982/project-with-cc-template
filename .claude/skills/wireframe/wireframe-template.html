@@ -334,6 +334,11 @@
     padding: 1px 8px;
     white-space: nowrap;
   }
+  .wf-entity-card-attr-used {
+    color: var(--text-secondary);
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+  }
 
   /* ── File drop overlay ── */
   .file-drop-overlay {
@@ -868,7 +873,6 @@
 
 <script>
 let WIREFRAME_DATA = null; // %%WIREFRAME_DATA%%
-const CM_DATA = null; // スキル実行時にconceptual-model.jsonで置換される
 
 let modified = false;
 let dragPath = null;
@@ -1826,11 +1830,11 @@ function renderPropsPanel() {
     renderPropsPanel();
   });
   if (node._entity) {
-    // CM_DATAがあれば全属性一覧、なければノードの_attributesを使用
-    const cmEntity = findCmEntity(node._entity);
+    // view.entitiesから全属性一覧を取得、なければノードの_attributesを使用
+    const viewEntity = findViewEntity(node._entity);
     let allAttrs;
-    if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
-      allAttrs = cmEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+    if (viewEntity && viewEntity.attributes && viewEntity.attributes.length > 0) {
+      allAttrs = viewEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
     } else {
       allAttrs = node._attributes ? [...node._attributes] : [];
     }
@@ -1985,20 +1989,10 @@ function addSelectProp(container, label, value, options, onChange) {
 
 // ── Entity Panel ──
 
-function findCmEntity(entityName) {
-  if (!CM_DATA || !CM_DATA.root) return null;
-  // root.children内を再帰的に探索してtype=entityのノードを見つける
-  function search(nodes) {
-    for (const n of (nodes || [])) {
-      if (n.type === 'entity' && n.name === entityName) return n;
-      if (n.children) {
-        const found = search(n.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-  return search(CM_DATA.root.children);
+// view.entities から該当エンティティの属性一覧を取得
+function findViewEntity(entityName) {
+  if (!WIREFRAME_DATA || !WIREFRAME_DATA.view || !WIREFRAME_DATA.view.entities) return null;
+  return WIREFRAME_DATA.view.entities.find(e => e.entity === entityName) || null;
 }
 
 // _noteインジケーターを要素に追加
@@ -2072,12 +2066,12 @@ function renderEntityPanel() {
     return;
   }
 
-  // ツリーを1回走査してentity→属性Setのマップを構築
-  const entityAttrMap = new Map();
+  // ツリーを走査して使用中の属性を収集
+  const usedAttrMap = new Map();
   (function collectAll(n) {
     if (n._entity && n._attributes) {
-      if (!entityAttrMap.has(n._entity)) entityAttrMap.set(n._entity, new Set());
-      const set = entityAttrMap.get(n._entity);
+      if (!usedAttrMap.has(n._entity)) usedAttrMap.set(n._entity, new Set());
+      const set = usedAttrMap.get(n._entity);
       n._attributes.forEach(a => set.add(a));
     }
     if (n.children) n.children.forEach(collectAll);
@@ -2102,14 +2096,20 @@ function renderEntityPanel() {
     }
     card.appendChild(header);
 
-    // マップから属性を取得
-    const attrNames = entityAttrMap.has(ent.entity) ? [...entityAttrMap.get(ent.entity)] : [];
-    if (attrNames.length > 0) {
+    // view.entities[].attributesから全属性を表示（使用中はハイライト）
+    const allAttrs = ent.attributes || [];
+    const usedSet = usedAttrMap.get(ent.entity) || new Set();
+    if (allAttrs.length > 0) {
       const attrsDiv = document.createElement('div');
       attrsDiv.className = 'wf-entity-card-attrs';
-      attrNames.forEach(attr => {
+      allAttrs.forEach(attr => {
         const attrSpan = document.createElement('span');
         attrSpan.className = 'wf-entity-card-attr';
+        // 属性名部分（"属性名: 説明" の "属性名" 部分）で使用中か判定
+        const attrName = attr.split(':')[0].trim();
+        if (usedSet.has(attrName) || usedSet.has(attr)) {
+          attrSpan.classList.add('wf-entity-card-attr-used');
+        }
         attrSpan.textContent = attr;
         attrsDiv.appendChild(attrSpan);
       });
