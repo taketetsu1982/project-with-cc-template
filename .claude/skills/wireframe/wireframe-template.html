@@ -33,11 +33,15 @@
     --success-border: #A5D6A7;
     --success-text: #2E7D32;
 
-    /* Syntax highlighting (dark panel用) */
-    --syntax-key: #9CDCFE;
-    --syntax-string: #CE9178;
-    --syntax-number: #d16969;
-    --syntax-bool: #569CD6;
+    /* Status */
+    --status-connected: #4CAF50;
+    --status-saving: #FF9800;
+    --status-error: #F44336;
+    --accent-overlay: rgba(74, 144, 217, 0.08);
+    --shadow-dropdown: rgba(0, 0, 0, 0.1);
+    --drop-indicator-bg: rgba(41, 179, 241, 0.06);
+    --accent-bg-subtle: rgba(74, 144, 217, 0.06);
+    --hover-bg: rgba(0, 0, 0, 0.015);
 
     /* Radius */
     --radius-sm: 4px;
@@ -71,8 +75,7 @@
     color: var(--text-primary);
     display: grid;
     grid-template-rows: 48px 1fr;
-    grid-template-columns: 1fr 0px;
-    transition: grid-template-columns 0.2s ease;
+    grid-template-columns: 1fr 300px;
     height: 100vh;
     overflow: hidden;
   }
@@ -131,39 +134,19 @@
     justify-content: flex-end;
   }
 
-  #wf-cm-link {
-    font-size: 11px;
-    color: #888;
-  }
-  #wf-back-btn {
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 10px;
-  }
-
-  #wf-cm-link a {
-    color: #4A90D9;
-    text-decoration: none;
-  }
-  #wf-cm-link a:hover {
-    text-decoration: underline;
-  }
-
   .wf-btn {
     padding: 6px 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
     cursor: pointer;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
     transition: background 0.15s;
   }
 
-  .wf-btn:hover { background: #f0f0f0; text-decoration: none; }
-  .wf-btn:active { background: #e0e0e0; }
+  .wf-btn:hover { background: var(--bg-subtle); text-decoration: none; }
+  .wf-btn:active { background: var(--border-default); }
 
   .wf-btn-success {
     background: var(--success-bg);
@@ -171,15 +154,15 @@
     color: var(--success-text);
   }
 
-  /* ── View info (toolbar right) ── */
+  /* ── View info (toolbar center) ── */
   #wf-view-info {
     font-size: 13px;
-    color: #555;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 12px;
   }
-  #wf-view-info .wf-view-label { color: #888; margin-right: 2px; }
+  #wf-view-info .wf-view-label { color: var(--text-tertiary); margin-right: 2px; }
 
   /* ── _entity badge on nodes ── */
   .wf-entity-badge {
@@ -221,39 +204,111 @@
     margin: 0 auto;
   }
 
-  /* ── JSON Panel (dark theme — CM準拠) ── */
-  #wf-json-panel {
+  /* ── Entity Panel (右ペイン) ── */
+  #wf-entity-panel {
     grid-column: 2;
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-default);
-    background: #2d2d30;
-    color: #d4d4d4;
+    background: var(--bg-panel);
     overflow: hidden;
   }
-  #wf-json-panel.wf-panel-closed {
-    border-left: none;
-  }
 
-  #wf-json-panel-header {
+  #wf-entity-panel-header {
     height: 40px;
     min-height: 40px;
     padding: 0 var(--space-md);
-    background: #2d2d2d;
-    border-bottom: 1px solid #444;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-default);
     display: flex;
     align-items: center;
     font-size: var(--font-sm);
     font-weight: 600;
-    color: #d4d4d4;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+  }
+
+  #wf-entity-panel-note {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-default);
+    line-height: 1.5;
+  }
+
+  #wf-entity-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .wf-entity-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: outline 0.15s;
+  }
+  .wf-entity-card:hover {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+  }
+  .wf-entity-card.wf-entity-card-active {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    background: var(--accent-bg);
+  }
+
+  .wf-entity-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+  }
+
+  .wf-entity-card-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--font-base);
+  }
+
+  .wf-entity-card-role {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  .wf-entity-card-attrs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .wf-entity-card-attr {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    padding: 1px 8px;
+    white-space: nowrap;
+  }
+
+  .wf-entity-card-no-data {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    padding: var(--space-md);
+    text-align: center;
   }
 
   /* ── Save status (toolbar) ── */
   #wf-save-status {
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -263,35 +318,12 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ccc;
+    background: var(--border-default);
     flex-shrink: 0;
   }
-  .wf-status-dot.connected { background: #4CAF50; }
-  .wf-status-dot.saving { background: #FF9800; }
-  .wf-status-dot.error { background: #F44336; }
-
-  #wf-json-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-md);
-  }
-
-  #wf-json-code {
-    font-family: var(--font-mono);
-    font-size: var(--font-sm);
-    line-height: 1.6;
-    color: #d4d4d4;
-    white-space: pre;
-    margin: 0;
-  }
-
-  /* JSON syntax highlighting */
-  .jk { color: var(--syntax-key); }
-  .js { color: var(--syntax-string); }
-  .jn { color: var(--syntax-number); }
-  .jb { color: var(--syntax-bool); }
-  .jk-readonly { color: #6A9955; }
-  .js-readonly { color: #6A9955; }
+  .wf-status-dot.connected { background: var(--status-connected); }
+  .wf-status-dot.saving { background: var(--status-saving); }
+  .wf-status-dot.error { background: var(--status-error); }
 
   /* ── Toast ── */
   #wf-toast {
@@ -338,12 +370,15 @@
   .wf-dragging { opacity: 0.3; }
 
   /* Drop target highlight */
-  .wf-drag-over { outline: 4px solid var(--drop-indicator) !important; outline-offset: -4px; background: rgba(41,179,241,0.06) !important; }
+  .wf-drag-over { outline: 4px solid var(--drop-indicator) !important; outline-offset: -4px; background: var(--drop-indicator-bg) !important; }
   .wf-drag-over > .wf-label { color: var(--drop-indicator) !important; }
 
   /* 選択状態 */
-  .wf-selected { outline: 2px solid var(--accent) !important; outline-offset: -2px; background: rgba(74,144,217,0.06) !important; }
+  .wf-selected { outline: 2px solid var(--accent) !important; outline-offset: -2px; background: var(--accent-bg-subtle) !important; }
   .wf-selected > .wf-label { color: var(--accent) !important; }
+
+  /* エンティティハイライト */
+  .wf-entity-highlight { outline: 2px solid var(--status-saving) !important; outline-offset: -2px; background: var(--accent-overlay) !important; }
 
   /* ── Node name label ── */
   .wf-label {
@@ -359,7 +394,7 @@
   }
 
   .wf-node:hover > .wf-label { color: var(--text-primary); }
-  .wf-node:hover { outline: 1px dashed var(--text-muted); outline-offset: -1px; background: rgba(0,0,0,0.015); }
+  .wf-node:hover { outline: 1px dashed var(--text-muted); outline-offset: -1px; background: var(--hover-bg); }
 
   /* ── Grab bar for compound nodes ── */
   .wf-grab-bar {
@@ -374,7 +409,7 @@
     font-size: var(--font-sm);
     font-weight: 500;
     color: var(--text-tertiary);
-    background: rgba(250, 250, 250, 0.92);
+    background: color-mix(in srgb, var(--bg-panel) 92%, transparent);
     border-bottom: 1px solid var(--border-light);
     position: absolute;
     top: 0;
@@ -587,7 +622,6 @@
 
 <div id="wf-toolbar">
   <div id="wf-toolbar-left">
-    <a href="index.html" class="wf-btn" id="wf-back-btn" title="Index に戻る">←</a>
     <span id="wf-toolbar-title"></span>
     <button class="wf-btn" id="wf-connect-btn" onclick="connectFile()">Connect</button>
     <span id="wf-save-status"><span class="wf-status-dot"></span><span id="wf-save-label">未接続：JSONファイルをドロップ</span></span>
@@ -595,12 +629,10 @@
   </div>
   <div id="wf-toolbar-center">
     <span id="wf-view-info"></span>
-    <span id="wf-cm-link">エンティティ・属性の変更は <a href="conceptual-model.html" target="_blank">Conceptual Model</a> から行う</span>
   </div>
   <div id="wf-toolbar-actions">
     <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
     <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
-    <button class="wf-btn" id="wf-json-toggle" onclick="toggleJsonPanel()">JSON ▸</button>
   </div>
 </div>
 
@@ -608,19 +640,21 @@
   <div id="wf-root"></div>
 </div>
 
-<div id="wf-json-panel" class="wf-panel-closed">
-  <div id="wf-json-panel-header">
-    <span>JSON</span>
+<div id="wf-entity-panel">
+  <div id="wf-entity-panel-header">
+    <span>Entities (read-only)</span>
   </div>
-  <div id="wf-json-content">
-    <pre id="wf-json-code"></pre>
+  <div id="wf-entity-panel-note">
+    エンティティ・属性の変更は<br>Conceptual Model から行う
   </div>
+  <div id="wf-entity-list"></div>
 </div>
 
 <div id="wf-toast"></div>
 
 <script>
 const WIREFRAME_DATA = null; // %%WIREFRAME_DATA%%
+const CM_DATA = null; // スキル実行時にconceptual-model.jsonで置換される
 
 let modified = false;
 let dragPath = null;
@@ -628,6 +662,7 @@ let dropIndicator = null;
 let fileHandle = null;
 let selectedPath = null;
 let clipboardNode = null;
+let highlightedEntity = null;
 const undoStack = [];
 const redoStack = [];
 const MAX_UNDO = 50;
@@ -643,21 +678,6 @@ function saveSnapshot() {
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   // 新しい操作が入ったらredo履歴をクリア
   redoStack.length = 0;
-}
-
-function toggleJsonPanel() {
-  const panel = document.getElementById('wf-json-panel');
-  const btn = document.getElementById('wf-json-toggle');
-  const isOpen = !panel.classList.contains('wf-panel-closed');
-  if (isOpen) {
-    document.body.style.gridTemplateColumns = '1fr 0px';
-    panel.classList.add('wf-panel-closed');
-    btn.textContent = 'JSON \u25b8';
-  } else {
-    document.body.style.gridTemplateColumns = '1fr 400px';
-    panel.classList.remove('wf-panel-closed');
-    btn.textContent = 'JSON \u25c2';
-  }
 }
 
 function handleUndo() {
@@ -933,27 +953,10 @@ function removeDropIndicator() {
   }
 }
 
-// ── JSON Panel ──
-
-function highlightJSON(json) {
-  // Escape HTML first
-  const escaped = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escaped
-    .replace(/("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?/g, (match, str, colon) => {
-      if (colon) {
-        // _entity/_attributes キーはグレーアウト
-        const isReadonly = /^&quot;_entity&quot;|^&quot;_attributes&quot;/.test(str);
-        return '<span class="' + (isReadonly ? 'jk-readonly' : 'jk') + '">' + str + '</span>' + colon;
-      }
-      return '<span class="js">' + str + '</span>';
-    })
-    .replace(/\b(-?\d+(\.\d+)?([eE][+-]?\d+)?)\b/g, '<span class="jn">$1</span>')
-    .replace(/\b(true|false|null)\b/g, '<span class="jb">$1</span>');
-}
+// ── JSON Panel (auto-saveトリガー用に呼び出し箇所は残す) ──
 
 function updateJSONPanel() {
-  const json = JSON.stringify(WIREFRAME_DATA, null, 2);
-  document.getElementById('wf-json-code').innerHTML = highlightJSON(json);
+  scheduleAutoSave();
 }
 
 // ── Connect & Auto-save ──
@@ -1036,7 +1039,7 @@ function showToast(message) {
   const toast = document.getElementById('wf-toast');
   toast.textContent = message;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // ── Direction Toggle ──
@@ -1231,6 +1234,105 @@ function handleNodeClick(e) {
   selectNode(nodeEl.dataset.path);
 }
 
+// ── Entity Panel ──
+
+function findCmEntity(entityName) {
+  if (!CM_DATA || !CM_DATA.entities) return null;
+  return CM_DATA.entities.find(e => e.name === entityName) || null;
+}
+
+function renderEntityPanel() {
+  const list = document.getElementById('wf-entity-list');
+  list.innerHTML = '';
+
+  if (!WIREFRAME_DATA) {
+    list.innerHTML = '<div class="wf-entity-card-no-data">データなし</div>';
+    return;
+  }
+
+  const v = WIREFRAME_DATA.view;
+  // entities配列を取得（旧形式entityもフォールバック）
+  let entities = [];
+  if (v && v.entities && v.entities.length > 0) {
+    entities = v.entities;
+  } else if (v && v.entity) {
+    entities = [{ entity: v.entity, role: '' }];
+  }
+
+  if (entities.length === 0) {
+    list.innerHTML = '<div class="wf-entity-card-no-data">エンティティ未定義</div>';
+    return;
+  }
+
+  entities.forEach(ent => {
+    const card = document.createElement('div');
+    card.className = 'wf-entity-card';
+    card.dataset.entityName = ent.entity;
+
+    // ヘッダー
+    const header = document.createElement('div');
+    header.className = 'wf-entity-card-header';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'wf-entity-card-name';
+    nameSpan.textContent = ent.entity;
+    header.appendChild(nameSpan);
+    if (ent.role) {
+      const roleSpan = document.createElement('span');
+      roleSpan.className = 'wf-entity-card-role';
+      roleSpan.textContent = ent.role;
+      header.appendChild(roleSpan);
+    }
+    card.appendChild(header);
+
+    // CM_DATAからattributesを取得して表示
+    const cmEntity = findCmEntity(ent.entity);
+    if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
+      const attrsDiv = document.createElement('div');
+      attrsDiv.className = 'wf-entity-card-attrs';
+      cmEntity.attributes.forEach(attr => {
+        const attrSpan = document.createElement('span');
+        attrSpan.className = 'wf-entity-card-attr';
+        attrSpan.textContent = typeof attr === 'string' ? attr : (attr.name || attr);
+        attrsDiv.appendChild(attrSpan);
+      });
+      card.appendChild(attrsDiv);
+    }
+
+    // クリックでキャンバス上の該当エンティティノードをハイライト
+    card.addEventListener('click', () => {
+      highlightEntityNodes(ent.entity);
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function highlightEntityNodes(entityName) {
+  // 以前のハイライトをクリア
+  document.querySelectorAll('.wf-entity-highlight').forEach(el => el.classList.remove('wf-entity-highlight'));
+  document.querySelectorAll('.wf-entity-card-active').forEach(el => el.classList.remove('wf-entity-card-active'));
+
+  // 同じエンティティをクリックしたらトグル
+  if (highlightedEntity === entityName) {
+    highlightedEntity = null;
+    return;
+  }
+
+  highlightedEntity = entityName;
+
+  // キャンバス上の_entityが一致するノードをハイライト
+  document.querySelectorAll('#wf-root [data-path]').forEach(el => {
+    const badge = el.querySelector('.wf-entity-badge');
+    if (badge && badge.textContent === entityName) {
+      el.classList.add('wf-entity-highlight');
+    }
+  });
+
+  // 右ペインのカードをアクティブに
+  const card = document.querySelector(`.wf-entity-card[data-entity-name="${entityName}"]`);
+  if (card) card.classList.add('wf-entity-card-active');
+}
+
 // ── Render ──
 
 function createGrabBar(name, path, direction) {
@@ -1239,7 +1341,7 @@ function createGrabBar(name, path, direction) {
   bar.draggable = true;
   const grip = document.createElement('span');
   grip.className = 'wf-grip';
-  grip.textContent = '⠿';
+  grip.textContent = '\u2817';
   bar.appendChild(grip);
   const label = document.createElement('span');
   label.textContent = name;
@@ -1250,7 +1352,7 @@ function createGrabBar(name, path, direction) {
     const toggle = document.createElement('button');
     toggle.className = 'wf-dir-toggle';
     toggle.title = direction === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical';
-    toggle.textContent = direction === 'vertical' ? '↕' : '↔';
+    toggle.textContent = direction === 'vertical' ? '\u2195' : '\u2194';
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -1389,7 +1491,7 @@ function renderNode(node, container, path) {
   if (node._attributes && node._attributes.length > 0) {
     const attrEl = document.createElement('div');
     attrEl.className = 'wf-entity-attrs';
-    attrEl.textContent = node._attributes.join(' · ');
+    attrEl.textContent = node._attributes.join(' \u00b7 ');
     el.appendChild(attrEl);
   }
 
@@ -1401,7 +1503,7 @@ function renderNode(node, container, path) {
         if (node.variant) el.dataset.variant = node.variant;
         break;
       case 'image':
-        el.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C0C0C0" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
+        el.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
         break;
       case 'icon':
         if (!node.width) el.style.width = '32px';
@@ -1477,6 +1579,7 @@ function render() {
 function init() {
   if (!WIREFRAME_DATA) {
     document.getElementById('wf-root').textContent = 'No wireframe data found.';
+    document.getElementById('wf-entity-list').innerHTML = '<div class="wf-entity-card-no-data">データなし</div>';
     return;
   }
 
@@ -1519,6 +1622,9 @@ function init() {
       info.appendChild(s);
     }
   }
+
+  // エンティティパネル描画
+  renderEntityPanel();
 
   // Set up drag-and-drop event delegation
   const viewport = document.getElementById('wf-root');

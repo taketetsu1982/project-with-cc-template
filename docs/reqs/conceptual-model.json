@@ -3,6 +3,30 @@
   "root": {
     "name": "ルート",
     "direction": "vertical",
-    "children": []
-  }
+    "children": [
+      {
+        "name": "新規エンティティ",
+        "type": "entity",
+        "attributes": []
+      },
+      {
+        "name": "新規エンティティ",
+        "type": "entity",
+        "attributes": []
+      }
+    ]
+  },
+  "views": [
+    {
+      "name": "新規ビュー",
+      "context": "",
+      "primaryType": "table",
+      "entities": [
+        {
+          "entity": "新規エンティティ",
+          "role": ""
+        }
+      ]
+    }
+  ]
 }

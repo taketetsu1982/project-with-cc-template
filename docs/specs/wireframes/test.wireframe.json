@@ -1,0 +1,32 @@
+{
+  "name": "テスト画面",
+  "view": {
+    "entity": "タスク",
+    "context": "一覧",
+    "primaryType": "table"
+  },
+  "viewport": { "width": 1280, "height": 800 },
+  "root": {
+    "name": "ページ",
+    "direction": "vertical",
+    "children": [
+      {
+        "name": "ヘッダー",
+        "direction": "horizontal",
+        "children": [
+          { "name": "ロゴ", "type": "text", "content": "App", "variant": "heading" },
+          { "name": "ナビ", "direction": "horizontal", "children": [] }
+        ]
+      },
+      {
+        "name": "メイン",
+        "direction": "vertical",
+        "_entity": "タスク",
+        "_attributes": ["タイトル", "期限"],
+        "children": [
+          { "name": "タスク一覧", "type": "table", "columns": ["タイトル", "期限", "ステータス"], "rows": 5 }
+        ]
+      }
+    ]
+  }
+}

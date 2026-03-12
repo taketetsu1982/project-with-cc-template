@@ -33,11 +33,13 @@
     --success-border: #A5D6A7;
     --success-text: #2E7D32;
 
-    /* Syntax highlighting (dark panel用) */
-    --syntax-key: #9CDCFE;
-    --syntax-string: #CE9178;
-    --syntax-number: #d16969;
-    --syntax-bool: #569CD6;
+    /* Status */
+    --status-connected: #4caf50;
+    --status-saving: #ff9800;
+    --status-error: #f44336;
+    --danger: #e44;
+    --accent-overlay: rgba(74, 144, 217, 0.08);
+    --shadow-dropdown: rgba(0, 0, 0, 0.1);
 
     /* Radius */
     --radius-sm: 4px;
@@ -79,7 +81,7 @@
   .app {
     display: grid;
     grid-template-rows: 48px 1fr;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 7fr 3fr;
     height: 100vh;
   }
 
@@ -88,18 +90,19 @@
     height: 48px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-sm);
     padding: 0 var(--space-md);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-default);
     z-index: 100;
+    font-size: 13px;
   }
 
   .toolbar-left {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    flex: 1;
   }
 
   .toolbar-title {
@@ -110,14 +113,59 @@
     letter-spacing: 0.5px;
   }
 
-  .toolbar-center {
+  .pane-header {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
   }
+  .pane-header > span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .pane-header-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    border: none;
+    background: transparent;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    width: auto;
+  }
+  .pane-header-name:hover { background: var(--bg-subtle); }
+  .pane-header-name:focus { outline: 1px solid var(--accent); background: var(--bg-surface); color: var(--text-primary); }
+  .pane-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .pane-header-actions button {
+    font-size: 12px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+  }
+  .pane-header-actions button:hover { background: var(--bg-subtle); }
 
-  .toolbar-right {
-    flex: 1;
+  .edited-badge {
+    display: none;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 600;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
   }
 
 
@@ -129,8 +177,10 @@
     cursor: pointer;
     font-size: 13px;
     color: var(--text-primary);
+    transition: background 0.15s;
   }
   .toolbar button:hover { background: var(--bg-subtle); }
+  .toolbar button:active { background: var(--border-default); }
   .toolbar button.primary { background: var(--bg-dark); color: var(--bg-surface); border-color: var(--bg-dark); }
   .toolbar button.primary:hover { background: var(--text-secondary); }
 
@@ -145,39 +195,28 @@
     flex: 1;
     overflow: auto;
     padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
   }
 
-  .json-pane {
+  .views-pane {
     grid-column: 2;
-    background: #2d2d30;
-    color: #d4d4d4;
+    background: var(--bg-views);
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-default);
+    overflow: hidden;
   }
 
-  .json-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    background: #2d2d2d;
-    border-bottom: 1px solid #444;
-    font-size: 13px;
-  }
 
-  .json-body {
+  .views-body {
     flex: 1;
     overflow: auto;
-    padding: 12px;
-  }
-
-  .json-body pre {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-all;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
   }
 
   /* ===== ノード共通 ===== */
@@ -236,7 +275,7 @@
     display: block;
     width: 12px;
     height: 2px;
-    background: #999;
+    background: var(--text-tertiary);
     border-radius: 1px;
   }
 
@@ -297,14 +336,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bbb;
+    color: var(--text-muted);
     font-size: 13px;
   }
   .drop-zone:empty::after { content: 'ドラッグで追加'; }
 
   /* ===== エンティティノード ===== */
   .entity > .node-inner {
-    border: 1px solid #bbb;
+    border: 1px solid var(--border-default);
     border-radius: 6px;
     background: var(--bg-surface);
     min-width: 140px;
@@ -361,7 +400,7 @@
     align-items: center;
     gap: var(--space-xs);
     padding: 2px var(--space-sm);
-    background: #eee;
+    background: var(--bg-placeholder);
     border: 1px solid var(--border-default);
     border-radius: 12px;
     font-size: 13px;
@@ -379,11 +418,11 @@
     min-width: 20px;
   }
   .attr-tag .attr-key { color: var(--text-primary); font-weight: 600; }
-  .attr-tag .attr-val { color: #666; }
+  .attr-tag .attr-val { color: var(--text-secondary); }
   .attr-tag .attr-key:focus,
-  .attr-tag .attr-val:focus { color: #111; }
+  .attr-tag .attr-val:focus { color: var(--text-primary); }
   .attr-tag .attr-sep {
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 13px;
     margin: 0 1px;
     flex-shrink: 0;
@@ -391,12 +430,12 @@
 
   .attr-tag .attr-remove {
     cursor: pointer;
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 14px;
     line-height: 1;
     padding: 0 2px;
   }
-  .attr-tag .attr-remove:hover { color: #e44; }
+  .attr-tag .attr-remove:hover { color: var(--danger); }
 
   .attr-add {
     display: inline-flex;
@@ -407,36 +446,46 @@
     border: 1px dashed var(--border-default);
     border-radius: 12px;
     font-size: 14px;
-    color: #aaa;
+    color: var(--text-muted);
     cursor: pointer;
     background: none;
   }
-  .attr-add:hover { border-color: #999; color: #666; }
+  .attr-add:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ===== Auto Save ステータス ===== */
-  .save-status {
-    display: flex;
+  /* ===== Auto Save ステータスボタン ===== */
+  .save-status-btn {
+    display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
     font-size: 13px;
-    color: var(--text-primary);
+    color: var(--text-tertiary);
+    background: none;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 0.15s, color 0.15s;
   }
-  .save-status .dot {
+  .save-status-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .save-status-btn .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: var(--border-default);
+    flex-shrink: 0;
   }
-  .save-status .dot.connected { background: #4caf50; }
-  .save-status .dot.saving { background: #ff9800; }
-  .save-status .dot.error { background: #f44336; }
+  .save-status-btn .dot.connected { background: var(--status-connected); }
+  .save-status-btn .dot.saving { background: var(--status-saving); }
+  .save-status-btn .dot.error { background: var(--status-error); }
+  .save-status-btn .save-hint { color: var(--text-muted); }
 
   /* ===== ファイルドロップオーバーレイ ===== */
   .file-drop-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(74, 144, 217, 0.08);
+    background: var(--accent-overlay);
     border: 3px dashed var(--accent);
     z-index: 9999;
     align-items: center;
@@ -451,40 +500,7 @@
     font-size: 15px;
     color: var(--accent);
     font-weight: 600;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  }
-
-  /* ===== セクション区切り ===== */
-  .section-divider {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    margin: var(--space-xl) 0 var(--space-md);
-    color: var(--text-tertiary);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .section-divider::before,
-  .section-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-default);
-  }
-
-  /* ===== ビュー定義エリア ===== */
-  .views-area {
-    background: var(--bg-views);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-  }
-
-  .views-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
+    box-shadow: 0 2px 12px var(--shadow-dropdown);
   }
 
   .view-card {
@@ -596,7 +612,7 @@
     color: var(--text-tertiary);
     flex-shrink: 0;
   }
-  .view-entity-row .entity-remove-btn:hover { color: #e44; }
+  .view-entity-row .entity-remove-btn:hover { color: var(--danger); }
 
   .view-add-entity-btn {
     font-size: 13px;
@@ -610,43 +626,23 @@
   }
   .view-add-entity-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  .view-card-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--space-sm);
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-light);
-  }
-
-  .view-wireframe-btn {
-    font-size: 13px;
-    padding: 6px 14px;
-    border: none;
-    border-radius: var(--radius-sm);
+  /* ===== Toast通知 ===== */
+  .toast {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--bg-dark);
     color: var(--bg-surface);
-    cursor: pointer;
-    font-family: var(--font-sans);
-  }
-  .view-wireframe-btn:hover { opacity: 0.85; }
-
-  .view-wireframe-btn .copy-feedback {
-    color: var(--success-text);
-    font-size: var(--font-sm);
-  }
-
-  .add-view-btn {
-    font-size: 13px;
     padding: var(--space-sm) var(--space-md);
-    border: 2px dashed var(--border-default);
     border-radius: var(--radius-md);
-    background: none;
-    cursor: pointer;
-    color: var(--text-tertiary);
-    width: 100%;
-    text-align: center;
+    font-size: 13px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s;
   }
-  .add-view-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .toast.show { display: block; opacity: 1; }
 
   /* ===== ユーティリティ ===== */
   .hidden { display: none !important; }
@@ -660,30 +656,35 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <span class="toolbar-title">Conceptual Model</span>
-      <button id="btnConnect" onclick="connectFile()">Connect</button>
-      <span class="save-status" id="saveStatus"><span class="dot" id="saveDot"></span><span id="saveLabel">未接続：JSONファイルをドロップ</span></span>
+      <button class="save-status-btn" id="btnConnect" onclick="connectFile()"><span class="dot" id="saveDot"></span><span id="saveLabel">Connect</span> <span class="save-hint" id="saveHint">(Drop a JSON file)</span></button>
+      <span class="edited-badge" id="editedBadge">Edited</span>
     </div>
-    <div class="toolbar-center">
-      <button onclick="addGroup()">+ グループ</button>
-      <button onclick="addEntity()">+ エンティティ</button>
-      <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
-      <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
-    </div>
-    <div class="toolbar-right"></div>
   </div>
   <div class="canvas-pane">
+    <div class="pane-header">
+      <input id="rootLabel" class="pane-header-name" value="Root">
+      <div class="pane-header-actions">
+        <button onclick="addGroup()">+ Group</button>
+        <button onclick="addEntity()">+ Entity</button>
+        <button id="rootDirBtn" onclick="toggleRootDirection()">↕ Vertical</button>
+        <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
+        <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
+      </div>
+    </div>
     <div class="canvas" id="canvas"></div>
   </div>
-  <div class="json-pane" id="jsonPane">
-    <div class="json-header">
-      <span>JSON</span>
+  <div class="views-pane" id="viewsPane">
+    <div class="pane-header">
+      <span>Views</span>
+      <div class="pane-header-actions">
+        <button onclick="addView()">+ Add View</button>
+      </div>
     </div>
-    <div class="json-body">
-      <pre id="jsonOutput"></pre>
-    </div>
+    <div class="views-body" id="viewsList"></div>
   </div>
 </div>
 <div class="file-drop-overlay" id="fileDropOverlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ===== データ =====
@@ -699,6 +700,24 @@ let model = CM_DATA ? structuredClone(CM_DATA) : {
 // views配列がなければ初期化
 model.views = model.views || [];
 
+// ===== Toast通知 =====
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// ===== Editedバッジ =====
+function showEditedBadge() {
+  document.getElementById('editedBadge').style.display = 'inline-block';
+}
+function hideEditedBadge() {
+  document.getElementById('editedBadge').style.display = 'none';
+}
+
 // ===== Undo / Redo =====
 const undoStack = [];
 const redoStack = [];
@@ -708,6 +727,7 @@ function pushUndo() {
   undoStack.push(JSON.stringify(model));
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   redoStack.length = 0;
+  showEditedBadge();
 }
 
 function doUndo() {
@@ -717,6 +737,7 @@ function doUndo() {
   model.views = model.views || [];
   selectedPath = null;
   render();
+  showToast('Undo');
 }
 
 function doRedo() {
@@ -726,6 +747,7 @@ function doRedo() {
   model.views = model.views || [];
   selectedPath = null;
   render();
+  showToast('Redo');
 }
 
 // ===== 選択 =====
@@ -780,11 +802,10 @@ let autoSaveTimer = null;
 let isSaving = false;
 const AUTO_SAVE_DELAY = 500; // ms
 
-function updateSaveStatus(state, label) {
-  const dot = document.getElementById('saveDot');
-  const lbl = document.getElementById('saveLabel');
-  dot.className = 'dot ' + state;
-  lbl.textContent = label;
+function updateSaveStatus(state, label, hint) {
+  document.getElementById('saveDot').className = 'dot ' + state;
+  document.getElementById('saveLabel').textContent = label;
+  document.getElementById('saveHint').textContent = hint || '';
 }
 
 async function connectFile() {
@@ -798,14 +819,13 @@ async function connectFile() {
     // id を指定して、2回目以降は前回選んだフォルダからスタート
     const dirHandle = await window.showDirectoryPicker({ id: 'cm-editor', mode: 'readwrite' });
     fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-    updateSaveStatus('connected', fileHandle.name + ' (自動保存)');
-    document.getElementById('btnConnect').textContent = 'Reconnect';
+    updateSaveStatus('connected', fileHandle.name);
     // 接続直後に一度保存
     await writeToFile();
   } catch (e) {
     if (e.name !== 'AbortError') {
       console.error(e);
-      updateSaveStatus('error', 'エラー');
+      updateSaveStatus('error', 'Error');
     }
   }
 }
@@ -813,21 +833,21 @@ async function connectFile() {
 async function writeToFile() {
   if (!fileHandle || isSaving) return;
   isSaving = true;
-  updateSaveStatus('saving', '保存中...');
+  updateSaveStatus('saving', 'Saving...');
   try {
     const json = JSON.stringify(model, null, 2) + '\n';
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
-    updateSaveStatus('connected', fileHandle.name + ' (自動保存)');
+    updateSaveStatus('connected', fileHandle.name);
+    hideEditedBadge();
   } catch (e) {
     console.error(e);
-    updateSaveStatus('error', '保存失敗');
+    updateSaveStatus('error', 'Save failed');
     // 権限が失われた場合はfileHandleをリセット
     if (e.name === 'NotAllowedError') {
       fileHandle = null;
-      updateSaveStatus('', '未接続（権限切れ）');
-      document.getElementById('btnConnect').textContent = 'Connect';
+      updateSaveStatus('', 'Connect', '(Drop a JSON file)');
     }
   } finally {
     isSaving = false;
@@ -838,12 +858,6 @@ function scheduleAutoSave() {
   if (!fileHandle) return;
   clearTimeout(autoSaveTimer);
   autoSaveTimer = setTimeout(() => writeToFile(), AUTO_SAVE_DELAY);
-}
-
-// ===== JSON パネル =====
-function updateJsonPanel() {
-  document.getElementById('jsonOutput').textContent = JSON.stringify(model, null, 2);
-  scheduleAutoSave();
 }
 
 // ===== ノード追加 =====
@@ -866,7 +880,7 @@ function addEntity() {
 // ===== ビュー操作 =====
 function addView() {
   pushUndo();
-  model.views.push({ name: '新規ビュー', context: '', primaryType: 'table', entities: [] });
+  model.views.push({ name: '', context: '', primaryType: 'table', entities: [] });
   render();
 }
 
@@ -886,15 +900,6 @@ function removeViewEntity(viewIndex, entityIndex) {
   pushUndo();
   model.views[viewIndex].entities.splice(entityIndex, 1);
   render();
-}
-
-function copyWireframeCommand(viewName, btnEl) {
-  const command = `/wireframe ${viewName}`;
-  navigator.clipboard.writeText(command).then(() => {
-    const original = btnEl.innerHTML;
-    btnEl.innerHTML = '<span class="copy-feedback">コピーしました。Claude Codeに貼り付けてください。</span>';
-    setTimeout(() => { btnEl.innerHTML = original; }, 2000);
-  });
 }
 
 // ===== ドラッグ&ドロップ =====
@@ -1088,22 +1093,35 @@ function deleteNode(path) {
 
 // ===== レンダリング =====
 function render() {
+  // サブヘッダーにルート名とdirectionを反映
+  document.getElementById('rootLabel').value = model.root.name || 'Root';
+  const dirBtn = document.getElementById('rootDirBtn');
+  dirBtn.textContent = model.root.direction === 'vertical' ? '↕ Vertical' : '↔ Horizontal';
+  dirBtn.title = model.root.direction === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical';
+
+  // 左ペイン: ルートのchildrenだけ描画（ルートカードは不要）
   const canvas = document.getElementById('canvas');
   canvas.innerHTML = '';
+  canvas.style.flexDirection = model.root.direction === 'vertical' ? 'column' : 'row';
+  model.root.children.forEach((child, i) => {
+    canvas.appendChild(renderNode(child, [i]));
+  });
 
-  // エンティティ定義エリア（上段）
-  canvas.appendChild(renderNode(model.root, []));
+  // 右ペイン: ビュー定義
+  renderViews();
 
-  // セクション区切り
-  const divider = document.createElement('div');
-  divider.className = 'section-divider';
-  divider.textContent = 'Views';
-  canvas.appendChild(divider);
+  scheduleAutoSave();
+}
 
-  // ビュー定義エリア（下段）
-  canvas.appendChild(renderViewsArea());
+function renderViews() {
+  const list = document.getElementById('viewsList');
+  list.innerHTML = '';
 
-  updateJsonPanel();
+  const entityNames = collectEntityNames(model.root);
+
+  model.views.forEach((view, vi) => {
+    list.appendChild(renderViewCard(view, vi, entityNames));
+  });
 }
 
 function renderNode(node, path) {
@@ -1150,11 +1168,13 @@ function renderGroup(node, path) {
   const nameInput = document.createElement('input');
   nameInput.className = 'group-name';
   nameInput.value = node.name;
+  if (path.length === 0) nameInput.style.display = 'none'; // ルート名はサブヘッダーで表示
   nameInput.addEventListener('click', e => e.stopPropagation());
   nameInput.addEventListener('change', e => {
     pushUndo();
     node.name = e.target.value;
-    updateJsonPanel();
+    if (path.length === 0) document.getElementById('rootLabel').textContent = e.target.value || 'Root';
+    scheduleAutoSave();
   });
   header.appendChild(nameInput);
 
@@ -1243,7 +1263,7 @@ function renderEntity(node, path) {
   nameInput.addEventListener('change', e => {
     pushUndo();
     node.name = e.target.value;
-    updateJsonPanel();
+    scheduleAutoSave();
   });
   header.appendChild(nameInput);
 
@@ -1278,7 +1298,7 @@ function renderEntity(node, path) {
     const commitAttr = () => {
       pushUndo();
       node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
-      updateJsonPanel();
+      scheduleAutoSave();
     };
 
     const keyInput = document.createElement('input');
@@ -1337,33 +1357,6 @@ function renderEntity(node, path) {
   return div;
 }
 
-// ===== ビュー定義エリアのレンダリング =====
-function renderViewsArea() {
-  const area = document.createElement('div');
-  area.className = 'views-area';
-
-  const list = document.createElement('div');
-  list.className = 'views-list';
-
-  const entityNames = collectEntityNames(model.root);
-
-  model.views.forEach((view, vi) => {
-    list.appendChild(renderViewCard(view, vi, entityNames));
-  });
-
-  area.appendChild(list);
-
-  // 「+ ビューを追加」ボタン
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-view-btn';
-  addBtn.textContent = '+ ビューを追加';
-  addBtn.style.marginTop = model.views.length > 0 ? 'var(--space-md)' : '0';
-  addBtn.addEventListener('click', () => addView());
-  area.appendChild(addBtn);
-
-  return area;
-}
-
 function renderViewCard(view, viewIndex, entityNames) {
   const card = document.createElement('div');
   card.className = 'view-card';
@@ -1392,10 +1385,11 @@ function renderViewCard(view, viewIndex, entityNames) {
   const nameInput = document.createElement('input');
   nameInput.type = 'text';
   nameInput.value = view.name;
+  nameInput.placeholder = 'task-list（英数字・ハイフン、ファイル名になります）';
   nameInput.addEventListener('change', e => {
     pushUndo();
     view.name = e.target.value;
-    updateJsonPanel();
+    scheduleAutoSave();
   });
   nameField.appendChild(nameInput);
   card.appendChild(nameField);
@@ -1409,10 +1403,11 @@ function renderViewCard(view, viewIndex, entityNames) {
   const ctxInput = document.createElement('input');
   ctxInput.type = 'text';
   ctxInput.value = view.context;
+  ctxInput.placeholder = '例: 一覧, 詳細, 作成, ダッシュボード';
   ctxInput.addEventListener('change', e => {
     pushUndo();
     view.context = e.target.value;
-    updateJsonPanel();
+    scheduleAutoSave();
   });
   ctxField.appendChild(ctxInput);
   card.appendChild(ctxField);
@@ -1424,7 +1419,7 @@ function renderViewCard(view, viewIndex, entityNames) {
   typeLabel.textContent = 'primaryType';
   typeField.appendChild(typeLabel);
   const typeSelect = document.createElement('select');
-  ['table', 'card', 'form', 'detail', 'dashboard'].forEach(t => {
+  ['table', 'card', 'form', 'list', 'detail', 'dashboard'].forEach(t => {
     const opt = document.createElement('option');
     opt.value = t;
     opt.textContent = t;
@@ -1434,7 +1429,7 @@ function renderViewCard(view, viewIndex, entityNames) {
   typeSelect.addEventListener('change', e => {
     pushUndo();
     view.primaryType = e.target.value;
-    updateJsonPanel();
+    scheduleAutoSave();
   });
   typeField.appendChild(typeSelect);
   card.appendChild(typeField);
@@ -1475,7 +1470,7 @@ function renderViewCard(view, viewIndex, entityNames) {
     entSelect.addEventListener('change', e => {
       pushUndo();
       ent.entity = e.target.value;
-      updateJsonPanel();
+      scheduleAutoSave();
     });
     row.appendChild(entSelect);
 
@@ -1483,11 +1478,11 @@ function renderViewCard(view, viewIndex, entityNames) {
     const roleInput = document.createElement('input');
     roleInput.type = 'text';
     roleInput.value = ent.role;
-    roleInput.placeholder = 'role';
+    roleInput.placeholder = '例: primary, list, form, filter';
     roleInput.addEventListener('change', e => {
       pushUndo();
       ent.role = e.target.value;
-      updateJsonPanel();
+      scheduleAutoSave();
     });
     row.appendChild(roleInput);
 
@@ -1511,16 +1506,6 @@ function renderViewCard(view, viewIndex, entityNames) {
 
   card.appendChild(entSection);
 
-  // フッター: Wireframe生成ボタン
-  const footer = document.createElement('div');
-  footer.className = 'view-card-footer';
-  const wfBtn = document.createElement('button');
-  wfBtn.className = 'view-wireframe-btn';
-  wfBtn.innerHTML = '&rarr; Wireframe生成';
-  wfBtn.addEventListener('click', () => copyWireframeCommand(view.name, wfBtn));
-  footer.appendChild(wfBtn);
-  card.appendChild(footer);
-
   return card;
 }
 
@@ -1539,6 +1524,18 @@ document.addEventListener('keydown', e => {
   if (isMeta && e.shiftKey && e.key === 'z') {
     e.preventDefault();
     doRedo();
+    return;
+  }
+
+  // ⌘S: 手動保存
+  if (isMeta && e.key === 's') {
+    e.preventDefault();
+    if (fileHandle) {
+      writeToFile();
+      showToast('Saved — auto-save is also enabled');
+    } else {
+      showToast('Connect a file first (click Connect or drop a JSON file)');
+    }
     return;
   }
 
@@ -1649,15 +1646,35 @@ document.addEventListener('drop', async e => {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
         fileHandle = handle;
-        updateSaveStatus('connected', handle.name + ' (自動保存)');
-        document.getElementById('btnConnect').textContent = 'Reconnect';
+        updateSaveStatus('connected', handle.name);
         await writeToFile();
         return;
       }
     }
   }
   // getAsFileSystemHandle 非対応の場合
-  updateSaveStatus('error', 'ドロップ接続非対応 — Connectを使用');
+  updateSaveStatus('error', 'Drop not supported');
+});
+
+// ===== ルートdirection切り替え =====
+function toggleRootDirection() {
+  pushUndo();
+  model.root.direction = model.root.direction === 'vertical' ? 'horizontal' : 'vertical';
+  render();
+}
+
+// ===== canvasをルートのdropターゲットに =====
+const canvasEl = document.getElementById('canvas');
+canvasEl.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); onDragOver(e, []); });
+canvasEl.addEventListener('dragenter', e => { e.stopPropagation(); onDragEnter(e, []); });
+canvasEl.addEventListener('dragleave', e => { e.stopPropagation(); onDragLeave(e, []); });
+canvasEl.addEventListener('drop', e => { e.stopPropagation(); onDrop(e, []); });
+
+// ===== サブヘッダーのルート名編集 =====
+document.getElementById('rootLabel').addEventListener('change', e => {
+  pushUndo();
+  model.root.name = e.target.value;
+  scheduleAutoSave();
 });
 
 // ===== 初期レンダリング =====
