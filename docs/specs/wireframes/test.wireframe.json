@@ -1,0 +1,68 @@
+{
+  "name": "task-list",
+  "view": {
+    "context": "一覧",
+    "primaryType": "table",
+    "entities": [
+      { "entity": "タスク", "role": "primary" },
+      { "entity": "メンバー", "role": "filter" }
+    ]
+  },
+  "viewport": { "width": 1280, "height": 800 },
+  "root": {
+    "name": "ページ",
+    "direction": "vertical",
+    "children": [
+      {
+        "name": "ヘッダー",
+        "direction": "horizontal",
+        "height": 56,
+        "children": [
+          { "name": "ロゴ", "type": "text", "content": "TaskApp", "variant": "heading" },
+          { "name": "ナビ", "direction": "horizontal", "grow": true, "children": [
+            { "name": "プロジェクト", "type": "button" },
+            { "name": "タスク", "type": "button" },
+            { "name": "メンバー", "type": "button" }
+          ]},
+          { "name": "ユーザーアイコン", "type": "icon", "width": 32, "height": 32 }
+        ]
+      },
+      {
+        "name": "ツールバー",
+        "direction": "horizontal",
+        "height": 48,
+        "children": [
+          { "name": "検索", "type": "input", "placeholder": "タスクを検索..." },
+          { "name": "ステータスフィルター", "type": "select", "_entity": "タスク", "_attributes": ["ステータス"] },
+          { "name": "担当者フィルター", "type": "select", "_entity": "メンバー", "_attributes": ["名前"] },
+          { "name": "新規タスク", "type": "button" }
+        ]
+      },
+      {
+        "name": "メインコンテンツ",
+        "direction": "vertical",
+        "grow": true,
+        "_entity": "タスク",
+        "_attributes": ["タイトル", "期限", "ステータス", "優先度", "担当者"],
+        "children": [
+          { "name": "タスクテーブル", "type": "table", "columns": ["タイトル", "期限", "ステータス", "優先度", "担当者"], "rows": 8 }
+        ]
+      },
+      {
+        "name": "フッター",
+        "direction": "horizontal",
+        "height": 40,
+        "children": [
+          { "name": "件数表示", "type": "text", "content": "全24件中 1-8件表示" },
+          { "name": "ページネーション", "direction": "horizontal", "children": [
+            { "name": "前へ", "type": "button" },
+            { "name": "1", "type": "button" },
+            { "name": "2", "type": "button" },
+            { "name": "3", "type": "button" },
+            { "name": "次へ", "type": "button" }
+          ]}
+        ]
+      }
+    ]
+  }
+}

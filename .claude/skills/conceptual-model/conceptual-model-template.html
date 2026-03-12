@@ -5,50 +5,187 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conceptual Model Editor</title>
 <style>
+  :root {
+    /* Text */
+    --text-primary: #333;
+    --text-secondary: #555;
+    --text-tertiary: #888;
+    --text-muted: #B0B0B0;
+
+    /* Background */
+    --bg-page: #F8F8F8;
+    --bg-surface: #FFF;
+    --bg-panel: #FAFAFA;
+    --bg-subtle: #F0F0F0;
+    --bg-placeholder: #E8E8E8;
+    --bg-placeholder-dark: #DDD;
+    --bg-dark: #333;
+
+    /* Border */
+    --border-default: #E0E0E0;
+    --border-light: #F0F0F0;
+
+    /* Accent */
+    --accent: #4A90D9;
+    --accent-bg: #E8F0FE;
+    --drop-indicator: #29b3f1;
+    --success-bg: #E8F5E9;
+    --success-border: #A5D6A7;
+    --success-text: #2E7D32;
+
+    /* Status */
+    --status-connected: #4caf50;
+    --status-saving: #ff9800;
+    --status-error: #f44336;
+    --danger: #e44;
+    --accent-overlay: rgba(74, 144, 217, 0.08);
+    --shadow-dropdown: rgba(0, 0, 0, 0.1);
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-full: 999px;
+
+    /* Font size */
+    --font-sm: 12px;
+    --font-base: 16px;
+    --font-lg: 24px;
+    --font-xl: 32px;
+
+    /* Font family */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Consolas', monospace;
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* ビューエリア専用 */
+    --bg-views: #f0f4f8;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f5f5f5;
-    color: #333;
+    font-family: var(--font-sans);
+    background: var(--bg-page);
+    color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
   }
 
   /* ===== レイアウト ===== */
   .app {
-    display: flex;
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 7fr 3fr;
     height: 100vh;
   }
 
   .toolbar {
+    grid-column: 1 / -1;
+    height: 48px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-    position: sticky;
-    top: 0;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 0 var(--space-md);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
     z-index: 100;
+    font-size: 13px;
   }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .toolbar-title {
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+  }
+  .pane-header > span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .pane-header-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    border: none;
+    background: transparent;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    width: auto;
+  }
+  .pane-header-name:hover { background: var(--bg-subtle); }
+  .pane-header-name:focus { outline: 1px solid var(--accent); background: var(--bg-surface); color: var(--text-primary); }
+  .pane-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .pane-header-actions button {
+    font-size: 12px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+  }
+  .pane-header-actions button:hover { background: var(--bg-subtle); }
+
+  .edited-badge {
+    display: none;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 600;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-full);
+  }
+
 
   .toolbar button {
     padding: 6px 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
     cursor: pointer;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
+    transition: background 0.15s;
   }
-  .toolbar button:hover { background: #f0f0f0; }
-  .toolbar button.primary { background: #333; color: #fff; border-color: #333; }
-  .toolbar button.primary:hover { background: #555; }
+  .toolbar button:hover { background: var(--bg-subtle); }
+  .toolbar button:active { background: var(--border-default); }
+  .toolbar button.primary { background: var(--bg-dark); color: var(--bg-surface); border-color: var(--bg-dark); }
+  .toolbar button.primary:hover { background: var(--text-secondary); }
 
   .canvas-pane {
-    flex: 1;
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -57,57 +194,29 @@
   .canvas {
     flex: 1;
     overflow: auto;
-    padding: 24px;
-  }
-
-  .json-pane {
-    width: 400px;
-    background: #1e1e1e;
-    color: #d4d4d4;
+    padding: var(--space-lg);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid #ddd;
+    gap: var(--space-sm);
   }
 
-  .json-header {
+  .views-pane {
+    grid-column: 2;
+    background: var(--bg-views);
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #2d2d2d;
-    border-bottom: 1px solid #444;
-    font-size: 13px;
-  }
-  .json-header-spacer { flex: 1; }
-  .json-header-btn {
-    padding: 6px 14px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background: #383838;
-    color: #ccc;
-    cursor: pointer;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .json-header-btn:hover { background: #4a4a4a; color: #fff; }
-
-  .json-header .save-status {
-    font-size: 13px;
-    color: #fff;
+    flex-direction: column;
+    border-left: 1px solid var(--border-default);
+    overflow: hidden;
   }
 
-  .json-body {
+
+  .views-body {
     flex: 1;
     overflow: auto;
-    padding: 12px;
-  }
-
-  .json-body pre {
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-all;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
   }
 
   /* ===== ノード共通 ===== */
@@ -117,20 +226,28 @@
   }
 
   .node.selected > .node-inner {
-    outline: 2px solid #4a9eff;
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
   .node.drag-over > .node-inner {
-    outline: 2px dashed #4a9eff;
+    outline: 2px dashed var(--accent);
     outline-offset: 2px;
+  }
+
+  .drop-indicator {
+    position: absolute;
+    background: var(--drop-indicator);
+    z-index: 50;
+    pointer-events: none;
+    border-radius: 2px;
   }
 
   /* ===== グループノード ===== */
   .group > .node-inner {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 6px;
-    background: #fafafa;
+    background: var(--bg-panel);
     min-width: 120px;
     min-height: 60px;
   }
@@ -140,8 +257,8 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e0e0e0;
-    background: #f0f0f0;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-subtle);
     border-radius: 6px 6px 0 0;
     cursor: grab;
   }
@@ -158,33 +275,33 @@
     display: block;
     width: 12px;
     height: 2px;
-    background: #999;
+    background: var(--text-tertiary);
     border-radius: 1px;
   }
 
   .group-name {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-secondary);
     border: none;
     background: none;
     outline: none;
     flex: 1;
     min-width: 60px;
   }
-  .group-name:focus { border-bottom: 1px solid #4a9eff; }
+  .group-name:focus { border-bottom: 1px solid var(--accent); }
 
   .direction-btn {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
     flex-shrink: 0;
   }
-  .direction-btn:hover { background: #e8e8e8; }
+  .direction-btn:hover { background: var(--bg-placeholder); }
 
   .group-actions {
     display: flex;
@@ -194,13 +311,13 @@
   .group-actions button {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
   }
-  .group-actions button:hover { background: #e8e8e8; }
+  .group-actions button:hover { background: var(--bg-placeholder); }
 
   .group-children {
     padding: 10px;
@@ -214,21 +331,21 @@
   .drop-zone {
     min-height: 40px;
     min-width: 40px;
-    border: 2px dashed #ddd;
-    border-radius: 4px;
+    border: 2px dashed var(--border-default);
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bbb;
+    color: var(--text-muted);
     font-size: 13px;
   }
   .drop-zone:empty::after { content: 'ドラッグで追加'; }
 
   /* ===== エンティティノード ===== */
   .entity > .node-inner {
-    border: 1px solid #bbb;
+    border: 1px solid var(--border-default);
     border-radius: 6px;
-    background: #fff;
+    background: var(--bg-surface);
     min-width: 140px;
   }
 
@@ -237,22 +354,22 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--bg-placeholder);
     cursor: grab;
   }
   .entity-header:active { cursor: grabbing; }
 
   .entity-name {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     border: none;
     background: none;
     outline: none;
     flex: 1;
     min-width: 60px;
   }
-  .entity-name:focus { border-bottom: 1px solid #4a9eff; }
+  .entity-name:focus { border-bottom: 1px solid var(--accent); }
 
   .entity-actions {
     display: flex;
@@ -262,32 +379,32 @@
   .entity-actions button {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
   }
-  .entity-actions button:hover { background: #e8e8e8; }
+  .entity-actions button:hover { background: var(--bg-placeholder); }
 
   .attributes {
-    padding: 8px 10px;
+    padding: var(--space-sm) 10px;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--space-xs);
     min-height: 32px;
   }
 
   .attr-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: #eee;
-    border: 1px solid #ddd;
+    gap: var(--space-xs);
+    padding: 2px var(--space-sm);
+    background: var(--bg-placeholder);
+    border: 1px solid var(--border-default);
     border-radius: 12px;
     font-size: 13px;
-    color: #555;
+    color: var(--text-secondary);
     cursor: default;
   }
 
@@ -300,12 +417,12 @@
     width: 30px; /* JS で動的に設定 */
     min-width: 20px;
   }
-  .attr-tag .attr-key { color: #333; font-weight: 600; }
-  .attr-tag .attr-val { color: #666; }
+  .attr-tag .attr-key { color: var(--text-primary); font-weight: 600; }
+  .attr-tag .attr-val { color: var(--text-secondary); }
   .attr-tag .attr-key:focus,
-  .attr-tag .attr-val:focus { color: #111; }
+  .attr-tag .attr-val:focus { color: var(--text-primary); }
   .attr-tag .attr-sep {
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 13px;
     margin: 0 1px;
     flex-shrink: 0;
@@ -313,12 +430,12 @@
 
   .attr-tag .attr-remove {
     cursor: pointer;
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 14px;
     line-height: 1;
     padding: 0 2px;
   }
-  .attr-tag .attr-remove:hover { color: #e44; }
+  .attr-tag .attr-remove:hover { color: var(--danger); }
 
   .attr-add {
     display: inline-flex;
@@ -326,38 +443,50 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    border: 1px dashed #ccc;
+    border: 1px dashed var(--border-default);
     border-radius: 12px;
     font-size: 14px;
-    color: #aaa;
+    color: var(--text-muted);
     cursor: pointer;
     background: none;
   }
-  .attr-add:hover { border-color: #999; color: #666; }
+  .attr-add:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ===== Auto Save ステータス ===== */
-  .save-status {
-    display: flex;
+  /* ===== Auto Save ステータスボタン ===== */
+  .save-status-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-xs);
+    font-size: 13px;
+    color: var(--text-tertiary);
+    background: none;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 0.15s, color 0.15s;
   }
-  .save-status .dot {
+  .save-status-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .save-status-btn .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ccc;
+    background: var(--border-default);
+    flex-shrink: 0;
   }
-  .save-status .dot.connected { background: #4caf50; }
-  .save-status .dot.saving { background: #ff9800; }
-  .save-status .dot.error { background: #f44336; }
+  .save-status-btn .dot.connected { background: var(--status-connected); }
+  .save-status-btn .dot.saving { background: var(--status-saving); }
+  .save-status-btn .dot.error { background: var(--status-error); }
+  .save-status-btn .save-hint { color: var(--text-muted); }
 
   /* ===== ファイルドロップオーバーレイ ===== */
   .file-drop-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(74, 158, 255, 0.08);
-    border: 3px dashed #4a9eff;
+    background: var(--accent-overlay);
+    border: 3px dashed var(--accent);
     z-index: 9999;
     align-items: center;
     justify-content: center;
@@ -365,14 +494,173 @@
   }
   .file-drop-overlay.active { display: flex; }
   .file-drop-overlay .drop-msg {
-    padding: 16px 32px;
-    background: #fff;
-    border-radius: 8px;
+    padding: var(--space-md) var(--space-xl);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
     font-size: 15px;
-    color: #4a9eff;
+    color: var(--accent);
     font-weight: 600;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 12px var(--shadow-dropdown);
   }
+
+  .view-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: outline 0.15s;
+  }
+  .view-card:hover {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+  }
+  .view-card.selected {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .view-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .view-card-header .view-name-input {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    border: none;
+    background: none;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+  }
+  .view-card-header .view-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
+  .view-card-header .view-name-input:hover { background: var(--bg-subtle); }
+  .view-card-header .view-name-input:focus { border-bottom: 1px solid var(--accent); background: var(--bg-surface); }
+
+  .view-card-header .view-delete-btn {
+    margin-left: auto;
+    font-size: 13px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .view-card-header .view-delete-btn:hover { background: var(--bg-subtle); color: var(--danger); }
+
+  .view-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .view-field label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .view-field input,
+  .view-field select {
+    flex: 1;
+    padding: 6px var(--space-sm);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+  .view-field input:focus,
+  .view-field select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .view-entities-section {
+    margin-top: var(--space-sm);
+  }
+
+  .view-entities-section .section-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .view-entity-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+  }
+
+  .view-entity-row select,
+  .view-entity-row input {
+    flex: 1;
+    padding: 6px var(--space-sm);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+  .view-entity-row select:focus,
+  .view-entity-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .view-entity-row .entity-remove-btn {
+    font-size: 13px;
+    padding: 2px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .view-entity-row .entity-remove-btn:hover { color: var(--danger); }
+
+  .view-add-entity-btn {
+    font-size: 13px;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    margin-top: var(--space-xs);
+  }
+  .view-add-entity-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ===== Toast通知 ===== */
+  .toast {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-dark);
+    color: var(--bg-surface);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .toast.show { display: block; opacity: 1; }
 
   /* ===== ユーティリティ ===== */
   .hidden { display: none !important; }
@@ -383,27 +671,38 @@
 </head>
 <body>
 <div class="app">
-  <div class="canvas-pane">
-    <div class="toolbar">
-      <button onclick="addGroup()">+ グループ</button>
-      <button onclick="addEntity()">+ エンティティ</button>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-title">Conceptual Model</span>
+      <button class="save-status-btn" id="btnConnect" onclick="connectFile()"><span class="dot" id="saveDot"></span><span id="saveLabel">Connect</span> <span class="save-hint" id="saveHint">(Drop a JSON file)</span></button>
+      <span class="edited-badge" id="editedBadge">Edited</span>
       <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
       <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
     </div>
+  </div>
+  <div class="canvas-pane">
+    <div class="pane-header">
+      <input id="rootLabel" class="pane-header-name" value="Root">
+      <div class="pane-header-actions">
+        <button onclick="addGroup()">+ Group</button>
+        <button onclick="addEntity()">+ Entity</button>
+        <button id="rootDirBtn" onclick="toggleRootDirection()">↕ Vertical</button>
+      </div>
+    </div>
     <div class="canvas" id="canvas"></div>
   </div>
-  <div class="json-pane" id="jsonPane">
-    <div class="json-header">
-      <span class="save-status" id="saveStatus"><span class="dot" id="saveDot"></span><span id="saveLabel">未接続 — JSONファイルをドロップ</span></span>
-      <div class="json-header-spacer"></div>
-      <button class="json-header-btn" id="btnConnect" onclick="connectFile()">Connect</button>
+  <div class="views-pane" id="viewsPane">
+    <div class="pane-header">
+      <span>Views</span>
+      <div class="pane-header-actions">
+        <button onclick="addView()">+ Add View</button>
+      </div>
     </div>
-    <div class="json-body">
-      <pre id="jsonOutput"></pre>
-    </div>
+    <div class="views-body" id="viewsList"></div>
   </div>
 </div>
 <div class="file-drop-overlay" id="fileDropOverlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ===== データ =====
@@ -412,8 +711,30 @@ const CM_FILENAME = null;
 
 let model = CM_DATA ? structuredClone(CM_DATA) : {
   name: 'Conceptual Model',
-  root: { name: 'ルート', direction: 'vertical', children: [] }
+  root: { name: 'ルート', direction: 'vertical', children: [] },
+  views: []
 };
+
+// views配列がなければ初期化
+model.views = model.views || [];
+
+// ===== Toast通知 =====
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// ===== Editedバッジ =====
+function showEditedBadge() {
+  document.getElementById('editedBadge').style.display = 'inline-block';
+}
+function hideEditedBadge() {
+  document.getElementById('editedBadge').style.display = 'none';
+}
 
 // ===== Undo / Redo =====
 const undoStack = [];
@@ -424,26 +745,33 @@ function pushUndo() {
   undoStack.push(JSON.stringify(model));
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   redoStack.length = 0;
+  showEditedBadge();
 }
 
 function doUndo() {
   if (!undoStack.length) return;
   redoStack.push(JSON.stringify(model));
   model = JSON.parse(undoStack.pop());
+  model.views = model.views || [];
   selectedPath = null;
   render();
+  showToast('Undo');
 }
 
 function doRedo() {
   if (!redoStack.length) return;
   undoStack.push(JSON.stringify(model));
   model = JSON.parse(redoStack.pop());
+  model.views = model.views || [];
   selectedPath = null;
   render();
+  showToast('Redo');
 }
 
 // ===== 選択 =====
 let selectedPath = null; // 配列: ルートからのchildren index
+let selectedViewIndex = null; // ビューの選択インデックス
+let viewClipboard = null; // ビューのコピー用
 
 function getNodeByPath(path) {
   let node = model.root;
@@ -458,6 +786,20 @@ function getNodeByPath(path) {
 function getParentByPath(path) {
   if (path.length === 0) return null;
   return getNodeByPath(path.slice(0, -1));
+}
+
+// ===== エンティティ名の収集（ビュー用） =====
+function collectEntityNames(node) {
+  const names = [];
+  if (node.type === 'entity') {
+    names.push(node.name);
+  }
+  if (node.children) {
+    for (const child of node.children) {
+      names.push(...collectEntityNames(child));
+    }
+  }
+  return names;
 }
 
 // ===== 文字幅計測 =====
@@ -480,11 +822,10 @@ let autoSaveTimer = null;
 let isSaving = false;
 const AUTO_SAVE_DELAY = 500; // ms
 
-function updateSaveStatus(state, label) {
-  const dot = document.getElementById('saveDot');
-  const lbl = document.getElementById('saveLabel');
-  dot.className = 'dot ' + state;
-  lbl.textContent = label;
+function updateSaveStatus(state, label, hint) {
+  document.getElementById('saveDot').className = 'dot ' + state;
+  document.getElementById('saveLabel').textContent = label;
+  document.getElementById('saveHint').textContent = hint || '';
 }
 
 async function connectFile() {
@@ -498,14 +839,13 @@ async function connectFile() {
     // id を指定して、2回目以降は前回選んだフォルダからスタート
     const dirHandle = await window.showDirectoryPicker({ id: 'cm-editor', mode: 'readwrite' });
     fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-    updateSaveStatus('connected', fileHandle.name + ' (自動保存)');
-    document.getElementById('btnConnect').textContent = 'Reconnect';
+    updateSaveStatus('connected', fileHandle.name);
     // 接続直後に一度保存
     await writeToFile();
   } catch (e) {
     if (e.name !== 'AbortError') {
       console.error(e);
-      updateSaveStatus('error', 'エラー');
+      updateSaveStatus('error', 'Error');
     }
   }
 }
@@ -513,21 +853,21 @@ async function connectFile() {
 async function writeToFile() {
   if (!fileHandle || isSaving) return;
   isSaving = true;
-  updateSaveStatus('saving', '保存中...');
+  updateSaveStatus('saving', 'Saving...');
   try {
     const json = JSON.stringify(model, null, 2) + '\n';
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
-    updateSaveStatus('connected', fileHandle.name + ' (自動保存)');
+    updateSaveStatus('connected', fileHandle.name);
+    hideEditedBadge();
   } catch (e) {
     console.error(e);
-    updateSaveStatus('error', '保存失敗');
+    updateSaveStatus('error', 'Save failed');
     // 権限が失われた場合はfileHandleをリセット
     if (e.name === 'NotAllowedError') {
       fileHandle = null;
-      updateSaveStatus('', '未接続（権限切れ）');
-      document.getElementById('btnConnect').textContent = 'Connect';
+      updateSaveStatus('', 'Connect', '(Drop a JSON file)');
     }
   } finally {
     isSaving = false;
@@ -538,12 +878,6 @@ function scheduleAutoSave() {
   if (!fileHandle) return;
   clearTimeout(autoSaveTimer);
   autoSaveTimer = setTimeout(() => writeToFile(), AUTO_SAVE_DELAY);
-}
-
-// ===== JSON パネル =====
-function updateJsonPanel() {
-  document.getElementById('jsonOutput').textContent = JSON.stringify(model, null, 2);
-  scheduleAutoSave();
 }
 
 // ===== ノード追加 =====
@@ -563,8 +897,35 @@ function addEntity() {
   render();
 }
 
+// ===== ビュー操作 =====
+function addView() {
+  pushUndo();
+  model.views.push({ name: '', context: '', primaryType: 'table', entities: [] });
+  render();
+}
+
+function deleteView(index) {
+  pushUndo();
+  model.views.splice(index, 1);
+  render();
+}
+
+function addViewEntity(viewIndex) {
+  pushUndo();
+  model.views[viewIndex].entities.push({ entity: '', role: '' });
+  render();
+}
+
+function removeViewEntity(viewIndex, entityIndex) {
+  pushUndo();
+  model.views[viewIndex].entities.splice(entityIndex, 1);
+  render();
+}
+
 // ===== ドラッグ&ドロップ =====
 let dragPath = null;
+let dropIndicator = null;
+let dropTarget = null; // { path, before }
 
 function onDragStart(e, path) {
   dragPath = path;
@@ -580,24 +941,70 @@ function onDragEnd(e, path) {
   const el = getNodeElement(path);
   if (el) el.classList.remove('dragging');
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  removeDropIndicator();
   dragPath = null;
+  dropTarget = null;
 }
 
 function onDragOver(e, targetPath) {
   if (!dragPath) return;
-  // 自分自身の子孫へのドロップを禁止
   if (isDescendant(dragPath, targetPath)) return;
-  // 同一ノードへのドロップを禁止
-  if (pathEquals(dragPath, targetPath)) return;
+  if (pathEquals(dragPath, targetPath)) { removeDropIndicator(); return; }
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
+
+  const targetNode = getNodeByPath(targetPath);
+  // グループノードの上半分→グループの前に挿入、下半分→グループ内にドロップ
+  if (targetNode && targetNode.children) {
+    const el = getNodeElement(targetPath);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const threshold = Math.min(rect.height * 0.25, 30);
+    const parent = getParentByPath(targetPath);
+    const parentDir = parent ? (parent.direction || 'vertical') : 'vertical';
+
+    if (parentDir === 'vertical' && e.clientY < rect.top + threshold) {
+      // グループの前にインジケータ表示
+      dropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(el, true, true);
+    } else if (parentDir === 'vertical' && e.clientY > rect.bottom - threshold) {
+      // グループの後にインジケータ表示
+      dropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(el, true, false);
+    } else if (parentDir === 'horizontal' && e.clientX < rect.left + threshold) {
+      dropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(el, false, true);
+    } else if (parentDir === 'horizontal' && e.clientX > rect.right - threshold) {
+      dropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(el, false, false);
+    } else {
+      // グループ内にドロップ
+      removeDropIndicator();
+      el.classList.add('drag-over');
+      dropTarget = { path: targetPath, before: false, intoGroup: true };
+    }
+    return;
+  }
+
+  // 葉ノード（エンティティ）: 前/後のインジケータ
+  const el = getNodeElement(targetPath);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const parent = getParentByPath(targetPath);
+  const isVertical = parent ? (parent.direction || 'vertical') === 'vertical' : true;
+  let before;
+  if (isVertical) {
+    before = e.clientY < rect.top + rect.height / 2;
+  } else {
+    before = e.clientX < rect.left + rect.width / 2;
+  }
+  dropTarget = { path: targetPath, before, intoGroup: false };
+  showDropIndicator(el, isVertical, before);
 }
 
 function onDragEnter(e, targetPath) {
   if (!dragPath || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
   e.preventDefault();
-  const el = getNodeElement(targetPath);
-  if (el) el.classList.add('drag-over');
 }
 
 function onDragLeave(e, targetPath) {
@@ -608,56 +1015,68 @@ function onDragLeave(e, targetPath) {
 function onDrop(e, targetPath) {
   e.preventDefault();
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-  if (!dragPath || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
+  removeDropIndicator();
+  if (!dragPath || !dropTarget || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
 
-  const targetNode = getNodeByPath(targetPath);
-  // グループへのドロップ: 子に追加
-  if (targetNode && targetNode.children) {
-    pushUndo();
-    const srcParent = dragPath.length === 0 ? model : getParentByPath(dragPath);
-    const srcIdx = dragPath[dragPath.length - 1];
-
-    if (srcParent === model) return; // ルートは移動不可
-    const parentChildren = srcParent.children || srcParent.root?.children;
-    if (!parentChildren) return;
-
-    // 元の位置から削除
-    const [removed] = parentChildren.splice(srcIdx, 1);
-    // ターゲットの子に追加
-    targetNode.children.push(removed);
-    dragPath = null;
-    selectedPath = null;
-    render();
-    return;
-  }
-
-  // 同一親内での並べ替え
+  // ソースノードを削除
   const srcParent = getParentByPath(dragPath);
-  const tgtParent = getParentByPath(targetPath);
-  if (!srcParent || !tgtParent) return;
-  if (!pathEquals(dragPath.slice(0, -1), targetPath.slice(0, -1))) {
-    // 異なる親間の移動
-    pushUndo();
-    const srcIdx = dragPath[dragPath.length - 1];
-    const tgtIdx = targetPath[targetPath.length - 1];
+  if (!srcParent) return;
+  const srcIdx = dragPath[dragPath.length - 1];
+
+  pushUndo();
+
+  if (dropTarget.intoGroup) {
+    // グループの中にドロップ
+    const targetNode = getNodeByPath(dropTarget.path);
     const [removed] = srcParent.children.splice(srcIdx, 1);
+    targetNode.children.push(removed);
+  } else {
+    // 兄弟として挿入
+    const tgtParent = getParentByPath(dropTarget.path);
+    if (!tgtParent) return;
+    let tgtIdx = dropTarget.path[dropTarget.path.length - 1];
+
+    // 同一親の場合のインデックス調整
+    const sameParent = pathEquals(dragPath.slice(0, -1), dropTarget.path.slice(0, -1));
+    const [removed] = srcParent.children.splice(srcIdx, 1);
+    if (sameParent && srcIdx < tgtIdx) tgtIdx--;
+    if (!dropTarget.before) tgtIdx++;
     tgtParent.children.splice(tgtIdx, 0, removed);
-    dragPath = null;
-    selectedPath = null;
-    render();
-    return;
   }
 
-  // 同一親内
-  pushUndo();
-  const srcIdx = dragPath[dragPath.length - 1];
-  const tgtIdx = targetPath[targetPath.length - 1];
-  const [removed] = srcParent.children.splice(srcIdx, 1);
-  const adjustedIdx = srcIdx < tgtIdx ? tgtIdx - 1 : tgtIdx;
-  srcParent.children.splice(adjustedIdx, 0, removed);
   dragPath = null;
+  dropTarget = null;
   selectedPath = null;
   render();
+}
+
+function showDropIndicator(targetEl, isVertical, before) {
+  removeDropIndicator();
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+  dropIndicator = document.createElement('div');
+  dropIndicator.className = 'drop-indicator';
+
+  const rect = targetEl.getBoundingClientRect();
+  if (isVertical) {
+    dropIndicator.style.height = '4px';
+    dropIndicator.style.left = `${rect.left}px`;
+    dropIndicator.style.width = `${rect.width}px`;
+    dropIndicator.style.top = before ? `${rect.top - 2}px` : `${rect.bottom - 2}px`;
+  } else {
+    dropIndicator.style.width = '4px';
+    dropIndicator.style.top = `${rect.top}px`;
+    dropIndicator.style.height = `${rect.height}px`;
+    dropIndicator.style.left = before ? `${rect.left - 2}px` : `${rect.right - 2}px`;
+  }
+  document.body.appendChild(dropIndicator);
+}
+
+function removeDropIndicator() {
+  if (dropIndicator) {
+    dropIndicator.remove();
+    dropIndicator = null;
+  }
 }
 
 function isDescendant(parentPath, childPath) {
@@ -694,10 +1113,35 @@ function deleteNode(path) {
 
 // ===== レンダリング =====
 function render() {
+  // サブヘッダーにルート名とdirectionを反映
+  document.getElementById('rootLabel').value = model.root.name || 'Root';
+  const dirBtn = document.getElementById('rootDirBtn');
+  dirBtn.textContent = model.root.direction === 'vertical' ? '↕ Vertical' : '↔ Horizontal';
+  dirBtn.title = model.root.direction === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical';
+
+  // 左ペイン: ルートのchildrenだけ描画（ルートカードは不要）
   const canvas = document.getElementById('canvas');
   canvas.innerHTML = '';
-  canvas.appendChild(renderNode(model.root, []));
-  updateJsonPanel();
+  canvas.style.flexDirection = model.root.direction === 'vertical' ? 'column' : 'row';
+  model.root.children.forEach((child, i) => {
+    canvas.appendChild(renderNode(child, [i]));
+  });
+
+  // 右ペイン: ビュー定義
+  renderViews();
+
+  scheduleAutoSave();
+}
+
+function renderViews() {
+  const list = document.getElementById('viewsList');
+  list.innerHTML = '';
+
+  const entityNames = collectEntityNames(model.root);
+
+  model.views.forEach((view, vi) => {
+    list.appendChild(renderViewCard(view, vi, entityNames));
+  });
 }
 
 function renderNode(node, path) {
@@ -731,6 +1175,7 @@ function renderGroup(node, path) {
   header.addEventListener('click', e => {
     e.stopPropagation();
     selectedPath = pathEquals(selectedPath, path) ? null : path;
+    selectedViewIndex = null;
     render();
   });
 
@@ -744,11 +1189,13 @@ function renderGroup(node, path) {
   const nameInput = document.createElement('input');
   nameInput.className = 'group-name';
   nameInput.value = node.name;
+  if (path.length === 0) nameInput.style.display = 'none'; // ルート名はサブヘッダーで表示
   nameInput.addEventListener('click', e => e.stopPropagation());
   nameInput.addEventListener('change', e => {
     pushUndo();
     node.name = e.target.value;
-    updateJsonPanel();
+    if (path.length === 0) document.getElementById('rootLabel').textContent = e.target.value || 'Root';
+    scheduleAutoSave();
   });
   header.appendChild(nameInput);
 
@@ -822,6 +1269,7 @@ function renderEntity(node, path) {
   header.addEventListener('click', e => {
     e.stopPropagation();
     selectedPath = pathEquals(selectedPath, path) ? null : path;
+    selectedViewIndex = null;
     render();
   });
 
@@ -837,7 +1285,7 @@ function renderEntity(node, path) {
   nameInput.addEventListener('change', e => {
     pushUndo();
     node.name = e.target.value;
-    updateJsonPanel();
+    scheduleAutoSave();
   });
   header.appendChild(nameInput);
 
@@ -872,7 +1320,7 @@ function renderEntity(node, path) {
     const commitAttr = () => {
       pushUndo();
       node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
-      updateJsonPanel();
+      scheduleAutoSave();
     };
 
     const keyInput = document.createElement('input');
@@ -931,6 +1379,162 @@ function renderEntity(node, path) {
   return div;
 }
 
+function renderViewCard(view, viewIndex, entityNames) {
+  const card = document.createElement('div');
+  card.className = 'view-card' + (selectedViewIndex === viewIndex ? ' selected' : '');
+  card.addEventListener('click', e => {
+    // input/button内のクリックは選択トグルしない
+    if (e.target.closest('input, button, select')) return;
+    selectedViewIndex = selectedViewIndex === viewIndex ? null : viewIndex;
+    selectedPath = null;
+    render();
+  });
+
+  // ヘッダー（name input + 削除ボタン）
+  const header = document.createElement('div');
+  header.className = 'view-card-header';
+  const nameInput = document.createElement('input');
+  nameInput.className = 'view-name-input';
+  nameInput.value = view.name;
+  nameInput.placeholder = 'task-list（英数字・ハイフン）';
+  nameInput.addEventListener('change', e => {
+    let newName = e.target.value.trim();
+    const views = model.views || [];
+    // 重複があればナンバリングで回避
+    const baseName = newName;
+    let suffix = 2;
+    while (views.some((v, i) => i !== viewIndex && v.name === newName)) {
+      newName = baseName + '-' + suffix++;
+    }
+    pushUndo();
+    view.name = newName;
+    e.target.value = newName;
+    scheduleAutoSave();
+  });
+  header.appendChild(nameInput);
+  const delBtn = document.createElement('button');
+  delBtn.className = 'view-delete-btn';
+  delBtn.textContent = '✕';
+  delBtn.title = 'ビューを削除';
+  delBtn.addEventListener('click', () => deleteView(viewIndex));
+  header.appendChild(delBtn);
+  card.appendChild(header);
+
+  // context フィールド
+  const ctxField = document.createElement('div');
+  ctxField.className = 'view-field';
+  const ctxLabel = document.createElement('label');
+  ctxLabel.textContent = 'context';
+  ctxField.appendChild(ctxLabel);
+  const ctxInput = document.createElement('input');
+  ctxInput.type = 'text';
+  ctxInput.value = view.context;
+  ctxInput.placeholder = '例: 一覧, 詳細, 作成, ダッシュボード';
+  ctxInput.addEventListener('change', e => {
+    pushUndo();
+    view.context = e.target.value;
+    scheduleAutoSave();
+  });
+  ctxField.appendChild(ctxInput);
+  card.appendChild(ctxField);
+
+  // primaryType フィールド
+  const typeField = document.createElement('div');
+  typeField.className = 'view-field';
+  const typeLabel = document.createElement('label');
+  typeLabel.textContent = 'primaryType';
+  typeField.appendChild(typeLabel);
+  const typeSelect = document.createElement('select');
+  ['table', 'card', 'form', 'list', 'detail', 'dashboard'].forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    if (view.primaryType === t) opt.selected = true;
+    typeSelect.appendChild(opt);
+  });
+  typeSelect.addEventListener('change', e => {
+    pushUndo();
+    view.primaryType = e.target.value;
+    scheduleAutoSave();
+  });
+  typeField.appendChild(typeSelect);
+  card.appendChild(typeField);
+
+  // entities セクション
+  const entSection = document.createElement('div');
+  entSection.className = 'view-entities-section';
+  const entLabel = document.createElement('div');
+  entLabel.className = 'section-label';
+  entLabel.textContent = 'entities';
+  entSection.appendChild(entLabel);
+
+  view.entities.forEach((ent, ei) => {
+    const row = document.createElement('div');
+    row.className = 'view-entity-row';
+
+    // エンティティ名プルダウン
+    const entSelect = document.createElement('select');
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '— エンティティを選択 —';
+    entSelect.appendChild(emptyOpt);
+    entityNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (ent.entity === name) opt.selected = true;
+      entSelect.appendChild(opt);
+    });
+    // 現在の値がentityNamesに含まれない場合も表示
+    if (ent.entity && !entityNames.includes(ent.entity)) {
+      const opt = document.createElement('option');
+      opt.value = ent.entity;
+      opt.textContent = ent.entity + ' (不明)';
+      opt.selected = true;
+      entSelect.appendChild(opt);
+    }
+    entSelect.addEventListener('change', e => {
+      pushUndo();
+      ent.entity = e.target.value;
+      scheduleAutoSave();
+    });
+    row.appendChild(entSelect);
+
+    // role テキスト入力
+    const roleInput = document.createElement('input');
+    roleInput.type = 'text';
+    roleInput.value = ent.role;
+    roleInput.placeholder = '例: primary, list, form, filter';
+    roleInput.addEventListener('change', e => {
+      pushUndo();
+      ent.role = e.target.value;
+      scheduleAutoSave();
+    });
+    row.appendChild(roleInput);
+
+    // 削除ボタン
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'entity-remove-btn';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'エンティティ参照を削除';
+    removeBtn.addEventListener('click', () => removeViewEntity(viewIndex, ei));
+    row.appendChild(removeBtn);
+
+    entSection.appendChild(row);
+  });
+
+  // 「+ エンティティを追加」ボタン
+  const addEntBtn = document.createElement('button');
+  addEntBtn.className = 'view-add-entity-btn';
+  addEntBtn.textContent = '+ エンティティを追加';
+  addEntBtn.addEventListener('click', () => addViewEntity(viewIndex));
+  entSection.appendChild(addEntBtn);
+
+  card.appendChild(entSection);
+
+  return card;
+}
+
 // ===== キーボードショートカット =====
 document.addEventListener('keydown', e => {
   const isMeta = e.metaKey || e.ctrlKey;
@@ -949,30 +1553,95 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // ⌘C: コピー
-  if (isMeta && e.key === 'c' && selectedPath && !isInputFocused()) {
+  // ⌘S: 手動保存
+  if (isMeta && e.key === 's') {
     e.preventDefault();
-    const node = getNodeByPath(selectedPath);
-    if (node) clipboard = JSON.stringify(node);
+    if (fileHandle) {
+      writeToFile();
+      showToast('Saved — auto-save is also enabled');
+    } else {
+      showToast('Connect a file first (click Connect or drop a JSON file)');
+    }
     return;
   }
 
-  // ⌘V: ペースト
-  if (isMeta && e.key === 'v' && clipboard && !isInputFocused()) {
+  // ⌘C: コピー（ノード or ビュー）
+  if (isMeta && e.key === 'c' && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      const node = getNodeByPath(selectedPath);
+      if (node) clipboard = JSON.stringify(node);
+      return;
+    }
+  }
+
+  // ⌘V: ペースト（ノード or ビュー）
+  if (isMeta && e.key === 'v' && !isInputFocused()) {
+    if (selectedViewIndex != null && viewClipboard) {
+      e.preventDefault();
+      pushUndo();
+      const pasted = JSON.parse(viewClipboard);
+      // name重複回避
+      if (!model.views) model.views = [];
+      let newName = pasted.name;
+      const baseName = newName;
+      let suffix = 2;
+      while (model.views.some(v => v.name === newName)) {
+        newName = baseName + '-' + suffix++;
+      }
+      pasted.name = newName;
+      const insertAt = selectedViewIndex + 1;
+      model.views.splice(insertAt, 0, pasted);
+      selectedViewIndex = insertAt;
+      render();
+      return;
+    }
+    if (clipboard) {
+      e.preventDefault();
+      pushUndo();
+      const pasted = JSON.parse(clipboard);
+      const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
+      const parent = (target && target.children) ? target : model.root;
+      parent.children.push(pasted);
+      render();
+      return;
+    }
+  }
+
+  // Delete / Backspace: 削除（ノード or ビュー）
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      pushUndo();
+      model.views.splice(selectedViewIndex, 1);
+      selectedViewIndex = null;
+      render();
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      deleteNode(selectedPath);
+      return;
+    }
+  }
+
+  // 矢印キー: ビュー並び替え（↑↓）
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedViewIndex != null && !isInputFocused()) {
+    const views = model.views || [];
+    const delta = e.key === 'ArrowUp' ? -1 : 1;
+    const newIdx = selectedViewIndex + delta;
+    if (newIdx < 0 || newIdx >= views.length) return;
     e.preventDefault();
     pushUndo();
-    const pasted = JSON.parse(clipboard);
-    const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
-    const parent = (target && target.children) ? target : model.root;
-    parent.children.push(pasted);
+    const [removed] = views.splice(selectedViewIndex, 1);
+    views.splice(newIdx, 0, removed);
+    selectedViewIndex = newIdx;
     render();
-    return;
-  }
-
-  // Delete / Backspace: 削除
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPath && !isInputFocused()) {
-    e.preventDefault();
-    deleteNode(selectedPath);
     return;
   }
 
@@ -999,22 +1668,17 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // ⌘S: 手動保存（接続済みならすぐ保存、未接続ならConnect）
-  if (isMeta && e.key === 's') {
-    e.preventDefault();
-    if (fileHandle) { writeToFile(); } else { connectFile(); }
-    return;
-  }
 });
 
 function isInputFocused() {
   const el = document.activeElement;
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 }
 
 // ===== キャンバスクリックで選択解除 =====
 document.getElementById('canvas').addEventListener('click', () => {
   selectedPath = null;
+  selectedViewIndex = null;
   render();
 });
 
@@ -1056,15 +1720,35 @@ document.addEventListener('drop', async e => {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
         fileHandle = handle;
-        updateSaveStatus('connected', handle.name + ' (自動保存)');
-        document.getElementById('btnConnect').textContent = 'Reconnect';
+        updateSaveStatus('connected', handle.name);
         await writeToFile();
         return;
       }
     }
   }
   // getAsFileSystemHandle 非対応の場合
-  updateSaveStatus('error', 'ドロップ接続非対応 — Connectを使用');
+  updateSaveStatus('error', 'Drop not supported');
+});
+
+// ===== ルートdirection切り替え =====
+function toggleRootDirection() {
+  pushUndo();
+  model.root.direction = model.root.direction === 'vertical' ? 'horizontal' : 'vertical';
+  render();
+}
+
+// ===== canvasをルートのdropターゲットに =====
+const canvasEl = document.getElementById('canvas');
+canvasEl.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); onDragOver(e, []); });
+canvasEl.addEventListener('dragenter', e => { e.stopPropagation(); onDragEnter(e, []); });
+canvasEl.addEventListener('dragleave', e => { e.stopPropagation(); onDragLeave(e, []); });
+canvasEl.addEventListener('drop', e => { e.stopPropagation(); onDrop(e, []); });
+
+// ===== サブヘッダーのルート名編集 =====
+document.getElementById('rootLabel').addEventListener('change', e => {
+  pushUndo();
+  model.root.name = e.target.value;
+  scheduleAutoSave();
 });
 
 // ===== 初期レンダリング =====

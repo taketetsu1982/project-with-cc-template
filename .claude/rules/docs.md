@@ -17,12 +17,16 @@ docs/reqs/product-goals（PG一覧・確信度）
         ↓
 docs/reqs/pg0（WHEN） ⇔ docs/reqs/prd（WHO:User, WHY, WHAT） ⇔ docs/reqs/mrd（WHERE, WHO:Buyer, HOW MUCH）
         ↓
-docs/reqs/conceptual-model.md（設計意図）
-docs/reqs/conceptual-model.json（構造定義・HTMLエディタで操作）
+docs/reqs/conceptual-model.md（設計意図・人間用）
+docs/reqs/conceptual-model.json（エンティティ＋ビュー定義・Conceptual Model HTMLで操作）
+        ↓ 各ビューごとに /wireframe
+docs/specs/wireframes/{screen}.wireframe.json（レイアウト・Wireframe HTMLで操作）
         ↓
 docs/reqs/user-stories → docs/specs/test-spec
         ↓
-docs/specs/db-schema / api-spec / auth-spec / ui-spec / analytics-spec
+docs/specs/ui-spec（wireframe.jsonを参照して導出）
+docs/specs/db-schema（conceptual-model.jsonを参照して導出）
+docs/specs/api-spec / auth-spec / analytics-spec
 ```
 
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
@@ -36,6 +40,12 @@ docs/specs/db-schema / api-spec / auth-spec / ui-spec / analytics-spec
 
 ## Conceptual Model（JSON + HTMLエディタ）
 
-- `conceptual-model.json` はHTMLエディタ経由で更新する。直接編集も可だが、HTMLエディタを使うことを推奨
+- `conceptual-model.json` はConceptual Model HTMLで更新する。直接編集も可だが、HTMLエディタを使うことを推奨
 - `conceptual-model.json` が更新されたら、`ui-spec.md` と `db-schema.md` への影響を確認する
 - `conceptual-model.md` はJSONの変更に合わせて人間が更新する（Claudeが自動更新しない）
+
+## Wireframe（JSON + HTMLエディタ）
+
+- `wireframe.json` の `_entity`/`_attributes` は編集しない。変更は `conceptual-model.json` から
+- ビューの追加は Conceptual Model HTML の右ペインで行い、「→ Wireframe生成」で `/wireframe` を実行する
+- `wireframe.json` が更新されたら、`ui-spec.md` への影響を確認する
