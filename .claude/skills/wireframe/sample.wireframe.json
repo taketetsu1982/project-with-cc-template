@@ -50,13 +50,20 @@
                 "name": "メンバー",
                 "type": "button"
               }
-            ]
+            ],
+            "justify": "flex-start",
+            "align": "center",
+            "gap": 8
           },
           {
             "name": "ユーザーアイコン",
             "type": "icon",
             "width": 32,
-            "height": 32
+            "height": 32,
+            "_entity": "メンバー",
+            "_attributes": [
+              "アバター"
+            ]
           }
         ]
       },
@@ -68,7 +75,8 @@
           {
             "name": "検索",
             "type": "input",
-            "placeholder": "タスクを検索..."
+            "placeholder": "タスクを検索...",
+            "_note": "タイトル・担当者名でインクリメンタル検索"
           },
           {
             "name": "ステータスフィルター",
@@ -88,34 +96,8 @@
           },
           {
             "name": "新規タスク",
-            "type": "button"
-          }
-        ]
-      },
-      {
-        "name": "メインコンテンツ",
-        "direction": "vertical",
-        "grow": true,
-        "_entity": "タスク",
-        "_attributes": [
-          "タイトル",
-          "期限",
-          "ステータス",
-          "優先度",
-          "担当者"
-        ],
-        "children": [
-          {
-            "name": "タスクテーブル",
-            "type": "table",
-            "columns": [
-              "タイトル",
-              "期限",
-              "ステータス",
-              "優先度",
-              "担当者"
-            ],
-            "rows": 8
+            "type": "button",
+            "_note": "クリックでタスク作成モーダルを開く"
           }
         ]
       },
@@ -156,6 +138,61 @@
             ]
           }
         ]
+      },
+      {
+        "name": "コンテナ",
+        "direction": "vertical",
+        "children": []
+      },
+      {
+        "name": "ボタン",
+        "type": "button"
+      },
+      {
+        "name": "入力",
+        "type": "input"
+      },
+      {
+        "name": "セレクト",
+        "type": "select"
+      },
+      {
+        "name": "リンク",
+        "type": "link"
+      },
+      {
+        "name": "画像",
+        "type": "table",
+        "width": 200,
+        "height": 150,
+        "columns": [
+          "C"
+        ],
+        "rows": 3,
+        "_entity": "メンバー"
+      },
+      {
+        "name": "アイコン",
+        "type": "icon",
+        "width": 32,
+        "height": 32
+      },
+      {
+        "name": "カード",
+        "type": "card"
+      },
+      {
+        "name": "テーブル",
+        "type": "table"
+      },
+      {
+        "name": "テキスト",
+        "type": "table",
+        "_entity": "タスク",
+        "columns": [
+          "A"
+        ],
+        "rows": 3
       }
     ]
   }

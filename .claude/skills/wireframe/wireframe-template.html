@@ -368,15 +368,38 @@
     box-shadow: 0 2px 12px var(--shadow-dropdown);
   }
 
+  /* ── Tab bar ── */
+  .wf-tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+  }
+  .wf-tab {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-sans);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .wf-tab:hover { color: var(--text-primary); }
+  .wf-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .wf-tab-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .wf-tab-content.active { display: flex; }
+
   /* ── Properties Panel ── */
-  #wf-props-section { border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
   #wf-props-content {
     padding: var(--space-sm) var(--space-md);
     display: flex;
     flex-direction: column;
     gap: 6px;
     font-size: 13px;
-    max-height: 280px;
     overflow-y: auto;
   }
   .wf-props-empty { color: var(--text-muted); font-size: 13px; padding: var(--space-xs) 0; text-align: center; }
@@ -386,7 +409,8 @@
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding-top: 4px;
+    padding-top: 16px;
+    margin-bottom: 4px;
   }
   .wf-prop-row { display: flex; align-items: center; gap: var(--space-sm); }
   .wf-prop-label { width: 54px; flex-shrink: 0; color: var(--text-tertiary); font-size: 12px; }
@@ -838,16 +862,18 @@
     <a class="panel-header-link" href="conceptual-model.html" target="_blank">Edit in Conceptual Model</a>
   </div>
   <div id="wf-view-info"></div>
-  <div id="wf-props-section">
-    <div class="wf-section-header"><span>Properties</span></div>
+  <div class="wf-tab-bar">
+    <button class="wf-tab active" data-tab="entity" onclick="switchTab('entity')">Entity &amp; Attributes</button>
+    <button class="wf-tab" data-tab="props" onclick="switchTab('props')">Properties</button>
+  </div>
+  <div id="wf-tab-entity" class="wf-tab-content active">
+    <div id="wf-entity-list"></div>
+  </div>
+  <div id="wf-tab-props" class="wf-tab-content">
     <div id="wf-props-content">
       <div class="wf-props-empty">ノード未選択</div>
     </div>
   </div>
-  <div class="wf-section-header">
-    <span>Entity &amp; Attributes (Read-only)</span>
-  </div>
-  <div id="wf-entity-list"></div>
 </div>
 
 <div class="file-drop-overlay" id="wf-file-drop-overlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
@@ -1374,12 +1400,19 @@ function toggleDirection(path) {
 
 // ── Selection & Copy/Paste ──
 
+function switchTab(tabName) {
+  document.querySelectorAll('.wf-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  document.querySelectorAll('.wf-tab-content').forEach(c => c.classList.toggle('active', c.id === `wf-tab-${tabName}`));
+}
+
 function selectNode(path) {
   // 同じノードをクリックしたら選択解除
   if (selectedPath === path) {
     selectedPath = null;
   } else {
     selectedPath = path;
+    // ノード選択時にPropertiesタブを開く
+    switchTab('props');
   }
   updateSelection();
 }
@@ -1665,7 +1698,7 @@ function renderPropsPanel() {
   }
 
   // --- name ---
-  addTextProp(content, 'name', node.name || '', v => applyProp('name', v || undefined));
+  addTextProp(content, 'name', node.name || '', v => applyProp('name', v || undefined), '要素名');
 
   // --- type (葉ノードのみ) ---
   if (!isContainer) {
@@ -1681,25 +1714,30 @@ function renderPropsPanel() {
       if (v !== 'text') { delete node.variant; delete node.content; }
       if (v !== 'input' && v !== 'select') { delete node.placeholder; }
       if (v !== 'table') { delete node.columns; delete node.rows; }
+      // tableに戻す場合はデフォルトのcolumns/rowsを復元
+      if (v === 'table' && !node.columns) { node.columns = ['列1', '列2', '列3']; node.rows = 3; }
       markModified(); render(); updateJSONPanel();
+      // フォーカスガードを回避するため一旦blurしてから再描画
+      if (document.activeElement) document.activeElement.blur();
+      renderPropsPanel();
     });
 
     // --- type固有プロパティ ---
     if (node.type === 'text') {
-      addTextProp(content, 'content', node.content || '', v => applyProp('content', v || undefined));
+      addTextProp(content, 'content', node.content || '', v => applyProp('content', v || undefined), '表示テキスト');
       addSelectProp(content, 'variant', node.variant || '', [
         ['', '(default)'], ['display', 'display'], ['heading', 'heading'], ['caption', 'caption'],
       ], v => applyProp('variant', v || undefined));
     }
     if (node.type === 'input' || node.type === 'select') {
-      addTextProp(content, 'placeholder', node.placeholder || '', v => applyProp('placeholder', v || undefined));
+      addTextProp(content, 'placeholder', node.placeholder || '', v => applyProp('placeholder', v || undefined), '入力のヒントテキスト');
     }
     if (node.type === 'table') {
       addTextProp(content, 'columns', (node.columns || []).map(c => typeof c === 'string' ? c : c.name).join(', '), v => {
         saveSnapshot();
         node.columns = v ? v.split(',').map(s => s.trim()).filter(Boolean) : [];
         markModified(); render(); updateJSONPanel();
-      });
+      }, 'カンマ区切りで列名');
       addNumberProp(content, 'rows', node.rows, v => applyProp('rows', v));
     }
   }
@@ -1731,6 +1769,41 @@ function renderPropsPanel() {
     addCheckProp(content, 'wrap', !!node.wrap, v => applyProp('wrap', v || undefined));
   }
 
+  // --- Entity ---
+  addGroupTitle(content, 'Entity');
+  const viewEntities = (WIREFRAME_DATA?.view?.entities || []).map(e => e.entity);
+  const entityOptions = [['', '(none)'], ...viewEntities.map(n => [n, n])];
+  addSelectProp(content, '_entity', node._entity || '', entityOptions, v => {
+    saveSnapshot();
+    if (v) {
+      node._entity = v;
+      // エンティティ選択時にattributesを全選択
+      const ent = findCmEntity(v);
+      if (ent && ent.attributes && ent.attributes.length > 0) {
+        const attrs = ent.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+        node._attributes = attrs;
+        applyEntityToNode(node, v, attrs);
+      }
+    } else {
+      delete node._entity; delete node._attributes;
+    }
+    markModified(); render(); updateJSONPanel();
+    renderPropsPanel();
+  });
+  if (node._entity) {
+    const cmEntity = findCmEntity(node._entity);
+    if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
+      const allAttrs = cmEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+      const currentAttrs = node._attributes || [];
+      addAttrCheckboxes(content, allAttrs, currentAttrs, selected => {
+        saveSnapshot();
+        if (selected.length > 0) { node._attributes = selected; } else { delete node._attributes; }
+        applyEntityToNode(node, node._entity, selected);
+        markModified(); render(); updateJSONPanel();
+      });
+    }
+  }
+
   // --- Note ---
   addGroupTitle(content, 'Note');
   addTextareaProp(content, node._note || '', v => {
@@ -1750,7 +1823,7 @@ function addGroupTitle(container, title) {
   container.appendChild(el);
 }
 
-function addTextProp(container, label, value, onChange) {
+function addTextProp(container, label, value, onChange, placeholder) {
   const row = document.createElement('div');
   row.className = 'wf-prop-row';
   const lbl = document.createElement('span');
@@ -1761,6 +1834,7 @@ function addTextProp(container, label, value, onChange) {
   input.type = 'text';
   input.className = 'wf-prop-input';
   input.value = value;
+  if (placeholder) input.placeholder = placeholder;
   input.addEventListener('change', () => onChange(input.value.trim()));
   input.addEventListener('keydown', e => e.stopPropagation());
   row.appendChild(input);
@@ -1801,6 +1875,29 @@ function addCheckProp(container, label, checked, onChange) {
   lbl.appendChild(document.createTextNode(label));
   row.appendChild(lbl);
   container.appendChild(row);
+}
+
+function addAttrCheckboxes(container, allAttrs, currentAttrs, onChange) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px 8px;padding:2px 0;';
+  allAttrs.forEach(attr => {
+    const lbl = document.createElement('label');
+    lbl.className = 'wf-prop-check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = currentAttrs.includes(attr);
+    cb.addEventListener('change', () => {
+      const selected = [];
+      wrap.querySelectorAll('input[type="checkbox"]').forEach((c, i) => {
+        if (c.checked) selected.push(allAttrs[i]);
+      });
+      onChange(selected);
+    });
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(attr));
+    wrap.appendChild(lbl);
+  });
+  container.appendChild(wrap);
 }
 
 function addTextareaProp(container, value, onChange) {
@@ -1854,6 +1951,47 @@ function findCmEntity(entityName) {
     return null;
   }
   return search(CM_DATA.root.children);
+}
+
+// エンティティ選択・属性変更時にノードtypeに応じた内容を自動補完
+function applyEntityToNode(node, entityName, attrs) {
+  if (!node.type) return;
+  switch (node.type) {
+    case 'table':
+      // columnsを属性から設定
+      node.columns = attrs.length > 0 ? [...attrs] : ['列1', '列2', '列3'];
+      break;
+    case 'card':
+      // childrenが空なら属性をテキストノードとして生成
+      if (!node.children || node.children.length === 0) {
+        node.children = attrs.map(a => ({ name: a, type: 'text', content: a }));
+        delete node.type; // コンテナに変換
+        node.direction = 'vertical';
+      }
+      break;
+    case 'select':
+      // 最初の属性名をnameに反映（空の場合）
+      if (attrs.length > 0 && (!node.name || node.name === 'セレクト')) {
+        node.name = attrs[0];
+      }
+      break;
+    case 'text':
+      // contentが空ならエンティティ名を設定
+      if (!node.content) {
+        node.content = entityName;
+      }
+      break;
+    case 'input':
+      // placeholderが空なら最初の属性名を設定
+      if (!node.placeholder && attrs.length > 0) {
+        node.placeholder = attrs[0] + 'を入力...';
+      }
+      break;
+  }
+  // コンテナ（directionあり・childrenが空）の場合もcard同様に補完
+  if (!node.type && node.direction && (!node.children || node.children.length === 0) && attrs.length > 0) {
+    node.children = attrs.map(a => ({ name: a, type: 'text', content: a }));
+  }
 }
 
 function renderEntityPanel() {
