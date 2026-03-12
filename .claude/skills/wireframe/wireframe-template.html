@@ -1208,6 +1208,38 @@ function disconnectFile() {
   updateSaveStatus('', 'Connect', '(Drop a JSON file)');
 }
 
+// JSONファイルを読み込んで描画する共通処理
+const MAX_DEPTH = 50;
+function checkDepth(obj, depth) {
+  if (depth > MAX_DEPTH) return false;
+  if (obj && obj.children && Array.isArray(obj.children)) {
+    return obj.children.every(c => checkDepth(c, depth + 1));
+  }
+  return true;
+}
+
+async function loadJsonFromHandle(handle) {
+  const file = await handle.getFile();
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return false; }
+  if (data.root && !checkDepth(data.root, 0)) {
+    updateSaveStatus('error', 'JSON too deeply nested'); return false;
+  }
+  if (WIREFRAME_DATA) {
+    Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+    Object.assign(WIREFRAME_DATA, data);
+  } else {
+    WIREFRAME_DATA = data;
+  }
+  undoStack.length = 0;
+  redoStack.length = 0;
+  fileHandle = handle;
+  updateSaveStatus('connected', handle.name);
+  init();
+  return true;
+}
+
 async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
@@ -1220,22 +1252,7 @@ async function connectFile() {
       id: 'wf-editor',
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
-    // ファイル内容を読み込んで描画
-    const file = await handle.getFile();
-    const text = await file.text();
-    let data;
-    try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
-    if (WIREFRAME_DATA) {
-      Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
-      Object.assign(WIREFRAME_DATA, data);
-    } else {
-      WIREFRAME_DATA = data;
-    }
-    undoStack.length = 0;
-    redoStack.length = 0;
-    fileHandle = handle;
-    updateSaveStatus('connected', handle.name);
-    init();
+    await loadJsonFromHandle(handle);
   } catch (err) {
     if (err.name !== 'AbortError') {
       console.error(err);
@@ -1312,35 +1329,7 @@ document.addEventListener('drop', async e => {
     if (typeof item.getAsFileSystemHandle === 'function') {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-        // ファイル内容を読み込んで描画
-        const file = await handle.getFile();
-        const text = await file.text();
-        let data;
-        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
-        // 再帰深度チェック（悪意あるJSONによるスタックオーバーフロー防止）
-        const MAX_DEPTH = 50;
-        function checkDepth(obj, depth) {
-          if (depth > MAX_DEPTH) return false;
-          if (obj && obj.children && Array.isArray(obj.children)) {
-            return obj.children.every(c => checkDepth(c, depth + 1));
-          }
-          return true;
-        }
-        if (data.root && !checkDepth(data.root, 0)) {
-          updateSaveStatus('error', 'JSON too deeply nested'); return;
-        }
-        if (WIREFRAME_DATA) {
-          Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
-          Object.assign(WIREFRAME_DATA, data);
-        } else {
-          WIREFRAME_DATA = data;
-        }
-        // 新しいファイルなのでundo/redo履歴をクリア
-        undoStack.length = 0;
-        redoStack.length = 0;
-        fileHandle = handle;
-        updateSaveStatus('connected', handle.name);
-        init();
+        await loadJsonFromHandle(handle);
         return;
       }
     }
