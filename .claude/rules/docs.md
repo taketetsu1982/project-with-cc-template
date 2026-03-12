@@ -47,5 +47,6 @@ docs/specs/api-spec / auth-spec / analytics-spec
 ## Wireframe（JSON + HTMLエディタ）
 
 - `wireframe.json` の `_entity`/`_attributes` は編集しない。変更は `conceptual-model.json` から
-- ビューの追加は Conceptual Model HTML の右ペインで行い、「→ Wireframe生成」で `/wireframe` を実行する
+- ビューの追加は Conceptual Model HTML の右ペインで行う（auto-saveで `conceptual-model.json` に保存される）
+- ビュー定義後、`/wireframe` を実行して各ビューのレイアウトを生成する
 - `wireframe.json` が更新されたら、`ui-spec.md` への影響を確認する
