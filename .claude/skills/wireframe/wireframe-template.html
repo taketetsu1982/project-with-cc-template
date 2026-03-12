@@ -118,13 +118,6 @@
     border-radius: var(--radius-full);
   }
 
-  #wf-toolbar-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    flex: 1;
-    justify-content: flex-end;
-  }
 
   .wf-btn {
     padding: 6px 14px;
@@ -176,7 +169,7 @@
   #wf-viewport-wrap {
     grid-column: 1;
     padding: var(--space-lg);
-    overflow-y: auto;
+    overflow: auto;
   }
 
   .wf-viewport {
@@ -184,6 +177,8 @@
     border: 1px solid var(--border-default);
     overflow: hidden;
     margin: 0 auto;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* ── Entity Panel (右ペイン) ── */
@@ -372,8 +367,8 @@
   .wf-node {
     display: flex;
     position: relative;
-    min-height: 0;
-    min-width: 0;
+    min-height: 24px;
+    min-width: 24px;
     transition: opacity 0.15s;
   }
 
@@ -451,10 +446,7 @@
   .wf-grab-bar .wf-grip { font-size: 11px; letter-spacing: 1px; opacity: 0.5; }
   .wf-grab-bar:hover .wf-grip { opacity: 0.8; }
 
-  /* ── Grab bar hover trigger zone ──
-     コンテナ上端にinvisibleなhitゾーンを配置し、
-     子ノードのhoverをブロックしてgrab barへのマウス到達を確保する。
-     :hover時のみ有効にしてドラッグ操作への干渉を防ぐ */
+  /* ── Grab bar hover trigger zone ── */
   .wf-node:has(> .wf-grab-bar)::after,
   #wf-root:has(> .wf-grab-bar)::after {
     content: '';
@@ -498,6 +490,20 @@
     z-index: 50;
     pointer-events: none;
     border-radius: 2px;
+    box-shadow: 0 0 6px var(--drop-indicator);
+  }
+
+  .wf-drop-label {
+    position: absolute;
+    z-index: 51;
+    pointer-events: none;
+    background: var(--drop-indicator);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
   }
 
   /* ── Element type placeholders ── */
@@ -505,9 +511,10 @@
   .wf-type-text {
     color: var(--text-primary);
     font-size: var(--font-base);
-    padding: var(--space-sm) 0;
+    padding: var(--space-xs) 0;
     display: flex;
     align-items: center;
+    min-height: 28px;
   }
 
   .wf-type-text[data-variant="display"] { font-size: var(--font-xl); font-weight: 600; }
@@ -534,20 +541,20 @@
 
   .wf-type-button {
     background: var(--bg-dark);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-lg);
-    display: flex;
+    border-radius: var(--radius-sm);
+    padding: var(--space-xs) var(--space-md);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--bg-surface);
-    font-size: var(--font-base);
+    font-size: 13px;
     font-weight: 500;
-    min-height: 40px;
+    min-height: 28px;
     cursor: default;
   }
 
   .wf-type-link {
-    padding: var(--space-sm) 0;
+    padding: var(--space-xs) 0;
     display: flex;
     align-items: center;
     color: var(--text-primary);
@@ -555,17 +562,17 @@
     font-weight: 500;
     text-decoration: underline;
     text-underline-offset: 3px;
-    min-height: 40px;
+    min-height: 28px;
     cursor: default;
   }
 
   .wf-type-input {
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-xs) var(--space-sm);
     color: var(--text-tertiary);
-    font-size: var(--font-base);
-    min-height: 40px;
+    font-size: 13px;
+    min-height: 28px;
     display: flex;
     align-items: center;
   }
@@ -646,8 +653,6 @@
     <span id="wf-toolbar-title"></span>
     <button class="save-status-btn" id="wf-connect-btn" onclick="connectFile()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
     <span id="wf-edited-badge">Edited</span>
-  </div>
-  <div id="wf-toolbar-actions">
     <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
     <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
   </div>
@@ -878,8 +883,8 @@ function handleDragOver(e) {
       wfDropTarget = { path: targetPath, before: false, intoGroup: false };
       showDropIndicator(nodeEl, false, false);
     } else {
-      removeDropIndicator();
       nodeEl.classList.add('wf-drag-over');
+      showDropIntoIndicator(nodeEl);
       wfDropTarget = { path: targetPath, before: false, intoGroup: true };
     }
     return;
@@ -939,6 +944,8 @@ function handleDrop(e) {
 
 // ── Drop indicator ──
 
+let dropLabel = null;
+
 function showDropIndicator(targetEl, isVertical, before) {
   removeDropIndicator();
 
@@ -946,16 +953,14 @@ function showDropIndicator(targetEl, isVertical, before) {
   dropIndicator.className = 'wf-drop-indicator';
 
   const rect = targetEl.getBoundingClientRect();
-  const parentRect = targetEl.parentElement.getBoundingClientRect();
+  const targetName = targetEl.querySelector('.wf-label')?.textContent || '';
 
   if (isVertical) {
-    // Horizontal line above or below target
     dropIndicator.style.height = '4px';
     dropIndicator.style.left = `${rect.left}px`;
     dropIndicator.style.width = `${rect.width}px`;
     dropIndicator.style.top = before ? `${rect.top - 2}px` : `${rect.bottom - 2}px`;
   } else {
-    // Vertical line left or right of target
     dropIndicator.style.width = '4px';
     dropIndicator.style.top = `${rect.top}px`;
     dropIndicator.style.height = `${rect.height}px`;
@@ -963,12 +968,47 @@ function showDropIndicator(targetEl, isVertical, before) {
   }
 
   document.body.appendChild(dropIndicator);
+
+  // ドロップ先ラベル表示
+  if (targetName) {
+    dropLabel = document.createElement('div');
+    dropLabel.className = 'wf-drop-label';
+    dropLabel.textContent = (before ? '↑ ' : '↓ ') + targetName;
+    if (isVertical) {
+      dropLabel.style.left = `${rect.left}px`;
+      dropLabel.style.top = before ? `${rect.top - 22}px` : `${rect.bottom + 4}px`;
+    } else {
+      dropLabel.textContent = (before ? '← ' : '→ ') + targetName;
+      dropLabel.style.top = `${rect.top}px`;
+      dropLabel.style.left = before ? `${rect.left - 4}px` : `${rect.right + 4}px`;
+    }
+    document.body.appendChild(dropLabel);
+  }
+}
+
+function showDropIntoIndicator(targetEl) {
+  removeDropIndicator();
+  // コンテナ内ドロップ時のラベル表示
+  const rect = targetEl.getBoundingClientRect();
+  const targetName = targetEl.querySelector('.wf-label')?.textContent || '';
+  if (targetName) {
+    dropLabel = document.createElement('div');
+    dropLabel.className = 'wf-drop-label';
+    dropLabel.textContent = '→ into ' + targetName;
+    dropLabel.style.left = `${rect.left + 8}px`;
+    dropLabel.style.top = `${rect.top + 4}px`;
+    document.body.appendChild(dropLabel);
+  }
 }
 
 function removeDropIndicator() {
   if (dropIndicator) {
     dropIndicator.remove();
     dropIndicator = null;
+  }
+  if (dropLabel) {
+    dropLabel.remove();
+    dropLabel = null;
   }
 }
 
