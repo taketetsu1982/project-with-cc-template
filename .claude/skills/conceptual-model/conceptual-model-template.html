@@ -1161,10 +1161,10 @@ function renderGroup(node, path) {
     div.addEventListener('dragstart', e => { e.stopPropagation(); onDragStart(e, path); });
     div.addEventListener('dragend', e => onDragEnd(e, path));
   }
-  div.addEventListener('dragover', e => { e.stopPropagation(); onDragOver(e, path); });
-  div.addEventListener('dragenter', e => { e.stopPropagation(); onDragEnter(e, path); });
-  div.addEventListener('dragleave', e => { e.stopPropagation(); onDragLeave(e, path); });
-  div.addEventListener('drop', e => { e.stopPropagation(); onDrop(e, path); });
+  div.addEventListener('dragover', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, path); });
+  div.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, path); });
+  div.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, path); });
+  div.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, path); });
 
   const inner = document.createElement('div');
   inner.className = 'node-inner';
@@ -1255,10 +1255,10 @@ function renderEntity(node, path) {
 
   div.addEventListener('dragstart', e => { e.stopPropagation(); onDragStart(e, path); });
   div.addEventListener('dragend', e => onDragEnd(e, path));
-  div.addEventListener('dragover', e => { e.stopPropagation(); onDragOver(e, path); });
-  div.addEventListener('dragenter', e => { e.stopPropagation(); onDragEnter(e, path); });
-  div.addEventListener('dragleave', e => { e.stopPropagation(); onDragLeave(e, path); });
-  div.addEventListener('drop', e => { e.stopPropagation(); onDrop(e, path); });
+  div.addEventListener('dragover', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, path); });
+  div.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, path); });
+  div.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, path); });
+  div.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, path); });
 
   const inner = document.createElement('div');
   inner.className = 'node-inner';
@@ -1719,8 +1719,19 @@ document.addEventListener('drop', async e => {
     if (typeof item.getAsFileSystemHandle === 'function') {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
+        // ファイル内容を読み込んで描画
+        const file = await handle.getFile();
+        const text = await file.text();
+        const data = JSON.parse(text);
+        // modelを更新（参照を維持）
+        Object.keys(model).forEach(k => delete model[k]);
+        Object.assign(model, data);
+        model.views = model.views || [];
+        // 接続して描画→保存
         fileHandle = handle;
         updateSaveStatus('connected', handle.name);
+        render();
+        renderViews();
         await writeToFile();
         return;
       }
@@ -1739,10 +1750,10 @@ function toggleRootDirection() {
 
 // ===== canvasをルートのdropターゲットに =====
 const canvasEl = document.getElementById('canvas');
-canvasEl.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); onDragOver(e, []); });
-canvasEl.addEventListener('dragenter', e => { e.stopPropagation(); onDragEnter(e, []); });
-canvasEl.addEventListener('dragleave', e => { e.stopPropagation(); onDragLeave(e, []); });
-canvasEl.addEventListener('drop', e => { e.stopPropagation(); onDrop(e, []); });
+canvasEl.addEventListener('dragover', e => { e.preventDefault(); if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, []); });
+canvasEl.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, []); });
+canvasEl.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, []); });
+canvasEl.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, []); });
 
 // ===== サブヘッダーのルート名編集 =====
 document.getElementById('rootLabel').addEventListener('change', e => {

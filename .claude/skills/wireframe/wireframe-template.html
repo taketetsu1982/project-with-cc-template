@@ -134,6 +134,44 @@
   .wf-btn:hover { background: var(--bg-subtle); text-decoration: none; }
   .wf-btn:active { background: var(--border-default); }
 
+  .wf-add-wrap { position: relative; display: inline-block; }
+  .wf-add-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px var(--shadow-dropdown);
+    z-index: 150;
+    min-width: 160px;
+    padding: var(--space-xs) 0;
+  }
+  .wf-add-dropdown.open { display: block; }
+  .wf-add-section {
+    padding: var(--space-xs) var(--space-md);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .wf-add-item {
+    display: block;
+    width: 100%;
+    padding: 6px var(--space-md);
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .wf-add-item:hover { background: var(--accent-bg); color: var(--accent); }
+
   .wf-btn-success {
     background: var(--success-bg);
     border-color: var(--success-border);
@@ -307,6 +345,76 @@
     white-space: nowrap;
   }
 
+  /* ── File drop overlay ── */
+  .file-drop-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--accent-overlay);
+    border: 3px dashed var(--accent);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .file-drop-overlay.active { display: flex; }
+  .file-drop-overlay .drop-msg {
+    padding: var(--space-md) var(--space-xl);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: 0 2px 12px var(--shadow-dropdown);
+  }
+
+  /* ── Properties Panel ── */
+  #wf-props-section { border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
+  #wf-props-content {
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .wf-props-empty { color: var(--text-muted); font-size: 13px; padding: var(--space-xs) 0; text-align: center; }
+  .wf-prop-group {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-top: 4px;
+  }
+  .wf-prop-row { display: flex; align-items: center; gap: var(--space-sm); }
+  .wf-prop-label { width: 54px; flex-shrink: 0; color: var(--text-tertiary); font-size: 12px; }
+  .wf-prop-input {
+    flex: 1;
+    padding: 3px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    min-width: 0;
+  }
+  .wf-prop-input:focus { outline: none; border-color: var(--accent); }
+  .wf-prop-select {
+    flex: 1;
+    padding: 3px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    min-width: 0;
+  }
+  .wf-prop-select:focus { outline: none; border-color: var(--accent); }
+  .wf-prop-check { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+
   .wf-entity-card-no-data {
     font-size: 13px;
     color: var(--text-muted);
@@ -405,9 +513,22 @@
     font-size: var(--font-sm);
     font-weight: 500;
     color: var(--text-muted);
-    pointer-events: none;
     z-index: 1;
     white-space: nowrap;
+    cursor: default;
+  }
+
+  .wf-name-edit {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 0 4px;
+    outline: none;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    min-width: 60px;
+    z-index: 20;
   }
 
   .wf-node:hover > .wf-label { color: var(--text-primary); }
@@ -651,11 +772,29 @@
 
 <div id="wf-toolbar">
   <div id="wf-toolbar-left">
-    <span id="wf-toolbar-title"></span>
+    <span id="wf-toolbar-title">WIREFRAME</span>
     <button class="save-status-btn" id="wf-connect-btn" onclick="connectFile()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
     <span id="wf-edited-badge">Edited</span>
     <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
     <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
+    <div class="wf-add-wrap">
+      <button class="wf-btn" onclick="toggleAddDropdown(event)">+ 追加</button>
+      <div id="wf-add-dropdown" class="wf-add-dropdown">
+        <div class="wf-add-section">Container</div>
+        <button class="wf-add-item" onclick="addNode('container')">コンテナ</button>
+        <div class="wf-add-section">Leaf</div>
+        <button class="wf-add-item" onclick="addNode('text')">text</button>
+        <button class="wf-add-item" onclick="addNode('button')">button</button>
+        <button class="wf-add-item" onclick="addNode('input')">input</button>
+        <button class="wf-add-item" onclick="addNode('select')">select</button>
+        <button class="wf-add-item" onclick="addNode('link')">link</button>
+        <button class="wf-add-item" onclick="addNode('image')">image</button>
+        <button class="wf-add-item" onclick="addNode('icon')">icon</button>
+        <button class="wf-add-item" onclick="addNode('card')">card</button>
+        <button class="wf-add-item" onclick="addNode('table')">table</button>
+        <button class="wf-add-item" onclick="addNode('divider')">divider</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -669,16 +808,23 @@
     <a class="panel-header-link" href="conceptual-model.html" target="_blank">Edit in Conceptual Model</a>
   </div>
   <div id="wf-view-info"></div>
+  <div id="wf-props-section">
+    <div class="wf-section-header"><span>Properties</span></div>
+    <div id="wf-props-content">
+      <div class="wf-props-empty">ノード未選択</div>
+    </div>
+  </div>
   <div class="wf-section-header">
     <span>Entity &amp; Attributes (Read-only)</span>
   </div>
   <div id="wf-entity-list"></div>
 </div>
 
+<div class="file-drop-overlay" id="wf-file-drop-overlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
 <div id="wf-toast"></div>
 
 <script>
-const WIREFRAME_DATA = null; // %%WIREFRAME_DATA%%
+let WIREFRAME_DATA = null; // %%WIREFRAME_DATA%%
 const CM_DATA = null; // スキル実行時にconceptual-model.jsonで置換される
 
 let modified = false;
@@ -693,7 +839,6 @@ const redoStack = [];
 const MAX_UNDO = 50;
 const WF_FILENAME = null; // スキル実行時に置換される
 const originalFilename = WF_FILENAME || (WIREFRAME_DATA?.name || 'wireframe').replace(/\s+/g, '-').toLowerCase() + '.wireframe.json';
-let dirHandle = null;
 let saveTimer = null;
 
 // ── Undo / Redo ──
@@ -990,16 +1135,24 @@ function updateJSONPanel() {
 
 // ── Connect & Auto-save ──
 
+let isSaving = false;
+
 async function connectFile() {
+  if (!('showDirectoryPicker' in window)) {
+    alert('このブラウザはFile System Access APIに対応していません。JSONファイルをドロップして接続してください。');
+    return;
+  }
+  const filename = WF_FILENAME || originalFilename;
   try {
-    dirHandle = await window.showDirectoryPicker({ id: 'wf-dir', mode: 'readwrite' });
-    const fh = await dirHandle.getFileHandle(originalFilename, { create: true });
-    fileHandle = fh;
-    updateSaveStatus('connected', originalFilename);
-    scheduleAutoSave();
+    const dirHandle = await window.showDirectoryPicker({ id: 'wf-editor', mode: 'readwrite' });
+    fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+    updateSaveStatus('connected', fileHandle.name);
+    await writeToFile();
   } catch (err) {
-    if (err.name === 'AbortError') return;
-    updateSaveStatus('error', 'Error');
+    if (err.name !== 'AbortError') {
+      console.error(err);
+      updateSaveStatus('error', 'Error');
+    }
   }
 }
 
@@ -1010,21 +1163,25 @@ function updateSaveStatus(state, label, hint) {
 }
 
 async function writeToFile() {
-  if (!fileHandle) return;
+  if (!fileHandle || isSaving) return;
+  isSaving = true;
   updateSaveStatus('saving', 'Saving...');
   try {
-    const json = JSON.stringify(WIREFRAME_DATA, null, 2);
+    const json = JSON.stringify(WIREFRAME_DATA, null, 2) + '\n';
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
     updateSaveStatus('connected', fileHandle.name);
     document.getElementById('wf-edited-badge').style.display = 'none';
   } catch (err) {
+    console.error(err);
     updateSaveStatus('error', 'Save failed');
     if (err.name === 'NotAllowedError') {
       fileHandle = null;
       updateSaveStatus('', 'Connect', '(Drop a JSON file)');
     }
+  } finally {
+    isSaving = false;
   }
 }
 
@@ -1034,22 +1191,54 @@ function scheduleAutoSave() {
   saveTimer = setTimeout(() => writeToFile(), 500);
 }
 
-// ドラッグ&ドロップでファイル接続
-document.getElementById('wf-viewport-wrap').addEventListener('dragover', e => {
-  if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+// ドラッグ&ドロップでファイル接続（document全体）
+let fileDragCounter = 0;
+const wfOverlay = document.getElementById('wf-file-drop-overlay');
+
+document.addEventListener('dragenter', e => {
+  if (!e.dataTransfer.types.includes('Files')) return;
+  fileDragCounter++;
+  wfOverlay.classList.add('active');
 });
-document.getElementById('wf-viewport-wrap').addEventListener('drop', async e => {
+
+document.addEventListener('dragleave', e => {
+  if (!e.dataTransfer.types.includes('Files')) return;
+  fileDragCounter--;
+  if (fileDragCounter <= 0) {
+    fileDragCounter = 0;
+    wfOverlay.classList.remove('active');
+  }
+});
+
+document.addEventListener('dragover', e => {
+  if (e.dataTransfer.types.includes('Files')) e.preventDefault();
+});
+document.addEventListener('drop', async e => {
+  fileDragCounter = 0;
+  wfOverlay.classList.remove('active');
   if (!e.dataTransfer.types.includes('Files')) return;
   e.preventDefault();
-  const items = e.dataTransfer.items;
+  const items = [...e.dataTransfer.items];
   for (const item of items) {
     if (item.kind !== 'file') continue;
-    const handle = await item.getAsFileSystemHandle();
-    if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-      fileHandle = handle;
-      updateSaveStatus('connected', handle.name);
-      scheduleAutoSave();
-      return;
+    if (typeof item.getAsFileSystemHandle === 'function') {
+      const handle = await item.getAsFileSystemHandle();
+      if (handle.kind === 'file' && handle.name.endsWith('.json')) {
+        // ファイル内容を読み込んで描画
+        const file = await handle.getFile();
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (WIREFRAME_DATA) {
+          Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+          Object.assign(WIREFRAME_DATA, data);
+        } else {
+          WIREFRAME_DATA = data;
+        }
+        fileHandle = handle;
+        updateSaveStatus('connected', handle.name);
+        init();
+        return;
+      }
     }
   }
   updateSaveStatus('error', 'Drop not supported');
@@ -1066,6 +1255,58 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── Add Node ──
+
+const NODE_DEFAULTS = {
+  container: { name: 'コンテナ', direction: 'vertical', children: [] },
+  text: { name: 'テキスト', type: 'text' },
+  button: { name: 'ボタン', type: 'button' },
+  input: { name: '入力', type: 'input' },
+  select: { name: 'セレクト', type: 'select' },
+  link: { name: 'リンク', type: 'link' },
+  image: { name: '画像', type: 'image', width: 200, height: 150 },
+  icon: { name: 'アイコン', type: 'icon', width: 32, height: 32 },
+  card: { name: 'カード', type: 'card' },
+  table: { name: 'テーブル', type: 'table', columns: ['列1', '列2', '列3'], rows: 3 },
+  divider: { name: '区切り線', type: 'divider' },
+};
+
+function toggleAddDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('wf-add-dropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('wf-add-dropdown')?.classList.remove('open');
+});
+
+function addNode(type) {
+  document.getElementById('wf-add-dropdown').classList.remove('open');
+  const template = NODE_DEFAULTS[type];
+  if (!template) return;
+  const newNode = JSON.parse(JSON.stringify(template));
+
+  saveSnapshot();
+  if (selectedPath !== null) {
+    const info = getNodeByPath(selectedPath);
+    if (info) {
+      info.parent.children.splice(info.index + 1, 0, newNode);
+      const parts = selectedPath.split('.');
+      parts[parts.length - 1] = String(info.index + 1);
+      selectedPath = parts.join('.');
+    }
+  } else {
+    WIREFRAME_DATA.root.children.push(newNode);
+    selectedPath = String(WIREFRAME_DATA.root.children.length - 1);
+  }
+
+  markModified();
+  render();
+  updateSelection();
+  updateJSONPanel();
+  showToast(`Added: ${newNode.name}`);
 }
 
 // ── Direction Toggle ──
@@ -1110,6 +1351,7 @@ function updateSelection() {
     const el = document.querySelector(`[data-path="${selectedPath}"]`);
     if (el) el.classList.add('wf-selected');
   }
+  renderPropsPanel();
 }
 
 // ノードのディープコピー（nameに " (copy)" を付与）
@@ -1148,6 +1390,26 @@ function handlePaste() {
   updateSelection();
   updateJSONPanel();
   showToast(`Pasted: ${copy.name}`);
+}
+
+function handleDuplicate() {
+  if (selectedPath === null) return;
+  const info = getNodeByPath(selectedPath);
+  if (!info) return;
+
+  saveSnapshot();
+  const copy = deepCopyNode(info.node);
+  info.parent.children.splice(info.index + 1, 0, copy);
+  markModified();
+
+  const parts = selectedPath.split('.');
+  parts[parts.length - 1] = String(info.index + 1);
+  selectedPath = parts.join('.');
+
+  render();
+  updateSelection();
+  updateJSONPanel();
+  showToast(`Duplicated: ${info.node.name}`);
 }
 
 function handleDelete() {
@@ -1217,6 +1479,13 @@ function handleKeyDown(e) {
     return;
   }
 
+  // ⌘D: 複製
+  if (isMeta && e.key === 'd' && selectedPath !== null && !isInputFocused()) {
+    e.preventDefault();
+    handleDuplicate();
+    return;
+  }
+
   // Delete / Backspace: 削除
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPath !== null && !isInputFocused()) {
     e.preventDefault();
@@ -1263,6 +1532,248 @@ function handleNodeClick(e) {
 
   e.stopPropagation();
   selectNode(nodeEl.dataset.path);
+}
+
+// ── Inline Name Edit ──
+
+function handleNodeDblClick(e) {
+  const grabLabel = e.target.closest('.wf-grab-bar > span:not(.wf-grip)');
+  const wfLabel = e.target.closest('.wf-label');
+  const labelEl = grabLabel || wfLabel;
+  if (!labelEl) return;
+  if (labelEl.querySelector('.wf-name-edit')) return;
+
+  e.stopPropagation();
+  const nodeEl = labelEl.closest('[data-path]') || labelEl.closest('#wf-root');
+  const path = nodeEl?.dataset?.path;
+
+  let node;
+  if (path === undefined || path === null) {
+    node = WIREFRAME_DATA.root;
+  } else {
+    const info = getNodeByPath(path);
+    if (!info) return;
+    node = info.node;
+  }
+
+  const originalName = node.name || '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'wf-name-edit';
+  input.value = originalName;
+
+  labelEl.textContent = '';
+  labelEl.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit() {
+    if (committed) return;
+    committed = true;
+    const newName = input.value.trim();
+    if (newName && newName !== originalName) {
+      saveSnapshot();
+      node.name = newName;
+      markModified();
+      updateJSONPanel();
+    }
+    render();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+    if (ev.key === 'Escape') {
+      input.removeEventListener('blur', commit);
+      committed = true;
+      render();
+    }
+  });
+}
+
+// ── Properties Panel ──
+
+function renderPropsPanel() {
+  const content = document.getElementById('wf-props-content');
+  if (!content) return;
+  // propsパネル内にフォーカスがある場合は再描画スキップ
+  if (content.contains(document.activeElement) &&
+      (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+    return;
+  }
+  content.innerHTML = '';
+
+  if (selectedPath === null) {
+    content.innerHTML = '<div class="wf-props-empty">ノード未選択</div>';
+    return;
+  }
+
+  const info = getNodeByPath(selectedPath);
+  if (!info) return;
+  const node = info.node;
+  const isContainer = !!(node.children);
+
+  // プロパティ変更のヘルパー
+  function applyProp(key, val) {
+    saveSnapshot();
+    if (val === '' || val === null || val === undefined) { delete node[key]; }
+    else { node[key] = val; }
+    markModified();
+    render();
+    updateJSONPanel();
+  }
+
+  // --- name ---
+  addTextProp(content, 'name', node.name || '', v => applyProp('name', v || undefined));
+
+  // --- type (葉ノードのみ) ---
+  if (!isContainer) {
+    const typeOptions = [
+      ['', '(none)'], ['text', 'text'], ['button', 'button'], ['input', 'input'],
+      ['select', 'select'], ['link', 'link'], ['image', 'image'], ['icon', 'icon'],
+      ['card', 'card'], ['table', 'table'], ['divider', 'divider'],
+    ];
+    addSelectProp(content, 'type', node.type || '', typeOptions, v => {
+      saveSnapshot();
+      if (v) { node.type = v; } else { delete node.type; }
+      // type変更時にtype固有フィールドをクリーンアップ
+      if (v !== 'text') { delete node.variant; delete node.content; }
+      if (v !== 'input' && v !== 'select') { delete node.placeholder; }
+      if (v !== 'table') { delete node.columns; delete node.rows; }
+      markModified(); render(); updateJSONPanel();
+    });
+
+    // --- type固有プロパティ ---
+    if (node.type === 'text') {
+      addTextProp(content, 'content', node.content || '', v => applyProp('content', v || undefined));
+      addSelectProp(content, 'variant', node.variant || '', [
+        ['', '(default)'], ['display', 'display'], ['heading', 'heading'], ['caption', 'caption'],
+      ], v => applyProp('variant', v || undefined));
+    }
+    if (node.type === 'input' || node.type === 'select') {
+      addTextProp(content, 'placeholder', node.placeholder || '', v => applyProp('placeholder', v || undefined));
+    }
+    if (node.type === 'table') {
+      addTextProp(content, 'columns', (node.columns || []).map(c => typeof c === 'string' ? c : c.name).join(', '), v => {
+        saveSnapshot();
+        node.columns = v ? v.split(',').map(s => s.trim()).filter(Boolean) : [];
+        markModified(); render(); updateJSONPanel();
+      });
+      addNumberProp(content, 'rows', node.rows, v => applyProp('rows', v));
+    }
+  }
+
+  // --- Size ---
+  addGroupTitle(content, 'Size');
+  addNumberProp(content, 'width', node.width, v => applyProp('width', v));
+  addNumberProp(content, 'height', node.height, v => applyProp('height', v));
+  addCheckProp(content, 'grow', !!node.grow, v => applyProp('grow', v || undefined));
+
+  // --- Spacing ---
+  addGroupTitle(content, 'Spacing');
+  addNumberProp(content, 'padding', Array.isArray(node.padding) ? node.padding[0] : node.padding, v => applyProp('padding', v));
+  if (isContainer) {
+    addNumberProp(content, 'gap', node.gap, v => applyProp('gap', v));
+  }
+
+  // --- Layout (コンテナのみ) ---
+  if (isContainer) {
+    addGroupTitle(content, 'Layout');
+    addSelectProp(content, 'justify', node.justify || '', [
+      ['', '(default)'], ['flex-start', 'flex-start'], ['center', 'center'],
+      ['flex-end', 'flex-end'], ['space-between', 'space-between'], ['space-around', 'space-around'],
+    ], v => applyProp('justify', v || undefined));
+    addSelectProp(content, 'align', node.align || '', [
+      ['', '(default)'], ['stretch', 'stretch'], ['flex-start', 'flex-start'],
+      ['center', 'center'], ['flex-end', 'flex-end'],
+    ], v => applyProp('align', v || undefined));
+    addCheckProp(content, 'wrap', !!node.wrap, v => applyProp('wrap', v || undefined));
+  }
+}
+
+// PropsPanel ヘルパー
+function addGroupTitle(container, title) {
+  const el = document.createElement('div');
+  el.className = 'wf-prop-group';
+  el.textContent = title;
+  container.appendChild(el);
+}
+
+function addTextProp(container, label, value, onChange) {
+  const row = document.createElement('div');
+  row.className = 'wf-prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'wf-prop-label';
+  lbl.textContent = label;
+  row.appendChild(lbl);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'wf-prop-input';
+  input.value = value;
+  input.addEventListener('change', () => onChange(input.value.trim()));
+  input.addEventListener('keydown', e => e.stopPropagation());
+  row.appendChild(input);
+  container.appendChild(row);
+}
+
+function addNumberProp(container, label, value, onChange) {
+  const row = document.createElement('div');
+  row.className = 'wf-prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'wf-prop-label';
+  lbl.textContent = label;
+  row.appendChild(lbl);
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'wf-prop-input';
+  input.value = value != null ? value : '';
+  input.placeholder = '—';
+  input.addEventListener('change', () => {
+    const v = input.value.trim();
+    onChange(v === '' ? null : Number(v));
+  });
+  input.addEventListener('keydown', e => e.stopPropagation());
+  row.appendChild(input);
+  container.appendChild(row);
+}
+
+function addCheckProp(container, label, checked, onChange) {
+  const row = document.createElement('div');
+  row.className = 'wf-prop-row';
+  const lbl = document.createElement('label');
+  lbl.className = 'wf-prop-check';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = checked;
+  cb.addEventListener('change', () => onChange(cb.checked));
+  lbl.appendChild(cb);
+  lbl.appendChild(document.createTextNode(label));
+  row.appendChild(lbl);
+  container.appendChild(row);
+}
+
+function addSelectProp(container, label, value, options, onChange) {
+  const row = document.createElement('div');
+  row.className = 'wf-prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'wf-prop-label';
+  lbl.textContent = label;
+  row.appendChild(lbl);
+  const sel = document.createElement('select');
+  sel.className = 'wf-prop-select';
+  options.forEach(([val, text]) => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = text;
+    if (val === value) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => onChange(sel.value));
+  sel.addEventListener('keydown', e => e.stopPropagation());
+  row.appendChild(sel);
+  container.appendChild(row);
 }
 
 // ── Entity Panel ──
@@ -1623,22 +2134,23 @@ function render() {
   updateSelection();
 }
 
+let _initialized = false;
+
 function init() {
   if (!WIREFRAME_DATA) {
-    document.getElementById('wf-root').textContent = 'No wireframe data found.';
+    document.getElementById('wf-root').textContent = 'No wireframe data found. Click "Open JSON" to load a file.';
     document.getElementById('wf-entity-list').innerHTML = '<div class="wf-entity-card-no-data">データなし</div>';
     return;
   }
 
-  document.getElementById('wf-toolbar-title').textContent = WIREFRAME_DATA.name || 'Wireframe';
+  document.title = (WIREFRAME_DATA.name || 'Wireframe') + ' — WIREFRAME';
   document.title = WIREFRAME_DATA.name || 'Wireframe Preview';
 
   // ビュー情報表示
+  const info = document.getElementById('wf-view-info');
+  info.innerHTML = '';
   if (WIREFRAME_DATA.view) {
     const v = WIREFRAME_DATA.view;
-    const info = document.getElementById('wf-view-info');
-    info.innerHTML = '';
-    // ビュー名: 先頭エンティティ名 + context（例: 「プロジェクト詳細」）
     const primaryEntity = v.entities && v.entities.length > 0
       ? v.entities[0].entity
       : (v.entity || '');
@@ -1674,23 +2186,24 @@ function init() {
   // エンティティパネル描画
   renderEntityPanel();
 
-  // Set up drag-and-drop event delegation
-  const viewport = document.getElementById('wf-root');
-  viewport.addEventListener('dragstart', handleDragStart);
-  viewport.addEventListener('dragend', handleDragEnd);
-  viewport.addEventListener('dragover', handleDragOver);
-  viewport.addEventListener('drop', handleDrop);
+  // イベントリスナーは初回のみ登録
+  if (!_initialized) {
+    _initialized = true;
+    const viewport = document.getElementById('wf-root');
+    viewport.addEventListener('dragstart', handleDragStart);
+    viewport.addEventListener('dragend', handleDragEnd);
+    viewport.addEventListener('dragover', handleDragOver);
+    viewport.addEventListener('drop', handleDrop);
+    viewport.addEventListener('click', handleNodeClick);
+    viewport.addEventListener('dblclick', handleNodeDblClick);
+    document.addEventListener('keydown', handleKeyDown);
 
-  // 選択とコピー&ペースト
-  viewport.addEventListener('click', handleNodeClick);
-  document.addEventListener('keydown', handleKeyDown);
-
-  // viewport外クリックで選択解除
-  document.getElementById('wf-viewport-wrap').addEventListener('click', (e) => {
-    if (e.target.closest('#wf-root [data-path]')) return;
-    selectedPath = null;
-    updateSelection();
-  });
+    document.getElementById('wf-viewport-wrap').addEventListener('click', (e) => {
+      if (e.target.closest('#wf-root [data-path]')) return;
+      selectedPath = null;
+      updateSelection();
+    });
+  }
 
   render();
   updateJSONPanel();
