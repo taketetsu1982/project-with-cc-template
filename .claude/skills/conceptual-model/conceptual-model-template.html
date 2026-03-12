@@ -1572,6 +1572,26 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  // ⌘X: 切り取り（ノード or ビュー）
+  if (isMeta && e.key === 'x' && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
+      pushUndo();
+      model.views.splice(selectedViewIndex, 1);
+      selectedViewIndex = null;
+      render();
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      const node = getNodeByPath(selectedPath);
+      if (node) clipboard = JSON.stringify(node);
+      deleteNode(selectedPath);
+      return;
+    }
+  }
+
   // ⌘C: コピー（ノード or ビュー）
   if (isMeta && e.key === 'c' && !isInputFocused()) {
     if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {

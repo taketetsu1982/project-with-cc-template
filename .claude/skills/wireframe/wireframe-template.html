@@ -1514,6 +1514,13 @@ function handleDuplicate() {
   showToast(`複製: ${info.node.name}`);
 }
 
+function handleCut() {
+  if (selectedPath === null) return;
+  handleCopy();
+  handleDelete();
+  showToast(`切り取り: ${clipboardNode.name}`);
+}
+
 function handleDelete() {
   if (selectedPath === null) return;
   const info = getNodeByPath(selectedPath);
@@ -1563,6 +1570,13 @@ function handleKeyDown(e) {
     } else {
       showToast('先にファイルを接続してください（Connectまたはドロップ）');
     }
+    return;
+  }
+
+  // ⌘X: 切り取り
+  if (isMeta && e.key === 'x' && selectedPath !== null && !isInputFocused()) {
+    e.preventDefault();
+    handleCut();
     return;
   }
 
@@ -1910,7 +1924,17 @@ function addNumberProp(container, label, value, onChange) {
     const v = input.value.trim();
     onChange(v === '' ? null : Number(v));
   });
-  input.addEventListener('keydown', e => e.stopPropagation());
+  input.addEventListener('keydown', e => {
+    e.stopPropagation();
+    // Shift+矢印で±10
+    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      const current = input.value.trim() === '' ? 0 : Number(input.value);
+      const delta = e.key === 'ArrowUp' ? 10 : -10;
+      input.value = current + delta;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
   row.appendChild(input);
   container.appendChild(row);
 }
