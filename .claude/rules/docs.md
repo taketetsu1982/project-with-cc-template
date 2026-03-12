@@ -40,13 +40,14 @@ docs/specs/api-spec / auth-spec / analytics-spec
 
 ## Conceptual Model（JSON + HTMLエディタ）
 
+- PRD・MRDが固まり conceptual-model の作成・更新に入ったら、`/conceptual-model` スキルを実行して JSON + HTMLエディタを生成する
 - `conceptual-model.json` はConceptual Model HTMLで更新する。直接編集も可だが、HTMLエディタを使うことを推奨
 - `conceptual-model.json` が更新されたら、`ui-spec.md` と `db-schema.md` への影響を確認する
 - `conceptual-model.md` はJSONの変更に合わせて人間が更新する（Claudeが自動更新しない）
 
 ## Wireframe（JSON + HTMLエディタ）
 
+- conceptual-model.json のビュー定義が追加・更新されたら、`/wireframe` スキルを実行して各ビューのレイアウトを生成する
 - `wireframe.json` の `_entity`/`_attributes` は編集しない。変更は `conceptual-model.json` から
 - ビューの追加は Conceptual Model HTML の右ペインで行う（auto-saveで `conceptual-model.json` に保存される）
-- ビュー定義後、`/wireframe` を実行して各ビューのレイアウトを生成する
 - `wireframe.json` が更新されたら、`ui-spec.md` への影響を確認する
