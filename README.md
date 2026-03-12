@@ -38,6 +38,9 @@ project_root/
 │   │   ├── pr.md                #   PRルール
 │   │   ├── memory.md            #   CLAUDE.md / rules/ への追記判断基準
 │   │   └── agent-teams.md       #   Agent Teams設計ルール
+│   ├── skills/                  # スキル定義（/コマンドで起動）
+│   │   ├── conceptual-model/    #   /conceptual-model — JSON + HTMLエディタ生成
+│   │   └── wireframe/           #   /wireframe — JSON + HTMLエディタ生成
 │   └── teams/                   # Agent Teams定義
 │       ├── mrd-planning.md      #   MRD企画（対話・調査・分析）
 │       ├── mrd-review.md        #   MRDレビュー（顧客・市場・競合）
@@ -46,6 +49,7 @@ project_root/
 │       ├── cm-review.md         #   概念モデルレビュー（デザイン・テクニカル・修正）
 │       ├── specs-planning.md    #   Specs設計（BE・デザイン・PdM）
 │       ├── specs-review.md      #   Specsレビュー（技術・機能・統合）
+│       ├── code-review.md       #   コードレビュー（品質・性能・UI一貫性）
 │       └── pr-review.md         #   PRレビュー（セキュリティ・性能・テスト）
 ├── docs/
 │   ├── reqs/                    # 企画ドキュメント（canonical）
@@ -54,10 +58,12 @@ project_root/
 │   │   ├── pg0.md               #   PG0のスコープ・出口条件
 │   │   ├── mrd.md               #   市場要求定義
 │   │   ├── prd.md               #   プロダクト要求定義
-│   │   ├── conceptual-model.md  #   概念モデル（エンティティ・関係）
+│   │   ├── conceptual-model.md  #   概念モデル（設計意図・人間用）
+│   │   ├── conceptual-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
 │   │   └── user-stories.md      #   ユーザーストーリー
 │   └── specs/                   # 設計ドキュメント（reqs/から導出）
 │       ├── CLAUDE.md            #   このディレクトリの説明
+│       ├── wireframes/          #   ワイヤーフレーム（JSON + HTMLプレビュー）
 │       ├── db-schema.md         #   DBスキーマ定義
 │       ├── api-spec.md          #   APIエンドポイント定義
 │       ├── auth-spec.md         #   認証・認可設計
@@ -73,67 +79,35 @@ project_root/
 
 ## 使い方
 
-### 1. テンプレートを新規プロジェクトに展開する
+テンプレートを展開したら、以下の順で進める。
 
-```bash
-unzip project_template.zip -d my-project
-cd my-project
-git init
-```
+### Step 1：CLAUDE.md を埋める
 
-### 2. CLAUDE.md を埋める
+プロジェクト名・技術スタック・Gotchas・環境変数を記入する。
 
-`CLAUDE.md` を開き、`{プレースホルダ}` をプロジェクトの実情に置き換える。
+### Step 2：Product Goals を定義する
 
-最低限埋めるべき箇所:
-- プロジェクト名と概要
-- モジュール構成（バックエンド/フロントエンドの技術スタック）
-- Gotchas（プロジェクト固有の注意点）
-- 環境変数
+`docs/reqs/product-goals.md` と `docs/reqs/pg0.md` を書く。ここが全ドキュメントの起点。
 
-### 3. Product Goals を定義する
+### Step 3：企画ドキュメントを練り上げる
 
-`docs/reqs/product-goals.md` に PG0 の情報を記入し、`docs/reqs/pg0.md` にスコープと出口条件を書く。ここが全ドキュメントの起点になる。
+順序：`pg0 ⇔ prd ⇔ mrd → conceptual-model → wireframe`
 
-### 4. 企画ドキュメントを埋めていく
+pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（JSON + HTMLエディタ）を生成、ビュー定義後 `/wireframe` で各画面のレイアウトを生成する。HTMLエディタで微調整も可能。
 
-Agent Teams を使う場合:
-```
-# MRD企画
-claude "docs/reqs/mrd.md を企画して。.claude/teams/mrd-planning.md に従って"
+**conceptual-model 以降は、Claude Code が生成し人が確認・調整するスタイルに変わる。**
 
-# PRD企画
-claude "docs/reqs/prd.md を企画して。.claude/teams/prd-planning.md に従って"
-```
+### Step 4：ユーザーストーリーに落とし込む
 
-手動で書く場合は、各テンプレートの `{プレースホルダ}` を埋めていく。書く順序は:
+企画ドキュメントから今回の Product Goals の範囲でユーザーストーリーに落とし込む。
 
-```
-product-goals → pg0 ⇔ prd ⇔ mrd → conceptual-model → user-stories
-```
+### Step 5：Specs を設計する
 
-pg0（スコープ）と prd（機能定義）と mrd（市場定義）は相互にブラッシュアップする。市場定義が解決策に影響し、解決策の検討がスコープを変え、スコープが市場の見方を変えることがある。3つがある程度固まったら conceptual-model に降ろす。
+reqs/ が固まったら Claude に指示するだけ。BE・デザイン・PdM の3エージェントが並列で Specs を書き上げる。レビューチームもいるので課題を抽出して教えてくれる。
 
-なお、WHO は Buyer（購買意思決定者）と User（実際の利用者）に分離して定義する。Buyer は mrd.md に、User は prd.md に記述する。
+### Step 6：実装に入る
 
-### 5. Specs を設計する
-
-```
-# Specs設計
-claude "Specsを設計して。.claude/teams/specs-planning.md に従って"
-```
-
-### 6. 実装に入る
-
-```
-# 実装計画
-claude "実装計画を立てて"
-# → .claude/rules/impl-planning.md のワークフローが起動する
-
-# テスト実行
-claude "テストして"
-# → .claude/rules/test-execution.md のワークフローが起動する
-```
+`claude "実装計画を立てて"` で impl-planning.md のワークフローが起動する。ユーザーストーリー単位でタスク分解し、優先度順に提示される。承認後に実装開始。
 
 ---
 
@@ -191,8 +165,12 @@ rules/ は `paths:` フロントマターでスコープを絞れる。特定デ
 product-goals（PG一覧・確信度）
         │
    pg0 ⇔ prd（WHO:User, WHY, WHAT） ⇔ mrd（WHERE, WHO:Buyer, HOW MUCH）
+        │                                          ↑ Claude Codeと対話しながらつくる
         │
-  conceptual-model（エンティティ・関係）
+  conceptual-model.json（エンティティ・ビュー定義）  ← /conceptual-model で生成
+        │
+  wireframes/{screen}.wireframe.json（レイアウト）   ← /wireframe で生成
+        │                                          ↑ ここからClaude Codeが生成、人が調整
         │
    user-stories
         │
@@ -206,5 +184,6 @@ product-goals（PG一覧・確信度）
 - 企画が正。矛盾があれば企画が勝つ
 - pg0・prd・mrd は相互に影響し合う。どこから始めてもよい
 - WHO は Buyer（mrd.md）と User（prd.md）に分離して定義する
+- conceptual-model 以降は Claude Code が生成し、人が HTMLエディタで調整する
 - 実装は specs/ だけを参照する（reqs/ を直接パースしない）
 - エンティティやAPIを変更する前に、企画ドキュメントから先に更新する
