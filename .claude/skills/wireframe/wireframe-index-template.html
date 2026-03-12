@@ -55,41 +55,60 @@
     border-bottom: 1px solid var(--border-default);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--space-lg);
-    font-size: var(--font-sm);
+    gap: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+    z-index: 100;
+  }
+
+  #idx-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
   }
 
   #idx-toolbar-title {
     font-weight: 600;
-    color: var(--text-secondary);
+    font-size: 20px;
+    color: #555;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
-  #idx-toolbar-actions {
+  #idx-save-status {
+    font-size: 13px;
+    color: #333;
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: 4px;
   }
 
-  #idx-save-status {
-    font-size: var(--font-sm);
-    color: var(--text-tertiary);
+  .idx-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+  .idx-status-dot.connected { background: #4caf50; }
+  .idx-status-dot.saving { background: #ff9800; }
+  .idx-status-dot.error { background: #f44336; }
+
+  #idx-toolbar-right {
+    flex: 1;
   }
 
   .idx-btn {
-    background: var(--bg-subtle);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
     cursor: pointer;
+    font-size: 13px;
+    color: #333;
     transition: background 0.15s;
   }
-  .idx-btn:hover { background: var(--bg-placeholder); }
+  .idx-btn:hover { background: #f0f0f0; }
 
   /* ── Left panel: view list ── */
   #idx-list-panel {
@@ -259,24 +278,30 @@
   #idx-modal-result {
     display: none;
     margin-top: var(--space-md);
-    padding: var(--space-sm);
+    padding: var(--space-md);
     background: var(--bg-subtle);
     border-radius: var(--radius-sm);
-    font-size: var(--font-sm);
-    font-family: monospace;
-    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.6;
     color: var(--text-secondary);
+  }
+  #idx-modal-result .idx-result-cmd {
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 15px;
+    color: var(--text-primary);
   }
 </style>
 </head>
 <body>
 
 <div id="idx-toolbar">
-  <span id="idx-toolbar-title">Wireframe Index</span>
-  <div id="idx-toolbar-actions">
-    <span id="idx-save-status"></span>
+  <div id="idx-toolbar-left">
+    <span id="idx-toolbar-title">Wireframe Index</span>
     <button class="idx-btn" id="idx-connect-btn" onclick="connectFile()">Connect</button>
+    <span id="idx-save-status"><span class="idx-status-dot"></span><span id="idx-save-label">未接続：JSONファイルをドロップ</span></span>
   </div>
+  <div id="idx-toolbar-right"></div>
 </div>
 
 <div id="idx-list-panel">
@@ -304,11 +329,13 @@
     <h2>ビューを追加</h2>
     <div class="idx-form-group">
       <label>エンティティ名</label>
-      <input type="text" id="idx-add-entity" placeholder="例: タスク">
+      <select id="idx-add-entity">
+        <option value="">-- 選択してください --</option>
+      </select>
     </div>
     <div class="idx-form-group">
       <label>コンテキスト</label>
-      <input type="text" id="idx-add-context" placeholder="例: 一覧、詳細">
+      <input type="text" id="idx-add-context" placeholder="">
     </div>
     <div class="idx-form-group">
       <label>Primary Type</label>
@@ -330,12 +357,39 @@
 
 <script>
 const INDEX_DATA = null; // スキル実行時に置換される
+const CM_DATA = null; // スキル実行時にconceptual-model.jsonで置換される
 
 let data = INDEX_DATA || { views: [] };
 let selectedIdx = -1;
 let fileHandle = null;
 let dirHandle = null;
 let saveTimer = null;
+
+// ── エンティティプルダウン初期化 ──
+function initEntitySelect() {
+  const select = document.getElementById('idx-add-entity');
+  if (!CM_DATA || !CM_DATA.root) return;
+
+  // conceptual-model.jsonからエンティティ（type: 'entity'）を再帰的に収集
+  function collectEntities(node) {
+    const result = [];
+    if (node.type === 'entity' && node.name) {
+      result.push(node.name);
+    }
+    if (node.children) {
+      node.children.forEach(c => result.push(...collectEntities(c)));
+    }
+    return result;
+  }
+
+  const entities = collectEntities(CM_DATA.root);
+  entities.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
 
 // ── Render ──
 
@@ -404,7 +458,7 @@ function openView() {
 function showAddModal() {
   document.getElementById('idx-modal-overlay').classList.add('show');
   document.getElementById('idx-modal-result').style.display = 'none';
-  document.getElementById('idx-add-entity').value = '';
+  document.getElementById('idx-add-entity').selectedIndex = 0;
   document.getElementById('idx-add-context').value = '';
   document.getElementById('idx-add-entity').focus();
 }
@@ -442,7 +496,7 @@ function addView() {
   // Claude Codeへの指示文を表示
   const result = document.getElementById('idx-modal-result');
   result.style.display = 'block';
-  result.textContent = `index.jsonに追加しました。\n\n次のコマンドでwireframe JSONとHTMLを生成してください：\n/wireframe ${entity} ${context} (${primaryType})`;
+  result.innerHTML = `index.jsonに追加しました。<br><br>Claude Codeで次のコマンドを使いwireframe JSONとHTMLを生成してください：<br><span class="idx-result-cmd">/wireframe ${entity} ${context} (${primaryType})</span>`;
 
   renderList();
   selectView(data.views.length - 1);
@@ -454,29 +508,38 @@ async function connectFile() {
   try {
     dirHandle = await window.showDirectoryPicker({ id: 'wf-index-dir', mode: 'readwrite' });
     fileHandle = await dirHandle.getFileHandle('index.json', { create: true });
-    updateSaveStatus('Connected');
+    updateSaveStatus('connected', 'index.json (自動保存)');
     scheduleAutoSave();
-    document.getElementById('idx-connect-btn').textContent = 'Connected';
+    document.getElementById('idx-connect-btn').textContent = 'Reconnect';
   } catch (err) {
     if (err.name === 'AbortError') return;
-    updateSaveStatus('Connect failed');
+    updateSaveStatus('error', 'Connect failed');
   }
 }
 
-function updateSaveStatus(text) {
-  document.getElementById('idx-save-status').textContent = text;
+function updateSaveStatus(state, text) {
+  const dot = document.querySelector('#idx-save-status .idx-status-dot');
+  const lbl = document.getElementById('idx-save-label');
+  dot.className = 'idx-status-dot ' + (state || '');
+  lbl.textContent = text || '';
 }
 
 async function writeToFile() {
   if (!fileHandle) return;
+  updateSaveStatus('saving', '保存中...');
   try {
     const json = JSON.stringify(data, null, 2);
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
-    updateSaveStatus('Saved');
+    updateSaveStatus('connected', 'index.json (自動保存)');
   } catch (err) {
-    updateSaveStatus('Save failed');
+    updateSaveStatus('error', '保存失敗');
+    if (err.name === 'NotAllowedError') {
+      fileHandle = null;
+      updateSaveStatus('', '未接続（権限切れ）');
+      document.getElementById('idx-connect-btn').textContent = 'Connect';
+    }
   }
 }
 
@@ -499,13 +562,13 @@ document.body.addEventListener('drop', async e => {
     const handle = await item.getAsFileSystemHandle();
     if (handle.kind === 'file' && handle.name === 'index.json') {
       fileHandle = handle;
-      updateSaveStatus('Connected');
+      updateSaveStatus('connected', 'index.json (自動保存)');
       scheduleAutoSave();
-      document.getElementById('idx-connect-btn').textContent = 'Connected';
+      document.getElementById('idx-connect-btn').textContent = 'Reconnect';
       return;
     }
   }
-  updateSaveStatus('index.jsonをドロップしてください');
+  updateSaveStatus('error', 'index.jsonをドロップしてください');
 });
 
 // モーダル外クリックで閉じる
@@ -514,6 +577,7 @@ document.getElementById('idx-modal-overlay').addEventListener('click', e => {
 });
 
 // 初期化
+initEntitySelect();
 renderList();
 </script>
 </body>

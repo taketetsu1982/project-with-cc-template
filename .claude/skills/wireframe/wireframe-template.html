@@ -33,11 +33,11 @@
     --success-border: #A5D6A7;
     --success-text: #2E7D32;
 
-    /* Syntax highlighting */
-    --syntax-key: #0066CC;
-    --syntax-string: #007A3D;
-    --syntax-number: #D97706;
-    --syntax-bool: #8B5CF6;
+    /* Syntax highlighting (dark panel用) */
+    --syntax-key: #9CDCFE;
+    --syntax-string: #CE9178;
+    --syntax-number: #d16969;
+    --syntax-bool: #569CD6;
 
     /* Radius */
     --radius-sm: 4px;
@@ -71,17 +71,10 @@
     color: var(--text-primary);
     display: grid;
     grid-template-rows: 48px 1fr;
-    grid-template-columns: 1fr 420px;
+    grid-template-columns: 1fr 0px;
+    transition: grid-template-columns 0.2s ease;
     height: 100vh;
     overflow: hidden;
-  }
-
-  body.json-panel-hidden {
-    grid-template-columns: 1fr 0;
-  }
-
-  body.json-panel-hidden #wf-json-panel {
-    display: none;
   }
 
   /* ── Toolbar ── */
@@ -95,17 +88,19 @@
     justify-content: space-between;
     padding: 0 var(--space-lg);
     z-index: 100;
-    font-size: var(--font-sm);
+    font-size: 13px;
   }
 
   #wf-toolbar-left {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    flex: 1;
   }
 
   #wf-toolbar-title {
     font-weight: 600;
+    font-size: 20px;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -122,28 +117,53 @@
 
   #wf-toolbar-center {
     display: flex;
-    gap: var(--space-sm);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
   }
 
   #wf-toolbar-actions {
     display: flex;
+    align-items: center;
     gap: var(--space-sm);
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  #wf-cm-link {
+    font-size: 11px;
+    color: #888;
+  }
+  #wf-back-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+  }
+
+  #wf-cm-link a {
+    color: #4A90D9;
+    text-decoration: none;
+  }
+  #wf-cm-link a:hover {
+    text-decoration: underline;
   }
 
   .wf-btn {
-    background: var(--bg-subtle);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
     cursor: pointer;
+    font-size: 13px;
+    color: #333;
     transition: background 0.15s;
   }
 
-  .wf-btn:hover { background: var(--bg-placeholder); }
-  .wf-btn:active { background: var(--bg-placeholder-dark); }
+  .wf-btn:hover { background: #f0f0f0; text-decoration: none; }
+  .wf-btn:active { background: #e0e0e0; }
 
   .wf-btn-success {
     background: var(--success-bg);
@@ -151,39 +171,15 @@
     color: var(--success-text);
   }
 
-  .wf-btn-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-xs);
-  }
-
-  .wf-btn-toggle[aria-pressed="true"] {
-    background: var(--accent-bg);
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  /* ── View info & entity note ── */
+  /* ── View info (toolbar right) ── */
   #wf-view-info {
-    display: none;
-    font-size: var(--font-sm);
-    color: var(--text-secondary);
-    padding: 0 0 var(--space-sm) 0;
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  #wf-view-info span { margin-right: var(--space-md); }
-  #wf-view-info .wf-view-label { color: var(--text-tertiary); margin-right: var(--space-xs); }
-
-  #wf-entity-note {
-    font-size: var(--font-sm);
-    color: var(--text-tertiary);
-    background: var(--bg-subtle);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: var(--space-xs) var(--space-sm);
-    margin-bottom: var(--space-sm);
-    text-align: center;
-  }
+  #wf-view-info .wf-view-label { color: #888; margin-right: 2px; }
 
   /* ── _entity badge on nodes ── */
   .wf-entity-badge {
@@ -225,63 +221,49 @@
     margin: 0 auto;
   }
 
-  /* ── JSON Panel ── */
+  /* ── JSON Panel (dark theme — CM準拠) ── */
   #wf-json-panel {
     grid-column: 2;
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-default);
-    background: var(--bg-panel);
+    background: #2d2d30;
+    color: #d4d4d4;
     overflow: hidden;
+  }
+  #wf-json-panel.wf-panel-closed {
+    border-left: none;
   }
 
   #wf-json-panel-header {
     height: 40px;
     min-height: 40px;
     padding: 0 var(--space-md);
-    border-bottom: 1px solid var(--border-default);
+    background: #2d2d2d;
+    border-bottom: 1px solid #444;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     font-size: var(--font-sm);
     font-weight: 600;
-    color: var(--text-tertiary);
+    color: #d4d4d4;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
-  #wf-json-panel-header button {
-    background: none;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  #wf-json-panel-header button:hover { background: var(--bg-placeholder); }
-
-  #wf-json-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-
+  /* ── Save status (toolbar) ── */
   #wf-save-status {
-    font-size: var(--font-sm);
-    color: var(--text-tertiary);
+    font-size: 13px;
+    color: #333;
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
+    gap: 4px;
   }
 
   .wf-status-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: var(--text-muted);
+    background: #ccc;
     flex-shrink: 0;
   }
   .wf-status-dot.connected { background: #4CAF50; }
@@ -298,7 +280,7 @@
     font-family: var(--font-mono);
     font-size: var(--font-sm);
     line-height: 1.6;
-    color: var(--text-primary);
+    color: #d4d4d4;
     white-space: pre;
     margin: 0;
   }
@@ -308,8 +290,8 @@
   .js { color: var(--syntax-string); }
   .jn { color: var(--syntax-number); }
   .jb { color: var(--syntax-bool); }
-  .jk-readonly { color: var(--text-muted); }
-  .js-readonly { color: var(--text-muted); }
+  .jk-readonly { color: #6A9955; }
+  .js-readonly { color: #6A9955; }
 
   /* ── Toast ── */
   #wf-toast {
@@ -605,31 +587,30 @@
 
 <div id="wf-toolbar">
   <div id="wf-toolbar-left">
+    <a href="index.html" class="wf-btn" id="wf-back-btn" title="Index に戻る">←</a>
     <span id="wf-toolbar-title"></span>
+    <button class="wf-btn" id="wf-connect-btn" onclick="connectFile()">Connect</button>
+    <span id="wf-save-status"><span class="wf-status-dot"></span><span id="wf-save-label">未接続：JSONファイルをドロップ</span></span>
     <span id="wf-edited-badge">Edited</span>
   </div>
   <div id="wf-toolbar-center">
-    <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
-    <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
+    <span id="wf-view-info"></span>
+    <span id="wf-cm-link">エンティティ・属性の変更は <a href="conceptual-model.html" target="_blank">Conceptual Model</a> から行う</span>
   </div>
   <div id="wf-toolbar-actions">
-    <button class="wf-btn wf-btn-toggle" id="wf-toggle-btn" onclick="toggleJSONPanel()" aria-pressed="true" title="Toggle JSON panel"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
+    <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
+    <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
+    <button class="wf-btn" id="wf-json-toggle" onclick="toggleJsonPanel()">JSON ▸</button>
   </div>
 </div>
 
 <div id="wf-viewport-wrap">
-  <div id="wf-view-info"></div>
-  <div id="wf-entity-note">エンティティ・属性の変更は Conceptual Model から行ってください</div>
   <div id="wf-root"></div>
 </div>
 
-<div id="wf-json-panel">
+<div id="wf-json-panel" class="wf-panel-closed">
   <div id="wf-json-panel-header">
     <span>JSON</span>
-    <div id="wf-json-actions">
-      <span id="wf-save-status"></span>
-      <button id="wf-connect-btn" onclick="connectFile()">Connect</button>
-    </div>
   </div>
   <div id="wf-json-content">
     <pre id="wf-json-code"></pre>
@@ -645,7 +626,6 @@ let modified = false;
 let dragPath = null;
 let dropIndicator = null;
 let fileHandle = null;
-let jsonPanelHidden = localStorage.getItem('wf-json-panel') !== 'visible';
 let selectedPath = null;
 let clipboardNode = null;
 const undoStack = [];
@@ -663,6 +643,21 @@ function saveSnapshot() {
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   // 新しい操作が入ったらredo履歴をクリア
   redoStack.length = 0;
+}
+
+function toggleJsonPanel() {
+  const panel = document.getElementById('wf-json-panel');
+  const btn = document.getElementById('wf-json-toggle');
+  const isOpen = !panel.classList.contains('wf-panel-closed');
+  if (isOpen) {
+    document.body.style.gridTemplateColumns = '1fr 0px';
+    panel.classList.add('wf-panel-closed');
+    btn.textContent = 'JSON \u25b8';
+  } else {
+    document.body.style.gridTemplateColumns = '1fr 400px';
+    panel.classList.remove('wf-panel-closed');
+    btn.textContent = 'JSON \u25c2';
+  }
 }
 
 function handleUndo() {
@@ -788,75 +783,117 @@ function findClosestSibling(e) {
   return closest;
 }
 
+let wfDropTarget = null; // { path, before, intoGroup }
+
+function findClosestNode(e) {
+  if (!dragPath) return null;
+  const allNodes = document.querySelectorAll('#wf-root [data-path]');
+  let closest = null;
+  let closestDist = Infinity;
+  for (const el of allNodes) {
+    if (el.dataset.path === dragPath) continue;
+    // ドラッグ中ノードの子孫を除外
+    if (el.dataset.path.startsWith(dragPath + '.')) continue;
+    const rect = el.getBoundingClientRect();
+    const dist = distToRect(e.clientX, e.clientY, rect);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closest = el;
+    }
+  }
+  return closest;
+}
+
 function handleDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
   if (!dragPath) return;
 
-  const nodeEl = findClosestSibling(e);
-  if (!nodeEl) { removeDropIndicator(); return; }
+  const nodeEl = findClosestNode(e);
+  if (!nodeEl) { removeDropIndicator(); wfDropTarget = null; return; }
 
   const targetPath = nodeEl.dataset.path;
-  if (targetPath === dragPath) { removeDropIndicator(); return; }
+  if (targetPath === dragPath) { removeDropIndicator(); wfDropTarget = null; return; }
 
-  const parentNode = getNodeByPath(targetPath)?.parent;
-  if (!parentNode) return;
-
-  const isVertical = (parentNode.direction || 'vertical') === 'vertical';
+  const targetInfo = getNodeByPath(targetPath);
+  if (!targetInfo) return;
+  const targetNode = targetInfo.node;
   const rect = nodeEl.getBoundingClientRect();
 
+  // コンテナノード（childrenあり）: 端→兄弟挿入、中央→グループ内ドロップ
+  if (targetNode.children) {
+    const parentDir = (targetInfo.parent.direction || 'vertical');
+    const threshold = Math.min(parentDir === 'vertical' ? rect.height * 0.25 : rect.width * 0.25, 30);
+
+    if (parentDir === 'vertical' && e.clientY < rect.top + threshold) {
+      wfDropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(nodeEl, true, true);
+    } else if (parentDir === 'vertical' && e.clientY > rect.bottom - threshold) {
+      wfDropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(nodeEl, true, false);
+    } else if (parentDir === 'horizontal' && e.clientX < rect.left + threshold) {
+      wfDropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(nodeEl, false, true);
+    } else if (parentDir === 'horizontal' && e.clientX > rect.right - threshold) {
+      wfDropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(nodeEl, false, false);
+    } else {
+      removeDropIndicator();
+      nodeEl.classList.add('wf-drag-over');
+      wfDropTarget = { path: targetPath, before: false, intoGroup: true };
+    }
+    return;
+  }
+
+  // 葉ノード: 前後判定
+  const parentNode = targetInfo.parent;
+  const isVertical = (parentNode.direction || 'vertical') === 'vertical';
   let before;
   if (isVertical) {
     before = e.clientY < rect.top + rect.height / 2;
   } else {
     before = e.clientX < rect.left + rect.width / 2;
   }
-
+  wfDropTarget = { path: targetPath, before, intoGroup: false };
   showDropIndicator(nodeEl, isVertical, before);
-  nodeEl._dropBefore = before;
 }
 
 function handleDrop(e) {
   e.preventDefault();
   removeDropIndicator();
+  document.querySelectorAll('.wf-drag-over').forEach(el => el.classList.remove('wf-drag-over'));
 
-  const sourcePath = e.dataTransfer.getData('text/plain');
-  if (!sourcePath) return;
-
-  const nodeEl = findClosestSibling(e);
-  if (!nodeEl) return;
-
-  const targetPath = nodeEl.dataset.path;
-  if (sourcePath === targetPath) return;
+  if (!dragPath || !wfDropTarget) return;
+  const sourcePath = dragPath;
 
   const sourceInfo = getNodeByPath(sourcePath);
-  const targetInfo = getNodeByPath(targetPath);
-  if (!sourceInfo || !targetInfo) return;
+  if (!sourceInfo) return;
 
   saveSnapshot();
-  const parent = sourceInfo.parent;
-  const sourceIdx = sourceInfo.index;
-  const before = nodeEl._dropBefore;
+  const [movedNode] = sourceInfo.parent.children.splice(sourceInfo.index, 1);
 
-  // Remove from source position
-  const [movedNode] = parent.children.splice(sourceIdx, 1);
+  if (wfDropTarget.intoGroup) {
+    // グループ内にドロップ
+    const tgtInfo = getNodeByPath(wfDropTarget.path);
+    if (tgtInfo) tgtInfo.node.children.push(movedNode);
+  } else {
+    // 兄弟として挿入
+    const tgtInfo = getNodeByPath(wfDropTarget.path);
+    if (!tgtInfo) return;
+    let tgtIdx = tgtInfo.index;
+    // 同一親の場合のインデックス調整
+    const sameParent = getParentPath(sourcePath) === getParentPath(wfDropTarget.path);
+    if (sameParent && sourceInfo.index < tgtIdx) tgtIdx--;
+    if (!wfDropTarget.before) tgtIdx++;
+    tgtInfo.parent.children.splice(tgtIdx, 0, movedNode);
+  }
 
-  // Calculate target index (adjusted for removal)
-  let targetIdx = targetInfo.index;
-  if (sourceIdx < targetIdx) targetIdx--;
-  if (!before) targetIdx++;
-
-  // Insert at new position
-  parent.children.splice(targetIdx, 0, movedNode);
-
-  // Mark as modified
   markModified();
-
-  // 並べ替え後はpathが変わるので選択をリセット
   selectedPath = null;
+  wfDropTarget = null;
+  dragPath = null;
 
-  // Re-render
   render();
   updateJSONPanel();
 }
@@ -919,13 +956,6 @@ function updateJSONPanel() {
   document.getElementById('wf-json-code').innerHTML = highlightJSON(json);
 }
 
-function toggleJSONPanel() {
-  jsonPanelHidden = !jsonPanelHidden;
-  document.body.classList.toggle('json-panel-hidden', jsonPanelHidden);
-  document.getElementById('wf-toggle-btn').setAttribute('aria-pressed', String(!jsonPanelHidden));
-  localStorage.setItem('wf-json-panel', jsonPanelHidden ? 'hidden' : 'visible');
-}
-
 // ── Connect & Auto-save ──
 
 async function connectFile() {
@@ -943,21 +973,28 @@ async function connectFile() {
 }
 
 function updateSaveStatus(state, text) {
-  const el = document.getElementById('wf-save-status');
-  const dotClass = state === 'connected' ? 'connected' : state === 'saving' ? 'saving' : state === 'error' ? 'error' : '';
-  el.innerHTML = `<span class="wf-status-dot ${dotClass}"></span>${text || ''}`;
+  const dot = document.querySelector('#wf-save-status .wf-status-dot');
+  const lbl = document.getElementById('wf-save-label');
+  dot.className = 'wf-status-dot ' + (state || '');
+  lbl.textContent = text || '';
 }
 
 async function writeToFile() {
   if (!fileHandle) return;
+  updateSaveStatus('saving', '保存中...');
   try {
     const json = JSON.stringify(WIREFRAME_DATA, null, 2);
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
-    updateSaveStatus('connected', 'Saved');
+    updateSaveStatus('connected', fileHandle.name + ' (自動保存)');
   } catch (err) {
-    updateSaveStatus('error', 'Save failed');
+    updateSaveStatus('error', '保存失敗');
+    if (err.name === 'NotAllowedError') {
+      fileHandle = null;
+      updateSaveStatus('', '未接続（権限切れ）');
+      document.getElementById('wf-connect-btn').textContent = 'Connect';
+    }
   }
 }
 
@@ -1450,16 +1487,30 @@ function init() {
   if (WIREFRAME_DATA.view) {
     const v = WIREFRAME_DATA.view;
     const info = document.getElementById('wf-view-info');
-    info.style.display = 'block';
     info.innerHTML = '';
-    if (v.entity) {
+    // ビュー名: 先頭エンティティ名 + context（例: 「プロジェクト詳細」）
+    const primaryEntity = v.entities && v.entities.length > 0
+      ? v.entities[0].entity
+      : (v.entity || '');
+    if (primaryEntity) {
       const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">Entity:</span>' + v.entity;
+      s.innerHTML = '<span class="wf-view-label">ビュー:</span>' + primaryEntity + (v.context || '');
       info.appendChild(s);
     }
     if (v.context) {
       const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">Context:</span>' + v.context;
+      s.innerHTML = '<span class="wf-view-label">コンテキスト:</span>' + v.context;
+      info.appendChild(s);
+    }
+    // エンティティ表示: entities配列 or 旧形式entity（フォールバック）
+    if (v.entities && v.entities.length > 0) {
+      const s = document.createElement('span');
+      const entitiesStr = v.entities.map(e => e.entity + '\uff08' + (e.role || '') + '\uff09').join(', ');
+      s.innerHTML = '<span class="wf-view-label">エンティティ:</span>' + entitiesStr;
+      info.appendChild(s);
+    } else if (v.entity) {
+      const s = document.createElement('span');
+      s.innerHTML = '<span class="wf-view-label">エンティティ:</span>' + v.entity;
       info.appendChild(s);
     }
     if (v.primaryType) {
@@ -1467,12 +1518,6 @@ function init() {
       s.innerHTML = '<span class="wf-view-label">Type:</span>' + v.primaryType;
       info.appendChild(s);
     }
-  }
-
-  // Restore panel state
-  if (jsonPanelHidden) {
-    document.body.classList.add('json-panel-hidden');
-    document.getElementById('wf-toggle-btn').setAttribute('aria-pressed', 'false');
   }
 
   // Set up drag-and-drop event delegation

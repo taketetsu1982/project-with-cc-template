@@ -5,50 +5,137 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conceptual Model Editor</title>
 <style>
+  :root {
+    /* Text */
+    --text-primary: #333;
+    --text-secondary: #555;
+    --text-tertiary: #888;
+    --text-muted: #B0B0B0;
+
+    /* Background */
+    --bg-page: #F8F8F8;
+    --bg-surface: #FFF;
+    --bg-panel: #FAFAFA;
+    --bg-subtle: #F0F0F0;
+    --bg-placeholder: #E8E8E8;
+    --bg-placeholder-dark: #DDD;
+    --bg-dark: #333;
+
+    /* Border */
+    --border-default: #E0E0E0;
+    --border-light: #F0F0F0;
+
+    /* Accent */
+    --accent: #4A90D9;
+    --accent-bg: #E8F0FE;
+    --drop-indicator: #29b3f1;
+    --success-bg: #E8F5E9;
+    --success-border: #A5D6A7;
+    --success-text: #2E7D32;
+
+    /* Syntax highlighting (dark panel用) */
+    --syntax-key: #9CDCFE;
+    --syntax-string: #CE9178;
+    --syntax-number: #d16969;
+    --syntax-bool: #569CD6;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-full: 999px;
+
+    /* Font size */
+    --font-sm: 12px;
+    --font-base: 16px;
+    --font-lg: 24px;
+    --font-xl: 32px;
+
+    /* Font family */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Consolas', monospace;
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* ビューエリア専用 */
+    --bg-views: #f0f4f8;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f5f5f5;
-    color: #333;
+    font-family: var(--font-sans);
+    background: var(--bg-page);
+    color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
   }
 
   /* ===== レイアウト ===== */
   .app {
-    display: flex;
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 1fr 400px;
     height: 100vh;
   }
 
   .toolbar {
+    grid-column: 1 / -1;
+    height: 48px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-    position: sticky;
-    top: 0;
+    gap: var(--space-sm);
+    padding: 0 var(--space-md);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
     z-index: 100;
   }
 
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+  }
+
+  .toolbar-title {
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .toolbar-center {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .toolbar-right {
+    flex: 1;
+  }
+
+
   .toolbar button {
     padding: 6px 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
     cursor: pointer;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
   }
-  .toolbar button:hover { background: #f0f0f0; }
-  .toolbar button.primary { background: #333; color: #fff; border-color: #333; }
-  .toolbar button.primary:hover { background: #555; }
+  .toolbar button:hover { background: var(--bg-subtle); }
+  .toolbar button.primary { background: var(--bg-dark); color: var(--bg-surface); border-color: var(--bg-dark); }
+  .toolbar button.primary:hover { background: var(--text-secondary); }
 
   .canvas-pane {
-    flex: 1;
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -57,43 +144,26 @@
   .canvas {
     flex: 1;
     overflow: auto;
-    padding: 24px;
+    padding: var(--space-lg);
   }
 
   .json-pane {
-    width: 400px;
-    background: #1e1e1e;
+    grid-column: 2;
+    background: #2d2d30;
     color: #d4d4d4;
     display: flex;
     flex-direction: column;
-    border-left: 1px solid #ddd;
+    border-left: 1px solid var(--border-default);
   }
 
   .json-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     background: #2d2d2d;
     border-bottom: 1px solid #444;
     font-size: 13px;
-  }
-  .json-header-spacer { flex: 1; }
-  .json-header-btn {
-    padding: 6px 14px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background: #383838;
-    color: #ccc;
-    cursor: pointer;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .json-header-btn:hover { background: #4a4a4a; color: #fff; }
-
-  .json-header .save-status {
-    font-size: 13px;
-    color: #fff;
   }
 
   .json-body {
@@ -103,7 +173,7 @@
   }
 
   .json-body pre {
-    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     line-height: 1.5;
     white-space: pre-wrap;
@@ -117,20 +187,28 @@
   }
 
   .node.selected > .node-inner {
-    outline: 2px solid #4a9eff;
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
   .node.drag-over > .node-inner {
-    outline: 2px dashed #4a9eff;
+    outline: 2px dashed var(--accent);
     outline-offset: 2px;
+  }
+
+  .drop-indicator {
+    position: absolute;
+    background: var(--drop-indicator);
+    z-index: 50;
+    pointer-events: none;
+    border-radius: 2px;
   }
 
   /* ===== グループノード ===== */
   .group > .node-inner {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 6px;
-    background: #fafafa;
+    background: var(--bg-panel);
     min-width: 120px;
     min-height: 60px;
   }
@@ -140,8 +218,8 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e0e0e0;
-    background: #f0f0f0;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-subtle);
     border-radius: 6px 6px 0 0;
     cursor: grab;
   }
@@ -165,26 +243,26 @@
   .group-name {
     font-size: 13px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-secondary);
     border: none;
     background: none;
     outline: none;
     flex: 1;
     min-width: 60px;
   }
-  .group-name:focus { border-bottom: 1px solid #4a9eff; }
+  .group-name:focus { border-bottom: 1px solid var(--accent); }
 
   .direction-btn {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
     flex-shrink: 0;
   }
-  .direction-btn:hover { background: #e8e8e8; }
+  .direction-btn:hover { background: var(--bg-placeholder); }
 
   .group-actions {
     display: flex;
@@ -194,13 +272,13 @@
   .group-actions button {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
   }
-  .group-actions button:hover { background: #e8e8e8; }
+  .group-actions button:hover { background: var(--bg-placeholder); }
 
   .group-children {
     padding: 10px;
@@ -214,8 +292,8 @@
   .drop-zone {
     min-height: 40px;
     min-width: 40px;
-    border: 2px dashed #ddd;
-    border-radius: 4px;
+    border: 2px dashed var(--border-default);
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -228,7 +306,7 @@
   .entity > .node-inner {
     border: 1px solid #bbb;
     border-radius: 6px;
-    background: #fff;
+    background: var(--bg-surface);
     min-width: 140px;
   }
 
@@ -237,7 +315,7 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--bg-placeholder);
     cursor: grab;
   }
   .entity-header:active { cursor: grabbing; }
@@ -245,14 +323,14 @@
   .entity-name {
     font-size: 13px;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     border: none;
     background: none;
     outline: none;
     flex: 1;
     min-width: 60px;
   }
-  .entity-name:focus { border-bottom: 1px solid #4a9eff; }
+  .entity-name:focus { border-bottom: 1px solid var(--accent); }
 
   .entity-actions {
     display: flex;
@@ -262,32 +340,32 @@
   .entity-actions button {
     font-size: 13px;
     padding: 2px 6px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default);
     border-radius: 3px;
-    background: #fff;
+    background: var(--bg-surface);
     cursor: pointer;
-    color: #777;
+    color: var(--text-tertiary);
   }
-  .entity-actions button:hover { background: #e8e8e8; }
+  .entity-actions button:hover { background: var(--bg-placeholder); }
 
   .attributes {
-    padding: 8px 10px;
+    padding: var(--space-sm) 10px;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--space-xs);
     min-height: 32px;
   }
 
   .attr-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    gap: var(--space-xs);
+    padding: 2px var(--space-sm);
     background: #eee;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-default);
     border-radius: 12px;
     font-size: 13px;
-    color: #555;
+    color: var(--text-secondary);
     cursor: default;
   }
 
@@ -300,7 +378,7 @@
     width: 30px; /* JS で動的に設定 */
     min-width: 20px;
   }
-  .attr-tag .attr-key { color: #333; font-weight: 600; }
+  .attr-tag .attr-key { color: var(--text-primary); font-weight: 600; }
   .attr-tag .attr-val { color: #666; }
   .attr-tag .attr-key:focus,
   .attr-tag .attr-val:focus { color: #111; }
@@ -326,7 +404,7 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    border: 1px dashed #ccc;
+    border: 1px dashed var(--border-default);
     border-radius: 12px;
     font-size: 14px;
     color: #aaa;
@@ -339,13 +417,15 @@
   .save-status {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-xs);
+    font-size: 13px;
+    color: var(--text-primary);
   }
   .save-status .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ccc;
+    background: var(--border-default);
   }
   .save-status .dot.connected { background: #4caf50; }
   .save-status .dot.saving { background: #ff9800; }
@@ -356,8 +436,8 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(74, 158, 255, 0.08);
-    border: 3px dashed #4a9eff;
+    background: rgba(74, 144, 217, 0.08);
+    border: 3px dashed var(--accent);
     z-index: 9999;
     align-items: center;
     justify-content: center;
@@ -365,14 +445,208 @@
   }
   .file-drop-overlay.active { display: flex; }
   .file-drop-overlay .drop-msg {
-    padding: 16px 32px;
-    background: #fff;
-    border-radius: 8px;
+    padding: var(--space-md) var(--space-xl);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
     font-size: 15px;
-    color: #4a9eff;
+    color: var(--accent);
     font-weight: 600;
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   }
+
+  /* ===== セクション区切り ===== */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0 var(--space-md);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-default);
+  }
+
+  /* ===== ビュー定義エリア ===== */
+  .views-area {
+    background: var(--bg-views);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .views-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .view-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .view-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .view-card-header .view-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .view-card-header .view-delete-btn {
+    margin-left: auto;
+    font-size: 13px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .view-card-header .view-delete-btn:hover { background: var(--bg-subtle); color: #e44; }
+
+  .view-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .view-field label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .view-field input,
+  .view-field select {
+    flex: 1;
+    padding: 6px var(--space-sm);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+  .view-field input:focus,
+  .view-field select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .view-entities-section {
+    margin-top: var(--space-sm);
+  }
+
+  .view-entities-section .section-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .view-entity-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+  }
+
+  .view-entity-row select,
+  .view-entity-row input {
+    flex: 1;
+    padding: 6px var(--space-sm);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+  .view-entity-row select:focus,
+  .view-entity-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .view-entity-row .entity-remove-btn {
+    font-size: 13px;
+    padding: 2px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .view-entity-row .entity-remove-btn:hover { color: #e44; }
+
+  .view-add-entity-btn {
+    font-size: 13px;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    margin-top: var(--space-xs);
+  }
+  .view-add-entity-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .view-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .view-wireframe-btn {
+    font-size: 13px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--bg-dark);
+    color: var(--bg-surface);
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .view-wireframe-btn:hover { opacity: 0.85; }
+
+  .view-wireframe-btn .copy-feedback {
+    color: var(--success-text);
+    font-size: var(--font-sm);
+  }
+
+  .add-view-btn {
+    font-size: 13px;
+    padding: var(--space-sm) var(--space-md);
+    border: 2px dashed var(--border-default);
+    border-radius: var(--radius-md);
+    background: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    width: 100%;
+    text-align: center;
+  }
+  .add-view-btn:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ===== ユーティリティ ===== */
   .hidden { display: none !important; }
@@ -383,20 +657,26 @@
 </head>
 <body>
 <div class="app">
-  <div class="canvas-pane">
-    <div class="toolbar">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-title">Conceptual Model</span>
+      <button id="btnConnect" onclick="connectFile()">Connect</button>
+      <span class="save-status" id="saveStatus"><span class="dot" id="saveDot"></span><span id="saveLabel">未接続：JSONファイルをドロップ</span></span>
+    </div>
+    <div class="toolbar-center">
       <button onclick="addGroup()">+ グループ</button>
       <button onclick="addEntity()">+ エンティティ</button>
       <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
       <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
     </div>
+    <div class="toolbar-right"></div>
+  </div>
+  <div class="canvas-pane">
     <div class="canvas" id="canvas"></div>
   </div>
   <div class="json-pane" id="jsonPane">
     <div class="json-header">
-      <span class="save-status" id="saveStatus"><span class="dot" id="saveDot"></span><span id="saveLabel">未接続 — JSONファイルをドロップ</span></span>
-      <div class="json-header-spacer"></div>
-      <button class="json-header-btn" id="btnConnect" onclick="connectFile()">Connect</button>
+      <span>JSON</span>
     </div>
     <div class="json-body">
       <pre id="jsonOutput"></pre>
@@ -412,8 +692,12 @@ const CM_FILENAME = null;
 
 let model = CM_DATA ? structuredClone(CM_DATA) : {
   name: 'Conceptual Model',
-  root: { name: 'ルート', direction: 'vertical', children: [] }
+  root: { name: 'ルート', direction: 'vertical', children: [] },
+  views: []
 };
+
+// views配列がなければ初期化
+model.views = model.views || [];
 
 // ===== Undo / Redo =====
 const undoStack = [];
@@ -430,6 +714,7 @@ function doUndo() {
   if (!undoStack.length) return;
   redoStack.push(JSON.stringify(model));
   model = JSON.parse(undoStack.pop());
+  model.views = model.views || [];
   selectedPath = null;
   render();
 }
@@ -438,6 +723,7 @@ function doRedo() {
   if (!redoStack.length) return;
   undoStack.push(JSON.stringify(model));
   model = JSON.parse(redoStack.pop());
+  model.views = model.views || [];
   selectedPath = null;
   render();
 }
@@ -458,6 +744,20 @@ function getNodeByPath(path) {
 function getParentByPath(path) {
   if (path.length === 0) return null;
   return getNodeByPath(path.slice(0, -1));
+}
+
+// ===== エンティティ名の収集（ビュー用） =====
+function collectEntityNames(node) {
+  const names = [];
+  if (node.type === 'entity') {
+    names.push(node.name);
+  }
+  if (node.children) {
+    for (const child of node.children) {
+      names.push(...collectEntityNames(child));
+    }
+  }
+  return names;
 }
 
 // ===== 文字幅計測 =====
@@ -563,8 +863,44 @@ function addEntity() {
   render();
 }
 
+// ===== ビュー操作 =====
+function addView() {
+  pushUndo();
+  model.views.push({ name: '新規ビュー', context: '', primaryType: 'table', entities: [] });
+  render();
+}
+
+function deleteView(index) {
+  pushUndo();
+  model.views.splice(index, 1);
+  render();
+}
+
+function addViewEntity(viewIndex) {
+  pushUndo();
+  model.views[viewIndex].entities.push({ entity: '', role: '' });
+  render();
+}
+
+function removeViewEntity(viewIndex, entityIndex) {
+  pushUndo();
+  model.views[viewIndex].entities.splice(entityIndex, 1);
+  render();
+}
+
+function copyWireframeCommand(viewName, btnEl) {
+  const command = `/wireframe ${viewName}`;
+  navigator.clipboard.writeText(command).then(() => {
+    const original = btnEl.innerHTML;
+    btnEl.innerHTML = '<span class="copy-feedback">コピーしました。Claude Codeに貼り付けてください。</span>';
+    setTimeout(() => { btnEl.innerHTML = original; }, 2000);
+  });
+}
+
 // ===== ドラッグ&ドロップ =====
 let dragPath = null;
+let dropIndicator = null;
+let dropTarget = null; // { path, before }
 
 function onDragStart(e, path) {
   dragPath = path;
@@ -580,24 +916,70 @@ function onDragEnd(e, path) {
   const el = getNodeElement(path);
   if (el) el.classList.remove('dragging');
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  removeDropIndicator();
   dragPath = null;
+  dropTarget = null;
 }
 
 function onDragOver(e, targetPath) {
   if (!dragPath) return;
-  // 自分自身の子孫へのドロップを禁止
   if (isDescendant(dragPath, targetPath)) return;
-  // 同一ノードへのドロップを禁止
-  if (pathEquals(dragPath, targetPath)) return;
+  if (pathEquals(dragPath, targetPath)) { removeDropIndicator(); return; }
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
+
+  const targetNode = getNodeByPath(targetPath);
+  // グループノードの上半分→グループの前に挿入、下半分→グループ内にドロップ
+  if (targetNode && targetNode.children) {
+    const el = getNodeElement(targetPath);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const threshold = Math.min(rect.height * 0.25, 30);
+    const parent = getParentByPath(targetPath);
+    const parentDir = parent ? (parent.direction || 'vertical') : 'vertical';
+
+    if (parentDir === 'vertical' && e.clientY < rect.top + threshold) {
+      // グループの前にインジケータ表示
+      dropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(el, true, true);
+    } else if (parentDir === 'vertical' && e.clientY > rect.bottom - threshold) {
+      // グループの後にインジケータ表示
+      dropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(el, true, false);
+    } else if (parentDir === 'horizontal' && e.clientX < rect.left + threshold) {
+      dropTarget = { path: targetPath, before: true, intoGroup: false };
+      showDropIndicator(el, false, true);
+    } else if (parentDir === 'horizontal' && e.clientX > rect.right - threshold) {
+      dropTarget = { path: targetPath, before: false, intoGroup: false };
+      showDropIndicator(el, false, false);
+    } else {
+      // グループ内にドロップ
+      removeDropIndicator();
+      el.classList.add('drag-over');
+      dropTarget = { path: targetPath, before: false, intoGroup: true };
+    }
+    return;
+  }
+
+  // 葉ノード（エンティティ）: 前/後のインジケータ
+  const el = getNodeElement(targetPath);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const parent = getParentByPath(targetPath);
+  const isVertical = parent ? (parent.direction || 'vertical') === 'vertical' : true;
+  let before;
+  if (isVertical) {
+    before = e.clientY < rect.top + rect.height / 2;
+  } else {
+    before = e.clientX < rect.left + rect.width / 2;
+  }
+  dropTarget = { path: targetPath, before, intoGroup: false };
+  showDropIndicator(el, isVertical, before);
 }
 
 function onDragEnter(e, targetPath) {
   if (!dragPath || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
   e.preventDefault();
-  const el = getNodeElement(targetPath);
-  if (el) el.classList.add('drag-over');
 }
 
 function onDragLeave(e, targetPath) {
@@ -608,56 +990,68 @@ function onDragLeave(e, targetPath) {
 function onDrop(e, targetPath) {
   e.preventDefault();
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-  if (!dragPath || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
+  removeDropIndicator();
+  if (!dragPath || !dropTarget || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
 
-  const targetNode = getNodeByPath(targetPath);
-  // グループへのドロップ: 子に追加
-  if (targetNode && targetNode.children) {
-    pushUndo();
-    const srcParent = dragPath.length === 0 ? model : getParentByPath(dragPath);
-    const srcIdx = dragPath[dragPath.length - 1];
-
-    if (srcParent === model) return; // ルートは移動不可
-    const parentChildren = srcParent.children || srcParent.root?.children;
-    if (!parentChildren) return;
-
-    // 元の位置から削除
-    const [removed] = parentChildren.splice(srcIdx, 1);
-    // ターゲットの子に追加
-    targetNode.children.push(removed);
-    dragPath = null;
-    selectedPath = null;
-    render();
-    return;
-  }
-
-  // 同一親内での並べ替え
+  // ソースノードを削除
   const srcParent = getParentByPath(dragPath);
-  const tgtParent = getParentByPath(targetPath);
-  if (!srcParent || !tgtParent) return;
-  if (!pathEquals(dragPath.slice(0, -1), targetPath.slice(0, -1))) {
-    // 異なる親間の移動
-    pushUndo();
-    const srcIdx = dragPath[dragPath.length - 1];
-    const tgtIdx = targetPath[targetPath.length - 1];
+  if (!srcParent) return;
+  const srcIdx = dragPath[dragPath.length - 1];
+
+  pushUndo();
+
+  if (dropTarget.intoGroup) {
+    // グループの中にドロップ
+    const targetNode = getNodeByPath(dropTarget.path);
     const [removed] = srcParent.children.splice(srcIdx, 1);
+    targetNode.children.push(removed);
+  } else {
+    // 兄弟として挿入
+    const tgtParent = getParentByPath(dropTarget.path);
+    if (!tgtParent) return;
+    let tgtIdx = dropTarget.path[dropTarget.path.length - 1];
+
+    // 同一親の場合のインデックス調整
+    const sameParent = pathEquals(dragPath.slice(0, -1), dropTarget.path.slice(0, -1));
+    const [removed] = srcParent.children.splice(srcIdx, 1);
+    if (sameParent && srcIdx < tgtIdx) tgtIdx--;
+    if (!dropTarget.before) tgtIdx++;
     tgtParent.children.splice(tgtIdx, 0, removed);
-    dragPath = null;
-    selectedPath = null;
-    render();
-    return;
   }
 
-  // 同一親内
-  pushUndo();
-  const srcIdx = dragPath[dragPath.length - 1];
-  const tgtIdx = targetPath[targetPath.length - 1];
-  const [removed] = srcParent.children.splice(srcIdx, 1);
-  const adjustedIdx = srcIdx < tgtIdx ? tgtIdx - 1 : tgtIdx;
-  srcParent.children.splice(adjustedIdx, 0, removed);
   dragPath = null;
+  dropTarget = null;
   selectedPath = null;
   render();
+}
+
+function showDropIndicator(targetEl, isVertical, before) {
+  removeDropIndicator();
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+  dropIndicator = document.createElement('div');
+  dropIndicator.className = 'drop-indicator';
+
+  const rect = targetEl.getBoundingClientRect();
+  if (isVertical) {
+    dropIndicator.style.height = '4px';
+    dropIndicator.style.left = `${rect.left}px`;
+    dropIndicator.style.width = `${rect.width}px`;
+    dropIndicator.style.top = before ? `${rect.top - 2}px` : `${rect.bottom - 2}px`;
+  } else {
+    dropIndicator.style.width = '4px';
+    dropIndicator.style.top = `${rect.top}px`;
+    dropIndicator.style.height = `${rect.height}px`;
+    dropIndicator.style.left = before ? `${rect.left - 2}px` : `${rect.right - 2}px`;
+  }
+  document.body.appendChild(dropIndicator);
+}
+
+function removeDropIndicator() {
+  if (dropIndicator) {
+    dropIndicator.remove();
+    dropIndicator = null;
+  }
 }
 
 function isDescendant(parentPath, childPath) {
@@ -696,7 +1090,19 @@ function deleteNode(path) {
 function render() {
   const canvas = document.getElementById('canvas');
   canvas.innerHTML = '';
+
+  // エンティティ定義エリア（上段）
   canvas.appendChild(renderNode(model.root, []));
+
+  // セクション区切り
+  const divider = document.createElement('div');
+  divider.className = 'section-divider';
+  divider.textContent = 'Views';
+  canvas.appendChild(divider);
+
+  // ビュー定義エリア（下段）
+  canvas.appendChild(renderViewsArea());
+
   updateJsonPanel();
 }
 
@@ -931,6 +1337,193 @@ function renderEntity(node, path) {
   return div;
 }
 
+// ===== ビュー定義エリアのレンダリング =====
+function renderViewsArea() {
+  const area = document.createElement('div');
+  area.className = 'views-area';
+
+  const list = document.createElement('div');
+  list.className = 'views-list';
+
+  const entityNames = collectEntityNames(model.root);
+
+  model.views.forEach((view, vi) => {
+    list.appendChild(renderViewCard(view, vi, entityNames));
+  });
+
+  area.appendChild(list);
+
+  // 「+ ビューを追加」ボタン
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-view-btn';
+  addBtn.textContent = '+ ビューを追加';
+  addBtn.style.marginTop = model.views.length > 0 ? 'var(--space-md)' : '0';
+  addBtn.addEventListener('click', () => addView());
+  area.appendChild(addBtn);
+
+  return area;
+}
+
+function renderViewCard(view, viewIndex, entityNames) {
+  const card = document.createElement('div');
+  card.className = 'view-card';
+
+  // ヘッダー
+  const header = document.createElement('div');
+  header.className = 'view-card-header';
+  const label = document.createElement('span');
+  label.className = 'view-label';
+  label.textContent = 'View';
+  header.appendChild(label);
+  const delBtn = document.createElement('button');
+  delBtn.className = 'view-delete-btn';
+  delBtn.textContent = '✕';
+  delBtn.title = 'ビューを削除';
+  delBtn.addEventListener('click', () => deleteView(viewIndex));
+  header.appendChild(delBtn);
+  card.appendChild(header);
+
+  // name フィールド
+  const nameField = document.createElement('div');
+  nameField.className = 'view-field';
+  const nameLabel = document.createElement('label');
+  nameLabel.textContent = 'name';
+  nameField.appendChild(nameLabel);
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.value = view.name;
+  nameInput.addEventListener('change', e => {
+    pushUndo();
+    view.name = e.target.value;
+    updateJsonPanel();
+  });
+  nameField.appendChild(nameInput);
+  card.appendChild(nameField);
+
+  // context フィールド
+  const ctxField = document.createElement('div');
+  ctxField.className = 'view-field';
+  const ctxLabel = document.createElement('label');
+  ctxLabel.textContent = 'context';
+  ctxField.appendChild(ctxLabel);
+  const ctxInput = document.createElement('input');
+  ctxInput.type = 'text';
+  ctxInput.value = view.context;
+  ctxInput.addEventListener('change', e => {
+    pushUndo();
+    view.context = e.target.value;
+    updateJsonPanel();
+  });
+  ctxField.appendChild(ctxInput);
+  card.appendChild(ctxField);
+
+  // primaryType フィールド
+  const typeField = document.createElement('div');
+  typeField.className = 'view-field';
+  const typeLabel = document.createElement('label');
+  typeLabel.textContent = 'primaryType';
+  typeField.appendChild(typeLabel);
+  const typeSelect = document.createElement('select');
+  ['table', 'card', 'form', 'detail', 'dashboard'].forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    if (view.primaryType === t) opt.selected = true;
+    typeSelect.appendChild(opt);
+  });
+  typeSelect.addEventListener('change', e => {
+    pushUndo();
+    view.primaryType = e.target.value;
+    updateJsonPanel();
+  });
+  typeField.appendChild(typeSelect);
+  card.appendChild(typeField);
+
+  // entities セクション
+  const entSection = document.createElement('div');
+  entSection.className = 'view-entities-section';
+  const entLabel = document.createElement('div');
+  entLabel.className = 'section-label';
+  entLabel.textContent = 'entities';
+  entSection.appendChild(entLabel);
+
+  view.entities.forEach((ent, ei) => {
+    const row = document.createElement('div');
+    row.className = 'view-entity-row';
+
+    // エンティティ名プルダウン
+    const entSelect = document.createElement('select');
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '— エンティティを選択 —';
+    entSelect.appendChild(emptyOpt);
+    entityNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (ent.entity === name) opt.selected = true;
+      entSelect.appendChild(opt);
+    });
+    // 現在の値がentityNamesに含まれない場合も表示
+    if (ent.entity && !entityNames.includes(ent.entity)) {
+      const opt = document.createElement('option');
+      opt.value = ent.entity;
+      opt.textContent = ent.entity + ' (不明)';
+      opt.selected = true;
+      entSelect.appendChild(opt);
+    }
+    entSelect.addEventListener('change', e => {
+      pushUndo();
+      ent.entity = e.target.value;
+      updateJsonPanel();
+    });
+    row.appendChild(entSelect);
+
+    // role テキスト入力
+    const roleInput = document.createElement('input');
+    roleInput.type = 'text';
+    roleInput.value = ent.role;
+    roleInput.placeholder = 'role';
+    roleInput.addEventListener('change', e => {
+      pushUndo();
+      ent.role = e.target.value;
+      updateJsonPanel();
+    });
+    row.appendChild(roleInput);
+
+    // 削除ボタン
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'entity-remove-btn';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'エンティティ参照を削除';
+    removeBtn.addEventListener('click', () => removeViewEntity(viewIndex, ei));
+    row.appendChild(removeBtn);
+
+    entSection.appendChild(row);
+  });
+
+  // 「+ エンティティを追加」ボタン
+  const addEntBtn = document.createElement('button');
+  addEntBtn.className = 'view-add-entity-btn';
+  addEntBtn.textContent = '+ エンティティを追加';
+  addEntBtn.addEventListener('click', () => addViewEntity(viewIndex));
+  entSection.appendChild(addEntBtn);
+
+  card.appendChild(entSection);
+
+  // フッター: Wireframe生成ボタン
+  const footer = document.createElement('div');
+  footer.className = 'view-card-footer';
+  const wfBtn = document.createElement('button');
+  wfBtn.className = 'view-wireframe-btn';
+  wfBtn.innerHTML = '&rarr; Wireframe生成';
+  wfBtn.addEventListener('click', () => copyWireframeCommand(view.name, wfBtn));
+  footer.appendChild(wfBtn);
+  card.appendChild(footer);
+
+  return card;
+}
+
 // ===== キーボードショートカット =====
 document.addEventListener('keydown', e => {
   const isMeta = e.metaKey || e.ctrlKey;
@@ -1009,7 +1602,7 @@ document.addEventListener('keydown', e => {
 
 function isInputFocused() {
   const el = document.activeElement;
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 }
 
 // ===== キャンバスクリックで選択解除 =====

@@ -1,3 +1,11 @@
 {
-  "views": []
+  "views": [
+    {
+      "name": "タスク 一覧",
+      "entity": "タスク",
+      "context": "一覧",
+      "file": "task-list.wireframe.json",
+      "html": "task-list.wireframe.html"
+    }
+  ]
 }
