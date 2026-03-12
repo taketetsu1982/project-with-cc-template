@@ -1220,9 +1220,22 @@ async function connectFile() {
       id: 'wf-editor',
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
+    // ファイル内容を読み込んで描画
+    const file = await handle.getFile();
+    const text = await file.text();
+    let data;
+    try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
+    if (WIREFRAME_DATA) {
+      Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+      Object.assign(WIREFRAME_DATA, data);
+    } else {
+      WIREFRAME_DATA = data;
+    }
+    undoStack.length = 0;
+    redoStack.length = 0;
     fileHandle = handle;
-    updateSaveStatus('connected', fileHandle.name);
-    await writeToFile();
+    updateSaveStatus('connected', handle.name);
+    init();
   } catch (err) {
     if (err.name !== 'AbortError') {
       console.error(err);
@@ -1516,8 +1529,17 @@ function handleDuplicate() {
 
 function handleCut() {
   if (selectedPath === null) return;
-  handleCopy();
-  handleDelete();
+  const info = getNodeByPath(selectedPath);
+  if (!info) return;
+  // コピー
+  clipboardNode = JSON.parse(JSON.stringify(info.node));
+  // 削除
+  saveSnapshot();
+  info.parent.children.splice(info.index, 1);
+  markModified();
+  selectedPath = null;
+  render();
+  updateJSONPanel();
   showToast(`切り取り: ${clipboardNode.name}`);
 }
 

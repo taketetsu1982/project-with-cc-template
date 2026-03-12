@@ -846,9 +846,22 @@ async function connectFile() {
       id: 'cm-editor',
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
+    // ファイル内容を読み込んで描画
+    const file = await handle.getFile();
+    const text = await file.text();
+    let data;
+    try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
+    // モデルを置き換え
+    Object.keys(model).forEach(k => delete model[k]);
+    Object.assign(model, data);
+    model.views = model.views || [];
+    undoStack.length = 0;
+    redoStack.length = 0;
+    selectedPath = null;
+    selectedViewIndex = null;
     fileHandle = handle;
-    updateSaveStatus('connected', fileHandle.name);
-    await writeToFile();
+    updateSaveStatus('connected', handle.name);
+    render();
   } catch (e) {
     if (e.name !== 'AbortError') {
       console.error(e);
@@ -1576,18 +1589,24 @@ document.addEventListener('keydown', e => {
   if (isMeta && e.key === 'x' && !isInputFocused()) {
     if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
       e.preventDefault();
+      const vName = model.views[selectedViewIndex].name;
       viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
       pushUndo();
       model.views.splice(selectedViewIndex, 1);
       selectedViewIndex = null;
       render();
+      showToast(`切り取り: ${vName}`);
       return;
     }
     if (selectedPath) {
       e.preventDefault();
       const node = getNodeByPath(selectedPath);
-      if (node) clipboard = JSON.stringify(node);
-      deleteNode(selectedPath);
+      if (node) {
+        const nName = node.name || '';
+        clipboard = JSON.stringify(node);
+        deleteNode(selectedPath);
+        showToast(`切り取り: ${nName}`);
+      }
       return;
     }
   }
