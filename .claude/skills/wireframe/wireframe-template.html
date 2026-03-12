@@ -42,6 +42,7 @@
     --drop-indicator-bg: rgba(41, 179, 241, 0.06);
     --accent-bg-subtle: rgba(74, 144, 217, 0.06);
     --hover-bg: rgba(0, 0, 0, 0.015);
+    --bg-views: #f0f4f8;
 
     /* Radius */
     --radius-sm: 4px;
@@ -187,7 +188,7 @@
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-default);
-    background: #f0f4f8;
+    background: var(--bg-views);
     overflow: hidden;
   }
 
@@ -795,38 +796,6 @@ function distToRect(x, y, rect) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-function findClosestSibling(e) {
-  if (!dragPath) return null;
-
-  const parentPath = getParentPath(dragPath);
-  // Find the parent DOM element
-  let parentEl;
-  if (parentPath === null) {
-    // Dragged node is a root child — parent is the viewport
-    parentEl = document.getElementById('wf-root');
-  } else {
-    parentEl = document.querySelector(`.wf-node[data-path="${parentPath}"]`);
-  }
-  if (!parentEl) return null;
-
-  // Get direct child nodes with data-path (siblings of dragged node)
-  const siblings = parentEl.querySelectorAll(':scope > [data-path]');
-  let closest = null;
-  let closestDist = Infinity;
-
-  for (const sib of siblings) {
-    if (sib.dataset.path === dragPath) continue;
-    const rect = sib.getBoundingClientRect();
-    const dist = distToRect(e.clientX, e.clientY, rect);
-    if (dist < closestDist) {
-      closestDist = dist;
-      closest = sib;
-    }
-  }
-
-  return closest;
-}
-
 let wfDropTarget = null; // { path, before, intoGroup }
 
 function findClosestNode(e) {
@@ -914,23 +883,24 @@ function handleDrop(e) {
   const sourceInfo = getNodeByPath(sourcePath);
   if (!sourceInfo) return;
 
+  // ドロップ先のノード参照をソース除去前に取得しておく（パスずれ防止）
+  const tgtInfoBeforeSplice = getNodeByPath(wfDropTarget.path);
+
   saveSnapshot();
   const [movedNode] = sourceInfo.parent.children.splice(sourceInfo.index, 1);
 
   if (wfDropTarget.intoGroup) {
     // グループ内にドロップ
-    const tgtInfo = getNodeByPath(wfDropTarget.path);
-    if (tgtInfo) tgtInfo.node.children.push(movedNode);
+    if (tgtInfoBeforeSplice) tgtInfoBeforeSplice.node.children.push(movedNode);
   } else {
     // 兄弟として挿入
-    const tgtInfo = getNodeByPath(wfDropTarget.path);
-    if (!tgtInfo) return;
-    let tgtIdx = tgtInfo.index;
+    if (!tgtInfoBeforeSplice) return;
+    let tgtIdx = tgtInfoBeforeSplice.index;
     // 同一親の場合のインデックス調整
     const sameParent = getParentPath(sourcePath) === getParentPath(wfDropTarget.path);
     if (sameParent && sourceInfo.index < tgtIdx) tgtIdx--;
     if (!wfDropTarget.before) tgtIdx++;
-    tgtInfo.parent.children.splice(tgtIdx, 0, movedNode);
+    tgtInfoBeforeSplice.parent.children.splice(tgtIdx, 0, movedNode);
   }
 
   markModified();
@@ -1471,11 +1441,14 @@ function renderNode(node, container, path) {
     const header = document.createElement('div');
     header.className = 'wf-table-row wf-table-row-header';
     node.columns.forEach(col => {
+      const colName = typeof col === 'string' ? col : (col.name || '');
+      const colGrow = typeof col === 'string' ? false : col.grow;
+      const colWidth = typeof col === 'string' ? undefined : col.width;
       const cell = document.createElement('div');
-      cell.className = 'wf-table-cell' + (col.grow ? ' wf-table-cell-grow' : '');
-      if (col.width) cell.style.width = `${col.width}px`;
-      if (!col.grow && !col.width) cell.classList.add('wf-table-cell-grow');
-      cell.textContent = col.name || '';
+      cell.className = 'wf-table-cell' + (colGrow ? ' wf-table-cell-grow' : '');
+      if (colWidth) cell.style.width = `${colWidth}px`;
+      if (!colGrow && !colWidth) cell.classList.add('wf-table-cell-grow');
+      cell.textContent = colName;
       header.appendChild(cell);
     });
     el.appendChild(header);
@@ -1486,10 +1459,12 @@ function renderNode(node, container, path) {
       const row = document.createElement('div');
       row.className = 'wf-table-row';
       node.columns.forEach((col, c) => {
+        const colGrow = typeof col === 'string' ? false : col.grow;
+        const colWidth = typeof col === 'string' ? undefined : col.width;
         const cell = document.createElement('div');
-        cell.className = 'wf-table-cell' + (col.grow ? ' wf-table-cell-grow' : '');
-        if (col.width) cell.style.width = `${col.width}px`;
-        if (!col.grow && !col.width) cell.classList.add('wf-table-cell-grow');
+        cell.className = 'wf-table-cell' + (colGrow ? ' wf-table-cell-grow' : '');
+        if (colWidth) cell.style.width = `${colWidth}px`;
+        if (!colGrow && !colWidth) cell.classList.add('wf-table-cell-grow');
         const bar = document.createElement('div');
         bar.className = 'wf-table-bar';
         bar.style.width = `${barWidth(r, c)}%`;
@@ -1669,17 +1644,29 @@ function init() {
       : (v.entity || '');
     if (primaryEntity) {
       const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">ビュー:</span>' + primaryEntity + (v.context || '');
+      const label1 = document.createElement('span');
+      label1.className = 'wf-view-label';
+      label1.textContent = 'ビュー:';
+      s.appendChild(label1);
+      s.appendChild(document.createTextNode(primaryEntity + (v.context || '')));
       info.appendChild(s);
     }
     if (v.context) {
       const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">コンテキスト:</span>' + v.context;
+      const label2 = document.createElement('span');
+      label2.className = 'wf-view-label';
+      label2.textContent = 'コンテキスト:';
+      s.appendChild(label2);
+      s.appendChild(document.createTextNode(v.context));
       info.appendChild(s);
     }
     if (v.primaryType) {
       const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">Type:</span>' + v.primaryType;
+      const label3 = document.createElement('span');
+      label3.className = 'wf-view-label';
+      label3.textContent = 'Type:';
+      s.appendChild(label3);
+      s.appendChild(document.createTextNode(v.primaryType));
       info.appendChild(s);
     }
   }

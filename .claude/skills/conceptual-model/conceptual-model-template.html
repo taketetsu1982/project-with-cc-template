@@ -553,7 +553,7 @@
     cursor: pointer;
     color: var(--text-tertiary);
   }
-  .view-card-header .view-delete-btn:hover { background: var(--bg-subtle); color: #e44; }
+  .view-card-header .view-delete-btn:hover { background: var(--bg-subtle); color: var(--danger); }
 
   .view-field {
     display: flex;
@@ -1668,12 +1668,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // ⌘S: 手動保存（接続済みならすぐ保存、未接続ならConnect）
-  if (isMeta && e.key === 's') {
-    e.preventDefault();
-    if (fileHandle) { writeToFile(); } else { connectFile(); }
-    return;
-  }
 });
 
 function isInputFocused() {

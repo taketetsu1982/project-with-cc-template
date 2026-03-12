@@ -47,7 +47,6 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 |-------|------|-------------|
 | `_entity` | string | 対応するConceptual Modelのエンティティ名 |
 | `_attributes` | string[] | 表示するエンティティの属性（conceptual-model.jsonから選択） |
-| `_solves` | string | 対応するPRDの問題・ユーザーニーズ |
 
 ```json
 {
@@ -57,6 +56,21 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
   "_attributes": ["タイトル", "期限", "ステータス"]
 }
 ```
+
+**葉ノードの `type` 値一覧:**
+
+| type | 説明 | 備考 |
+|------|------|------|
+| `text` | テキスト表示 | variant: display / heading / caption |
+| `button` | ボタン | |
+| `link` | リンク | |
+| `input` | テキスト入力 | |
+| `select` | セレクトボックス | input と同じ表示 |
+| `image` | 画像プレースホルダ | |
+| `icon` | アイコン | デフォルト 32x32 |
+| `card` | カード | |
+| `table` | テーブル | columns, rows フィールドを使用 |
+| `divider` | 区切り線 | |
 
 **制約:**
 - `_entity`/`_attributes` はWireframe HTML上ではread-only（変更はConceptual Modelから）
