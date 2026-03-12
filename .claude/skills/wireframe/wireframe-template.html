@@ -415,6 +415,36 @@
   .wf-prop-select:focus { outline: none; border-color: var(--accent); }
   .wf-prop-check { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
 
+  .wf-prop-textarea {
+    flex: 1;
+    padding: 4px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    min-width: 0;
+    min-height: 48px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+  .wf-prop-textarea:focus { outline: none; border-color: var(--accent); }
+  .wf-prop-textarea::placeholder { color: var(--text-muted); font-size: 11px; }
+
+  .wf-note-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 5;
+  }
+
   .wf-entity-card-no-data {
     font-size: 13px;
     color: var(--text-muted);
@@ -1137,7 +1167,15 @@ function updateJSONPanel() {
 
 let isSaving = false;
 
+function disconnectFile() {
+  fileHandle = null;
+  if (saveTimer) clearTimeout(saveTimer);
+  updateSaveStatus('', 'Connect', '(Drop a JSON file)');
+}
+
 async function connectFile() {
+  // 接続中ならDisconnect
+  if (fileHandle) { disconnectFile(); return; }
   if (!('showDirectoryPicker' in window)) {
     alert('このブラウザはFile System Access APIに対応していません。JSONファイルをドロップして接続してください。');
     return;
@@ -1601,7 +1639,7 @@ function renderPropsPanel() {
   if (!content) return;
   // propsパネル内にフォーカスがある場合は再描画スキップ
   if (content.contains(document.activeElement) &&
-      (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+      (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) {
     return;
   }
   content.innerHTML = '';
@@ -1692,6 +1730,16 @@ function renderPropsPanel() {
     ], v => applyProp('align', v || undefined));
     addCheckProp(content, 'wrap', !!node.wrap, v => applyProp('wrap', v || undefined));
   }
+
+  // --- Note ---
+  addGroupTitle(content, 'Note');
+  addTextareaProp(content, node._note || '', v => {
+    saveSnapshot();
+    if (v) { node._note = v; } else { delete node._note; }
+    markModified();
+    render();
+    updateJSONPanel();
+  });
 }
 
 // PropsPanel ヘルパー
@@ -1752,6 +1800,19 @@ function addCheckProp(container, label, checked, onChange) {
   lbl.appendChild(cb);
   lbl.appendChild(document.createTextNode(label));
   row.appendChild(lbl);
+  container.appendChild(row);
+}
+
+function addTextareaProp(container, value, onChange) {
+  const row = document.createElement('div');
+  row.className = 'wf-prop-row';
+  const ta = document.createElement('textarea');
+  ta.className = 'wf-prop-textarea';
+  ta.value = value;
+  ta.placeholder = '実装の意図を自由に書く（例：ソート可能にしたい、クリックでモーダルを開く）';
+  ta.addEventListener('input', () => onChange(ta.value.trim()));
+  ta.addEventListener('keydown', e => e.stopPropagation());
+  row.appendChild(ta);
   container.appendChild(row);
 }
 
@@ -1932,6 +1993,12 @@ function renderNode(node, container, path) {
     el.className = 'wf-type-divider';
     el.dataset.path = path;
     el.draggable = true;
+    if (node._note) {
+      const dot = document.createElement('div');
+      dot.className = 'wf-note-indicator';
+      dot.title = node._note;
+      el.appendChild(dot);
+    }
     container.appendChild(el);
     return;
   }
@@ -1948,6 +2015,14 @@ function renderNode(node, container, path) {
 
     // Grab bar (compound node)
     el.appendChild(createGrabBar(node.name || 'Table', path, null));
+
+    // _note インジケーター
+    if (node._note) {
+      const dot = document.createElement('div');
+      dot.className = 'wf-note-indicator';
+      dot.title = node._note;
+      el.appendChild(dot);
+    }
 
     // Header row
     const header = document.createElement('div');
@@ -2036,6 +2111,14 @@ function renderNode(node, container, path) {
     label.className = 'wf-label';
     label.textContent = node.name;
     el.appendChild(label);
+  }
+
+  // _note インジケーター
+  if (node._note) {
+    const dot = document.createElement('div');
+    dot.className = 'wf-note-indicator';
+    dot.title = node._note;
+    el.appendChild(dot);
   }
 
   // _entity バッジ表示
