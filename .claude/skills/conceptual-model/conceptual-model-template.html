@@ -1722,7 +1722,8 @@ document.addEventListener('drop', async e => {
         // ファイル内容を読み込んで描画
         const file = await handle.getFile();
         const text = await file.text();
-        const data = JSON.parse(text);
+        let data;
+        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
         // modelを更新（参照を維持）
         Object.keys(model).forEach(k => delete model[k]);
         Object.assign(model, data);

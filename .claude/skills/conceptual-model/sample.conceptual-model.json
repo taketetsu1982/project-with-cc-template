@@ -1,9 +1,95 @@
 {
-  "name": "Conceptual Model",
+  "name": "タスク管理アプリ",
   "root": {
     "name": "ルート",
-    "direction": "vertical",
-    "children": []
+    "direction": "horizontal",
+    "children": [
+      {
+        "name": "組織",
+        "direction": "vertical",
+        "children": [
+          {
+            "name": "プロジェクト",
+            "type": "entity",
+            "attributes": [
+              "名前: プロジェクトの表示名",
+              "説明: プロジェクトの概要",
+              "ステータス: active / archived",
+              "開始日: プロジェクトの開始日",
+              "終了日: プロジェクトの期限"
+            ]
+          },
+          {
+            "name": "メンバー",
+            "type": "entity",
+            "attributes": [
+              "名前: 表示名",
+              "メール: ログイン用メールアドレス",
+              "ロール: admin / member / viewer",
+              "アバター: プロフィール画像URL"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "タスク管理",
+        "direction": "vertical",
+        "children": [
+          {
+            "name": "タスク",
+            "type": "entity",
+            "attributes": [
+              "タイトル: タスクの件名",
+              "説明: タスクの詳細",
+              "ステータス: 未着手 / 進行中 / 完了",
+              "優先度: 高 / 中 / 低",
+              "期限: 完了期限日",
+              "担当者: 割り当てられたメンバー",
+              "プロジェクト: 所属プロジェクト"
+            ]
+          },
+          {
+            "name": "コメント",
+            "type": "entity",
+            "attributes": [
+              "本文: コメント内容",
+              "投稿者: コメントしたメンバー",
+              "投稿日時: コメントの作成日時"
+            ]
+          }
+        ]
+      }
+    ]
   },
-  "views": []
+  "views": [
+    {
+      "name": "タスク一覧",
+      "context": "一覧",
+      "primaryType": "table",
+      "entities": [
+        { "entity": "タスク", "role": "primary" },
+        { "entity": "メンバー", "role": "filter" }
+      ]
+    },
+    {
+      "name": "タスク詳細",
+      "context": "詳細",
+      "primaryType": "card",
+      "entities": [
+        { "entity": "タスク", "role": "primary" },
+        { "entity": "コメント", "role": "list" },
+        { "entity": "メンバー", "role": "reference" }
+      ]
+    },
+    {
+      "name": "プロジェクト詳細",
+      "context": "詳細",
+      "primaryType": "card",
+      "entities": [
+        { "entity": "プロジェクト", "role": "primary" },
+        { "entity": "タスク", "role": "list" },
+        { "entity": "メンバー", "role": "list" }
+      ]
+    }
+  ]
 }

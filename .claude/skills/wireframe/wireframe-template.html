@@ -1227,7 +1227,8 @@ document.addEventListener('drop', async e => {
         // ファイル内容を読み込んで描画
         const file = await handle.getFile();
         const text = await file.text();
-        const data = JSON.parse(text);
+        let data;
+        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
         if (WIREFRAME_DATA) {
           Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
           Object.assign(WIREFRAME_DATA, data);
@@ -2144,7 +2145,6 @@ function init() {
   }
 
   document.title = (WIREFRAME_DATA.name || 'Wireframe') + ' — WIREFRAME';
-  document.title = WIREFRAME_DATA.name || 'Wireframe Preview';
 
   // ビュー情報表示
   const info = document.getElementById('wf-view-info');
