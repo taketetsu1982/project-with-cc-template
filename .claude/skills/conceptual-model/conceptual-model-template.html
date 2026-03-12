@@ -834,22 +834,51 @@ function disconnectFile() {
   updateSaveStatus('', 'Connect', '(Drop a JSON file)');
 }
 
+// JSONファイルを読み込んで描画する共通処理
+const MAX_DEPTH = 50;
+function checkDepth(obj, depth) {
+  if (depth > MAX_DEPTH) return false;
+  if (obj && obj.children && Array.isArray(obj.children)) {
+    return obj.children.every(c => checkDepth(c, depth + 1));
+  }
+  return true;
+}
+
+async function loadJsonFromHandle(handle) {
+  const file = await handle.getFile();
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return false; }
+  if (data.root && !checkDepth(data.root, 0)) {
+    updateSaveStatus('error', 'JSON too deeply nested'); return false;
+  }
+  Object.keys(model).forEach(k => delete model[k]);
+  Object.assign(model, data);
+  model.views = model.views || [];
+  undoStack.length = 0;
+  redoStack.length = 0;
+  selectedPath = null;
+  selectedViewIndex = null;
+  fileHandle = handle;
+  updateSaveStatus('connected', handle.name);
+  render();
+  renderViews();
+  return true;
+}
+
 async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
-  if (!('showSaveFilePicker' in window)) {
+  if (!('showOpenFilePicker' in window)) {
     alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
     return;
   }
-  const filename = CM_FILENAME || 'conceptual-model.json';
   try {
-    fileHandle = await window.showSaveFilePicker({
+    const [handle] = await window.showOpenFilePicker({
       id: 'cm-editor',
-      suggestedName: filename,
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
-    updateSaveStatus('connected', fileHandle.name);
-    await writeToFile();
+    await loadJsonFromHandle(handle);
   } catch (e) {
     if (e.name !== 'AbortError') {
       console.error(e);
@@ -1573,6 +1602,32 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  // ⌘X: 切り取り（ノード or ビュー）
+  if (isMeta && e.key === 'x' && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      const vName = model.views[selectedViewIndex].name;
+      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
+      pushUndo();
+      model.views.splice(selectedViewIndex, 1);
+      selectedViewIndex = null;
+      render();
+      showToast(`切り取り: ${vName}`);
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      const node = getNodeByPath(selectedPath);
+      if (node) {
+        const nName = node.name || '';
+        clipboard = JSON.stringify(node);
+        deleteNode(selectedPath);
+        showToast(`切り取り: ${nName}`);
+      }
+      return;
+    }
+  }
+
   // ⌘C: コピー（ノード or ビュー）
   if (isMeta && e.key === 'c' && !isInputFocused()) {
     if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
@@ -1727,21 +1782,7 @@ document.addEventListener('drop', async e => {
     if (typeof item.getAsFileSystemHandle === 'function') {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-        // ファイル内容を読み込んで描画
-        const file = await handle.getFile();
-        const text = await file.text();
-        let data;
-        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
-        // modelを更新（参照を維持）
-        Object.keys(model).forEach(k => delete model[k]);
-        Object.assign(model, data);
-        model.views = model.views || [];
-        // 接続して描画→保存
-        fileHandle = handle;
-        updateSaveStatus('connected', handle.name);
-        render();
-        renderViews();
-        await writeToFile();
+        await loadJsonFromHandle(handle);
         return;
       }
     }

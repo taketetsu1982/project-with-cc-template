@@ -334,6 +334,11 @@
     padding: 1px 8px;
     white-space: nowrap;
   }
+  .wf-entity-card-attr-used {
+    color: var(--text-secondary);
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+  }
 
   /* ── File drop overlay ── */
   .file-drop-overlay {
@@ -868,7 +873,6 @@
 
 <script>
 let WIREFRAME_DATA = null; // %%WIREFRAME_DATA%%
-const CM_DATA = null; // スキル実行時にconceptual-model.jsonで置換される
 
 let modified = false;
 let dragPath = null;
@@ -1204,23 +1208,51 @@ function disconnectFile() {
   updateSaveStatus('', 'Connect', '(Drop a JSON file)');
 }
 
+// JSONファイルを読み込んで描画する共通処理
+const MAX_DEPTH = 50;
+function checkDepth(obj, depth) {
+  if (depth > MAX_DEPTH) return false;
+  if (obj && obj.children && Array.isArray(obj.children)) {
+    return obj.children.every(c => checkDepth(c, depth + 1));
+  }
+  return true;
+}
+
+async function loadJsonFromHandle(handle) {
+  const file = await handle.getFile();
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return false; }
+  if (data.root && !checkDepth(data.root, 0)) {
+    updateSaveStatus('error', 'JSON too deeply nested'); return false;
+  }
+  if (WIREFRAME_DATA) {
+    Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+    Object.assign(WIREFRAME_DATA, data);
+  } else {
+    WIREFRAME_DATA = data;
+  }
+  undoStack.length = 0;
+  redoStack.length = 0;
+  fileHandle = handle;
+  updateSaveStatus('connected', handle.name);
+  init();
+  return true;
+}
+
 async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
-  if (!('showSaveFilePicker' in window)) {
+  if (!('showOpenFilePicker' in window)) {
     alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
     return;
   }
-  const rawName = WF_FILENAME || originalFilename;
-  const filename = rawName.split(/[/\\]/).pop() || 'wireframe.json';
   try {
-    fileHandle = await window.showSaveFilePicker({
+    const [handle] = await window.showOpenFilePicker({
       id: 'wf-editor',
-      suggestedName: filename,
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
-    updateSaveStatus('connected', fileHandle.name);
-    await writeToFile();
+    await loadJsonFromHandle(handle);
   } catch (err) {
     if (err.name !== 'AbortError') {
       console.error(err);
@@ -1297,35 +1329,7 @@ document.addEventListener('drop', async e => {
     if (typeof item.getAsFileSystemHandle === 'function') {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-        // ファイル内容を読み込んで描画
-        const file = await handle.getFile();
-        const text = await file.text();
-        let data;
-        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
-        // 再帰深度チェック（悪意あるJSONによるスタックオーバーフロー防止）
-        const MAX_DEPTH = 50;
-        function checkDepth(obj, depth) {
-          if (depth > MAX_DEPTH) return false;
-          if (obj && obj.children && Array.isArray(obj.children)) {
-            return obj.children.every(c => checkDepth(c, depth + 1));
-          }
-          return true;
-        }
-        if (data.root && !checkDepth(data.root, 0)) {
-          updateSaveStatus('error', 'JSON too deeply nested'); return;
-        }
-        if (WIREFRAME_DATA) {
-          Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
-          Object.assign(WIREFRAME_DATA, data);
-        } else {
-          WIREFRAME_DATA = data;
-        }
-        // 新しいファイルなのでundo/redo履歴をクリア
-        undoStack.length = 0;
-        redoStack.length = 0;
-        fileHandle = handle;
-        updateSaveStatus('connected', handle.name);
-        init();
+        await loadJsonFromHandle(handle);
         return;
       }
     }
@@ -1512,6 +1516,22 @@ function handleDuplicate() {
   showToast(`複製: ${info.node.name}`);
 }
 
+function handleCut() {
+  if (selectedPath === null) return;
+  const info = getNodeByPath(selectedPath);
+  if (!info) return;
+  // コピー
+  clipboardNode = JSON.parse(JSON.stringify(info.node));
+  // 削除
+  saveSnapshot();
+  info.parent.children.splice(info.index, 1);
+  markModified();
+  selectedPath = null;
+  render();
+  updateJSONPanel();
+  showToast(`切り取り: ${clipboardNode.name}`);
+}
+
 function handleDelete() {
   if (selectedPath === null) return;
   const info = getNodeByPath(selectedPath);
@@ -1561,6 +1581,13 @@ function handleKeyDown(e) {
     } else {
       showToast('先にファイルを接続してください（Connectまたはドロップ）');
     }
+    return;
+  }
+
+  // ⌘X: 切り取り
+  if (isMeta && e.key === 'x' && selectedPath !== null && !isInputFocused()) {
+    e.preventDefault();
+    handleCut();
     return;
   }
 
@@ -1624,8 +1651,17 @@ function handleKeyDown(e) {
 }
 
 function handleNodeClick(e) {
-  // direction toggleやgrab bar内のボタンクリックは無視
-  if (e.target.closest('.wf-dir-toggle') || e.target.closest('button')) return;
+  // direction toggleは無視
+  if (e.target.closest('.wf-dir-toggle')) return;
+
+  // グラブバークリック → そのコンテナを選択
+  const grabBar = e.target.closest('.wf-grab-bar');
+  if (grabBar) {
+    e.stopPropagation();
+    const nodeEl = grabBar.closest('[data-path]');
+    if (nodeEl) selectNode(nodeEl.dataset.path);
+    return;
+  }
 
   const nodeEl = e.target.closest('[data-path]');
   if (!nodeEl) return;
@@ -1826,11 +1862,11 @@ function renderPropsPanel() {
     renderPropsPanel();
   });
   if (node._entity) {
-    // CM_DATAがあれば全属性一覧、なければノードの_attributesを使用
-    const cmEntity = findCmEntity(node._entity);
+    // view.entitiesから全属性一覧を取得、なければノードの_attributesを使用
+    const viewEntity = findViewEntity(node._entity);
     let allAttrs;
-    if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
-      allAttrs = cmEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+    if (viewEntity && viewEntity.attributes && viewEntity.attributes.length > 0) {
+      allAttrs = viewEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
     } else {
       allAttrs = node._attributes ? [...node._attributes] : [];
     }
@@ -1899,7 +1935,17 @@ function addNumberProp(container, label, value, onChange) {
     const v = input.value.trim();
     onChange(v === '' ? null : Number(v));
   });
-  input.addEventListener('keydown', e => e.stopPropagation());
+  input.addEventListener('keydown', e => {
+    e.stopPropagation();
+    // Shift+矢印で±10
+    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      const current = input.value.trim() === '' ? 0 : Number(input.value);
+      const delta = e.key === 'ArrowUp' ? 10 : -10;
+      input.value = current + delta;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
   row.appendChild(input);
   container.appendChild(row);
 }
@@ -1985,20 +2031,10 @@ function addSelectProp(container, label, value, options, onChange) {
 
 // ── Entity Panel ──
 
-function findCmEntity(entityName) {
-  if (!CM_DATA || !CM_DATA.root) return null;
-  // root.children内を再帰的に探索してtype=entityのノードを見つける
-  function search(nodes) {
-    for (const n of (nodes || [])) {
-      if (n.type === 'entity' && n.name === entityName) return n;
-      if (n.children) {
-        const found = search(n.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-  return search(CM_DATA.root.children);
+// view.entities から該当エンティティの属性一覧を取得
+function findViewEntity(entityName) {
+  if (!WIREFRAME_DATA || !WIREFRAME_DATA.view || !WIREFRAME_DATA.view.entities) return null;
+  return WIREFRAME_DATA.view.entities.find(e => e.entity === entityName) || null;
 }
 
 // _noteインジケーターを要素に追加
@@ -2072,12 +2108,12 @@ function renderEntityPanel() {
     return;
   }
 
-  // ツリーを1回走査してentity→属性Setのマップを構築
-  const entityAttrMap = new Map();
+  // ツリーを走査して使用中の属性を収集
+  const usedAttrMap = new Map();
   (function collectAll(n) {
     if (n._entity && n._attributes) {
-      if (!entityAttrMap.has(n._entity)) entityAttrMap.set(n._entity, new Set());
-      const set = entityAttrMap.get(n._entity);
+      if (!usedAttrMap.has(n._entity)) usedAttrMap.set(n._entity, new Set());
+      const set = usedAttrMap.get(n._entity);
       n._attributes.forEach(a => set.add(a));
     }
     if (n.children) n.children.forEach(collectAll);
@@ -2102,14 +2138,20 @@ function renderEntityPanel() {
     }
     card.appendChild(header);
 
-    // マップから属性を取得
-    const attrNames = entityAttrMap.has(ent.entity) ? [...entityAttrMap.get(ent.entity)] : [];
-    if (attrNames.length > 0) {
+    // view.entities[].attributesから全属性を表示（使用中はハイライト）
+    const allAttrs = ent.attributes || [];
+    const usedSet = usedAttrMap.get(ent.entity) || new Set();
+    if (allAttrs.length > 0) {
       const attrsDiv = document.createElement('div');
       attrsDiv.className = 'wf-entity-card-attrs';
-      attrNames.forEach(attr => {
+      allAttrs.forEach(attr => {
         const attrSpan = document.createElement('span');
         attrSpan.className = 'wf-entity-card-attr';
+        // 属性名部分（"属性名: 説明" の "属性名" 部分）で使用中か判定
+        const attrName = attr.split(':')[0].trim();
+        if (usedSet.has(attrName) || usedSet.has(attr)) {
+          attrSpan.classList.add('wf-entity-card-attr-used');
+        }
         attrSpan.textContent = attr;
         attrsDiv.appendChild(attrSpan);
       });
