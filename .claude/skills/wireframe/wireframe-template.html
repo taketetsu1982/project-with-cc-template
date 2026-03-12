@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -211,6 +211,7 @@
     overflow: auto;
   }
 
+  /* #wf-root がスクロール可能なラッパー、.wf-viewport が固定サイズのキャンバス本体 */
   .wf-viewport {
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
@@ -815,13 +816,13 @@
     <span id="wf-toolbar-title">WIREFRAME</span>
     <button class="save-status-btn" id="wf-connect-btn" onclick="connectFile()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
     <span id="wf-edited-badge">Edited</span>
-    <button class="wf-btn" onclick="handleUndo()" title="元に戻す (⌘Z)">↩ 元に戻す</button>
-    <button class="wf-btn" onclick="handleRedo()" title="やり直す (⌘⇧Z)">↪ やり直す</button>
+    <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
+    <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
     <div class="wf-add-wrap">
-      <button class="wf-btn" onclick="toggleAddDropdown(event)">+ 追加</button>
+      <button class="wf-btn" onclick="toggleAddDropdown(event)">+ Add</button>
       <div id="wf-add-dropdown" class="wf-add-dropdown">
         <div class="wf-add-section">Container</div>
-        <button class="wf-add-item" onclick="addNode('container')">コンテナ</button>
+        <button class="wf-add-item" onclick="addNode('container')">container</button>
         <div class="wf-add-section">Leaf</div>
         <button class="wf-add-item" onclick="addNode('text')">text</button>
         <button class="wf-add-item" onclick="addNode('button')">button</button>
@@ -849,20 +850,20 @@
   </div>
   <div id="wf-view-info"></div>
   <div class="wf-tab-bar">
-    <button class="wf-tab active" data-tab="entity" onclick="switchTab('entity')">エンティティ &amp; 属性</button>
-    <button class="wf-tab" data-tab="props" onclick="switchTab('props')">プロパティ</button>
+    <button class="wf-tab active" data-tab="entity" onclick="switchTab('entity')">Entity &amp; Attributes</button>
+    <button class="wf-tab" data-tab="props" onclick="switchTab('props')">Properties</button>
   </div>
   <div id="wf-tab-entity" class="wf-tab-content active">
     <div id="wf-entity-list"></div>
   </div>
   <div id="wf-tab-props" class="wf-tab-content">
     <div id="wf-props-content">
-      <div class="wf-props-empty">ノード未選択</div>
+      <div class="wf-props-empty">No node selected</div>
     </div>
   </div>
 </div>
 
-<div class="file-drop-overlay" id="wf-file-drop-overlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
+<div class="file-drop-overlay" id="wf-file-drop-overlay"><span class="drop-msg">Drop JSON file to connect</span></div>
 <div id="wf-toast"></div>
 
 <script>
@@ -885,6 +886,7 @@ let saveTimer = null;
 // ── Undo / Redo ──
 
 function saveSnapshot() {
+  if (!WIREFRAME_DATA || !WIREFRAME_DATA.root) return;
   undoStack.push(JSON.stringify(WIREFRAME_DATA.root));
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   // 新しい操作が入ったらredo履歴をクリア
@@ -899,13 +901,15 @@ function handleUndo() {
   selectedPath = null;
 
   render();
-  updateJSONPanel();
+  switchTab('entity');
   showToast('元に戻しました');
 
-  // undoで全て戻した場合はeditedバッジを消す
+  // undoで全て戻した場合はeditedバッジを消し、auto-saveしない
   if (undoStack.length === 0) {
     modified = false;
     document.getElementById('wf-edited-badge').style.display = 'none';
+  } else {
+    updateJSONPanel();
   }
 }
 
@@ -919,6 +923,7 @@ function handleRedo() {
   markModified();
 
   render();
+  switchTab('entity');
   updateJSONPanel();
   showToast('やり直しました');
 }
@@ -1071,6 +1076,9 @@ function handleDrop(e) {
   if (!dragPath || !wfDropTarget) return;
   const sourcePath = dragPath;
 
+  // 自分自身または子孫へのドロップを防止
+  if (wfDropTarget.path === sourcePath || wfDropTarget.path.startsWith(sourcePath + '.')) return;
+
   const sourceInfo = getNodeByPath(sourcePath);
   if (!sourceInfo) return;
 
@@ -1135,12 +1143,12 @@ function showDropIndicator(targetEl, isVertical, before) {
   if (targetName) {
     dropLabel = document.createElement('div');
     dropLabel.className = 'wf-drop-label';
-    dropLabel.textContent = (before ? '↑ ' : '↓ ') + targetName;
+    dropLabel.textContent = (before ? '↑ before ' : '↓ after ') + targetName;
     if (isVertical) {
       dropLabel.style.left = `${rect.left}px`;
       dropLabel.style.top = before ? `${rect.top - 22}px` : `${rect.bottom + 4}px`;
     } else {
-      dropLabel.textContent = (before ? '← ' : '→ ') + targetName;
+      dropLabel.textContent = (before ? '← before ' : '→ after ') + targetName;
       dropLabel.style.top = `${rect.top}px`;
       dropLabel.style.left = before ? `${rect.left - 4}px` : `${rect.right + 4}px`;
     }
@@ -1194,7 +1202,7 @@ async function connectFile() {
   // 接続中ならDisconnect
   if (fileHandle) { disconnectFile(); return; }
   if (!('showDirectoryPicker' in window)) {
-    alert('このブラウザはFile System Access APIに対応していません。JSONファイルをドロップして接続してください。');
+    alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
     return;
   }
   const rawName = WF_FILENAME || originalFilename;
@@ -1292,6 +1300,9 @@ document.addEventListener('drop', async e => {
         } else {
           WIREFRAME_DATA = data;
         }
+        // 新しいファイルなのでundo/redo履歴をクリア
+        undoStack.length = 0;
+        redoStack.length = 0;
         fileHandle = handle;
         updateSaveStatus('connected', handle.name);
         init();
@@ -1353,6 +1364,7 @@ function addNode(type) {
     const info = getNodeByPath(selectedPath);
     if (info) {
       info.parent.children.splice(info.index + 1, 0, newNode);
+      // 挿入した新ノードを選択するため、パスの末尾インデックスを+1に更新
       const parts = selectedPath.split('.');
       parts[parts.length - 1] = String(info.index + 1);
       selectedPath = parts.join('.');
@@ -1401,9 +1413,10 @@ function switchTab(tabName) {
 }
 
 function selectNode(path) {
-  // 同じノードをクリックしたら選択解除
+  // 同じノードをクリックしたら選択解除してエンティティタブに戻す
   if (selectedPath === path) {
     selectedPath = null;
+    switchTab('entity');
   } else {
     selectedPath = path;
     // ノード選択時にPropertiesタブを開く
@@ -1673,7 +1686,7 @@ function renderPropsPanel() {
   content.innerHTML = '';
 
   if (selectedPath === null) {
-    content.innerHTML = '<div class="wf-props-empty">ノード未選択</div>';
+    content.innerHTML = '<div class="wf-props-empty">No node selected</div>';
     return;
   }
 
@@ -1745,7 +1758,14 @@ function renderPropsPanel() {
 
   // --- Spacing ---
   addGroupTitle(content, 'Spacing');
-  addNumberProp(content, 'padding', Array.isArray(node.padding) ? node.padding[0] : node.padding, v => applyProp('padding', v));
+  const padVal = Array.isArray(node.padding) ? node.padding.join(', ') : (node.padding ?? '');
+  addTextProp(content, 'padding', String(padVal), v => {
+    saveSnapshot();
+    if (!v) { delete node.padding; }
+    else if (v.includes(',')) { node.padding = v.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)); }
+    else { const n = Number(v); node.padding = isNaN(n) ? undefined : n; }
+    markModified(); render(); updateJSONPanel();
+  }, '例: 8 または 8, 16');
   if (isContainer) {
     addNumberProp(content, 'gap', node.gap, v => applyProp('gap', v));
   }
@@ -2014,7 +2034,7 @@ function renderEntityPanel() {
   list.innerHTML = '';
 
   if (!WIREFRAME_DATA) {
-    list.innerHTML = '<div class="wf-entity-card-no-data">データなし</div>';
+    list.innerHTML = '<div class="wf-entity-card-no-data">No data</div>';
     return;
   }
 
@@ -2028,7 +2048,7 @@ function renderEntityPanel() {
   }
 
   if (entities.length === 0) {
-    list.innerHTML = '<div class="wf-entity-card-no-data">エンティティ未定義</div>';
+    list.innerHTML = '<div class="wf-entity-card-no-data">No entities defined</div>';
     return;
   }
 
@@ -2108,7 +2128,7 @@ function createGrabBar(name, path, direction) {
   return bar;
 }
 
-function barWidth(row, col) {
+function calcPlaceholderBarWidth(row, col) {
   const seed = (row * 7 + col * 13) % 5;
   return 50 + seed * 10;
 }
@@ -2169,7 +2189,7 @@ function renderNode(node, container, path) {
         if (!colGrow && !colWidth) cell.classList.add('wf-table-cell-grow');
         const bar = document.createElement('div');
         bar.className = 'wf-table-bar';
-        bar.style.width = `${barWidth(r, c)}%`;
+        bar.style.width = `${calcPlaceholderBarWidth(r, c)}%`;
         cell.appendChild(bar);
         row.appendChild(cell);
       });
@@ -2313,7 +2333,7 @@ function render() {
       if (WIREFRAME_DATA.root.gap) viewport.style.gap = `${WIREFRAME_DATA.root.gap}px`;
       if (WIREFRAME_DATA.root.padding != null) {
         const p = WIREFRAME_DATA.root.padding;
-        viewport.style.padding = Array.isArray(p) ? `${p[0]}px ${p[1]}px` : `${p}px`;
+        viewport.style.padding = Array.isArray(p) ? p.map(v => `${v}px`).join(' ') : `${p}px`;
       }
       if (WIREFRAME_DATA.root.justify) viewport.style.justifyContent = WIREFRAME_DATA.root.justify;
       if (WIREFRAME_DATA.root.align) viewport.style.alignItems = WIREFRAME_DATA.root.align;
@@ -2337,7 +2357,7 @@ let _initialized = false;
 function init() {
   if (!WIREFRAME_DATA) {
     document.getElementById('wf-root').textContent = 'No wireframe data found. Click "Open JSON" to load a file.';
-    document.getElementById('wf-entity-list').innerHTML = '<div class="wf-entity-card-no-data">データなし</div>';
+    document.getElementById('wf-entity-list').innerHTML = '<div class="wf-entity-card-no-data">No data</div>';
     return;
   }
 
@@ -2355,7 +2375,7 @@ function init() {
       const s = document.createElement('span');
       const label1 = document.createElement('span');
       label1.className = 'wf-view-label';
-      label1.textContent = 'ビュー:';
+      label1.textContent = 'View:';
       s.appendChild(label1);
       s.appendChild(document.createTextNode(primaryEntity));
       info.appendChild(s);
@@ -2364,7 +2384,7 @@ function init() {
       const s = document.createElement('span');
       const label2 = document.createElement('span');
       label2.className = 'wf-view-label';
-      label2.textContent = 'コンテキスト:';
+      label2.textContent = 'Context:';
       s.appendChild(label2);
       s.appendChild(document.createTextNode(v.context));
       info.appendChild(s);
@@ -2373,7 +2393,7 @@ function init() {
       const s = document.createElement('span');
       const label3 = document.createElement('span');
       label3.className = 'wf-view-label';
-      label3.textContent = 'タイプ:';
+      label3.textContent = 'Type:';
       s.appendChild(label3);
       s.appendChild(document.createTextNode(v.primaryType));
       info.appendChild(s);

@@ -63,6 +63,7 @@ reqs/pg0 ⇔ reqs/prd（WHO:User, WHY, WHAT） ⇔ reqs/mrd（WHERE, WHO:Buyer, 
 | cm-review | 概念モデルレビュー | デザイン・テクニカル・cm-writer |
 | specs-planning | Specs設計 | バックエンド・デザイン・PdM |
 | specs-review | Specsレビュー | 技術・機能・統合 |
+| code-review | コードレビュー | Code Quality・Performance・UI Consistency |
 | pr-review | PRレビュー | セキュリティ・パフォーマンス・テスト |
 
 ## Workflows
