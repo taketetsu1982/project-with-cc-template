@@ -658,6 +658,8 @@
       <span class="toolbar-title">Conceptual Model</span>
       <button class="save-status-btn" id="btnConnect" onclick="connectFile()"><span class="dot" id="saveDot"></span><span id="saveLabel">Connect</span> <span class="save-hint" id="saveHint">(Drop a JSON file)</span></button>
       <span class="edited-badge" id="editedBadge">Edited</span>
+      <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
+      <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
     </div>
   </div>
   <div class="canvas-pane">
@@ -667,8 +669,6 @@
         <button onclick="addGroup()">+ Group</button>
         <button onclick="addEntity()">+ Entity</button>
         <button id="rootDirBtn" onclick="toggleRootDirection()">↕ Vertical</button>
-        <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
-        <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
       </div>
     </div>
     <div class="canvas" id="canvas"></div>
