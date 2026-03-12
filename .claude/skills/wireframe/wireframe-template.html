@@ -1800,13 +1800,14 @@ function renderPropsPanel() {
         if (selected.length > 0) { node._attributes = selected; } else { delete node._attributes; }
         applyEntityToNode(node, node._entity, selected);
         markModified(); render(); updateJSONPanel();
+        renderPropsPanel();
       });
     }
   }
 
   // --- Note ---
   addGroupTitle(content, 'Note');
-  addTextareaProp(content, node._note || '', v => {
+  addTextareaProp(content, null, node._note || '', v => {
     saveSnapshot();
     if (v) { node._note = v; } else { delete node._note; }
     markModified();
@@ -1900,14 +1901,20 @@ function addAttrCheckboxes(container, allAttrs, currentAttrs, onChange) {
   container.appendChild(wrap);
 }
 
-function addTextareaProp(container, value, onChange) {
+function addTextareaProp(container, label, value, onChange) {
   const row = document.createElement('div');
   row.className = 'wf-prop-row';
+  if (label) {
+    const lbl = document.createElement('span');
+    lbl.className = 'wf-prop-label';
+    lbl.textContent = label;
+    row.appendChild(lbl);
+  }
   const ta = document.createElement('textarea');
   ta.className = 'wf-prop-textarea';
   ta.value = value;
   ta.placeholder = '実装の意図を自由に書く（例：ソート可能にしたい、クリックでモーダルを開く）';
-  ta.addEventListener('input', () => onChange(ta.value.trim()));
+  ta.addEventListener('change', () => onChange(ta.value.trim()));
   ta.addEventListener('keydown', e => e.stopPropagation());
   row.appendChild(ta);
   container.appendChild(row);
@@ -1953,25 +1960,36 @@ function findCmEntity(entityName) {
   return search(CM_DATA.root.children);
 }
 
+// _noteインジケーターを要素に追加
+function appendNoteIndicator(el, note) {
+  if (!note) return;
+  const dot = document.createElement('div');
+  dot.className = 'wf-note-indicator';
+  dot.title = note;
+  el.appendChild(dot);
+}
+
 // エンティティ選択・属性変更時にノードtypeに応じた内容を自動補完
 function applyEntityToNode(node, entityName, attrs) {
-  if (!node.type) return;
-  switch (node.type) {
+  const t = node.type || node._originalType;
+  if (!t) return;
+  switch (t) {
     case 'table':
       // columnsを属性から設定
       node.columns = attrs.length > 0 ? [...attrs] : ['列1', '列2', '列3'];
       break;
     case 'card':
-      // childrenが空なら属性をテキストノードとして生成
+      // childrenが空なら属性をテキストノードとして生成しコンテナに変換
       if (!node.children || node.children.length === 0) {
         node.children = attrs.map(a => ({ name: a, type: 'text', content: a }));
-        delete node.type; // コンテナに変換
+        node._originalType = 'card';
+        delete node.type;
         node.direction = 'vertical';
       }
       break;
     case 'select':
-      // 最初の属性名をnameに反映（空の場合）
-      if (attrs.length > 0 && (!node.name || node.name === 'セレクト')) {
+      // nameが未設定なら最初の属性名を反映
+      if (attrs.length > 0 && !node.name) {
         node.name = attrs[0];
       }
       break;
@@ -1987,10 +2005,6 @@ function applyEntityToNode(node, entityName, attrs) {
         node.placeholder = attrs[0] + 'を入力...';
       }
       break;
-  }
-  // コンテナ（directionあり・childrenが空）の場合もcard同様に補完
-  if (!node.type && node.direction && (!node.children || node.children.length === 0) && attrs.length > 0) {
-    node.children = attrs.map(a => ({ name: a, type: 'text', content: a }));
   }
 }
 
@@ -2131,12 +2145,7 @@ function renderNode(node, container, path) {
     el.className = 'wf-type-divider';
     el.dataset.path = path;
     el.draggable = true;
-    if (node._note) {
-      const dot = document.createElement('div');
-      dot.className = 'wf-note-indicator';
-      dot.title = node._note;
-      el.appendChild(dot);
-    }
+    appendNoteIndicator(el, node._note);
     container.appendChild(el);
     return;
   }
@@ -2154,13 +2163,7 @@ function renderNode(node, container, path) {
     // Grab bar (compound node)
     el.appendChild(createGrabBar(node.name || 'Table', path, null));
 
-    // _note インジケーター
-    if (node._note) {
-      const dot = document.createElement('div');
-      dot.className = 'wf-note-indicator';
-      dot.title = node._note;
-      el.appendChild(dot);
-    }
+    appendNoteIndicator(el, node._note);
 
     // Header row
     const header = document.createElement('div');
@@ -2251,13 +2254,7 @@ function renderNode(node, container, path) {
     el.appendChild(label);
   }
 
-  // _note インジケーター
-  if (node._note) {
-    const dot = document.createElement('div');
-    dot.className = 'wf-note-indicator';
-    dot.title = node._note;
-    el.appendChild(dot);
-  }
+  appendNoteIndicator(el, node._note);
 
   // _entity バッジ表示
   if (node._entity) {

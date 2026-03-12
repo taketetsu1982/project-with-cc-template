@@ -140,59 +140,32 @@
         ]
       },
       {
-        "name": "コンテナ",
+        "name": "メインコンテンツ",
         "direction": "vertical",
-        "children": []
-      },
-      {
-        "name": "ボタン",
-        "type": "button"
-      },
-      {
-        "name": "入力",
-        "type": "input"
-      },
-      {
-        "name": "セレクト",
-        "type": "select"
-      },
-      {
-        "name": "リンク",
-        "type": "link"
-      },
-      {
-        "name": "画像",
-        "type": "table",
-        "width": 200,
-        "height": 150,
-        "columns": [
-          "C"
-        ],
-        "rows": 3,
-        "_entity": "メンバー"
-      },
-      {
-        "name": "アイコン",
-        "type": "icon",
-        "width": 32,
-        "height": 32
-      },
-      {
-        "name": "カード",
-        "type": "card"
-      },
-      {
-        "name": "テーブル",
-        "type": "table"
-      },
-      {
-        "name": "テキスト",
-        "type": "table",
-        "_entity": "タスク",
-        "columns": [
-          "A"
-        ],
-        "rows": 3
+        "grow": true,
+        "children": [
+          {
+            "name": "タスクテーブル",
+            "type": "table",
+            "columns": [
+              "タイトル",
+              "期限",
+              "ステータス",
+              "優先度",
+              "担当者"
+            ],
+            "rows": 8,
+            "_entity": "タスク",
+            "_attributes": [
+              "タイトル",
+              "期限",
+              "ステータス",
+              "優先度",
+              "担当者"
+            ],
+            "_note": "ヘッダークリックでソート切替。期限が近いものは赤くハイライト。"
+          }
+        ]
       }
     ]
   }
