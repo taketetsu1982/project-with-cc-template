@@ -908,9 +908,8 @@ function handleUndo() {
   if (undoStack.length === 0) {
     modified = false;
     document.getElementById('wf-edited-badge').style.display = 'none';
-  } else {
-    updateJSONPanel();
   }
+  updateJSONPanel();
 }
 
 function handleRedo() {
@@ -1010,15 +1009,22 @@ function findClosestNode(e) {
 }
 
 let _dragOverRAF = null;
+let _lastDragEvent = null;
 function handleDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
   if (!dragPath) return;
-  // RAFでスロットリング（毎フレーム1回に制限）
+  // RAFでスロットリング — 処理自体をRAFコールバック内で実行
+  _lastDragEvent = e;
   if (_dragOverRAF) return;
-  _dragOverRAF = requestAnimationFrame(() => { _dragOverRAF = null; });
+  _dragOverRAF = requestAnimationFrame(() => {
+    _dragOverRAF = null;
+    _processDragOver(_lastDragEvent);
+  });
+}
 
+function _processDragOver(e) {
   const nodeEl = findClosestNode(e);
   if (!nodeEl) { removeDropIndicator(); wfDropTarget = null; return; }
 
@@ -1206,8 +1212,8 @@ async function connectFile() {
     return;
   }
   const rawName = WF_FILENAME || originalFilename;
-  // パストラバーサル防止: ファイル名のみ抽出
-  const filename = rawName.replace(/[/\\]/g, '').replace(/\.\./g, '') || 'wireframe.json';
+  // パストラバーサル防止: パス区切りの末尾（ファイル名部分）のみ抽出
+  const filename = rawName.split(/[/\\]/).pop() || 'wireframe.json';
   try {
     const dirHandle = await window.showDirectoryPicker({ id: 'wf-editor', mode: 'readwrite' });
     fileHandle = await dirHandle.getFileHandle(filename, { create: true });
@@ -1294,6 +1300,18 @@ document.addEventListener('drop', async e => {
         const text = await file.text();
         let data;
         try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
+        // 再帰深度チェック（悪意あるJSONによるスタックオーバーフロー防止）
+        const MAX_DEPTH = 50;
+        function checkDepth(obj, depth) {
+          if (depth > MAX_DEPTH) return false;
+          if (obj && obj.children && Array.isArray(obj.children)) {
+            return obj.children.every(c => checkDepth(c, depth + 1));
+          }
+          return true;
+        }
+        if (data.root && !checkDepth(data.root, 0)) {
+          updateSaveStatus('error', 'JSON too deeply nested'); return;
+        }
         if (WIREFRAME_DATA) {
           Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
           Object.assign(WIREFRAME_DATA, data);
@@ -1762,7 +1780,7 @@ function renderPropsPanel() {
   addTextProp(content, 'padding', String(padVal), v => {
     saveSnapshot();
     if (!v) { delete node.padding; }
-    else if (v.includes(',')) { node.padding = v.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)); }
+    else if (v.includes(',')) { node.padding = v.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)).slice(0, 4); }
     else { const n = Number(v); node.padding = isNaN(n) ? undefined : n; }
     markModified(); render(); updateJSONPanel();
   }, '例: 8 または 8, 16');
@@ -2052,6 +2070,17 @@ function renderEntityPanel() {
     return;
   }
 
+  // ツリーを1回走査してentity→属性Setのマップを構築
+  const entityAttrMap = new Map();
+  (function collectAll(n) {
+    if (n._entity && n._attributes) {
+      if (!entityAttrMap.has(n._entity)) entityAttrMap.set(n._entity, new Set());
+      const set = entityAttrMap.get(n._entity);
+      n._attributes.forEach(a => set.add(a));
+    }
+    if (n.children) n.children.forEach(collectAll);
+  })(WIREFRAME_DATA.root);
+
   entities.forEach(ent => {
     const card = document.createElement('div');
     card.className = 'wf-entity-card';
@@ -2071,13 +2100,8 @@ function renderEntityPanel() {
     }
     card.appendChild(header);
 
-    // wireframe内の該当entityノードから_attributesを収集
-    const collected = new Set();
-    (function collect(n) {
-      if (n._entity === ent.entity && n._attributes) n._attributes.forEach(a => collected.add(a));
-      if (n.children) n.children.forEach(collect);
-    })(WIREFRAME_DATA.root);
-    const attrNames = [...collected];
+    // マップから属性を取得
+    const attrNames = entityAttrMap.has(ent.entity) ? [...entityAttrMap.get(ent.entity)] : [];
     if (attrNames.length > 0) {
       const attrsDiv = document.createElement('div');
       attrsDiv.className = 'wf-entity-card-attrs';
@@ -2229,12 +2253,12 @@ function renderNode(node, container, path) {
   if (node.justify) el.style.justifyContent = node.justify;
   if (node.align) el.style.alignItems = node.align;
 
-  // Padding
+  // Padding（非数値・負数をサニタイズ）
   if (node.padding != null) {
     if (Array.isArray(node.padding)) {
-      el.style.padding = node.padding.map(v => `${v}px`).join(' ');
+      el.style.padding = node.padding.map(v => `${Math.max(0, Number(v) || 0)}px`).join(' ');
     } else {
-      el.style.padding = `${node.padding}px`;
+      el.style.padding = `${Math.max(0, Number(node.padding) || 0)}px`;
     }
   }
 
@@ -2264,7 +2288,17 @@ function renderNode(node, container, path) {
         svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
         svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.5');
         svg.style.color = 'var(--text-muted)';
-        svg.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>';
+        const ns = 'http://www.w3.org/2000/svg';
+        const rect = document.createElementNS(ns, 'rect');
+        rect.setAttribute('x', '3'); rect.setAttribute('y', '3');
+        rect.setAttribute('width', '18'); rect.setAttribute('height', '18'); rect.setAttribute('rx', '2');
+        svg.appendChild(rect);
+        const circle = document.createElementNS(ns, 'circle');
+        circle.setAttribute('cx', '8.5'); circle.setAttribute('cy', '8.5'); circle.setAttribute('r', '1.5');
+        svg.appendChild(circle);
+        const pathEl = document.createElementNS(ns, 'path');
+        pathEl.setAttribute('d', 'm21 15-5-5L5 21');
+        svg.appendChild(pathEl);
         el.appendChild(svg);
         break;
       }
@@ -2333,7 +2367,7 @@ function render() {
       if (WIREFRAME_DATA.root.gap) viewport.style.gap = `${WIREFRAME_DATA.root.gap}px`;
       if (WIREFRAME_DATA.root.padding != null) {
         const p = WIREFRAME_DATA.root.padding;
-        viewport.style.padding = Array.isArray(p) ? p.map(v => `${v}px`).join(' ') : `${p}px`;
+        viewport.style.padding = Array.isArray(p) ? p.map(v => `${Math.max(0, Number(v) || 0)}px`).join(' ') : `${Math.max(0, Number(p) || 0)}px`;
       }
       if (WIREFRAME_DATA.root.justify) viewport.style.justifyContent = WIREFRAME_DATA.root.justify;
       if (WIREFRAME_DATA.root.align) viewport.style.alignItems = WIREFRAME_DATA.root.align;
