@@ -118,14 +118,6 @@
     border-radius: var(--radius-full);
   }
 
-  #wf-toolbar-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-  }
-
   #wf-toolbar-actions {
     display: flex;
     align-items: center;
@@ -153,19 +145,6 @@
     border-color: var(--success-border);
     color: var(--success-text);
   }
-
-  /* ── View info (右ペイン) ── */
-  #wf-view-info {
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--border-default);
-    font-size: var(--font-sm);
-    color: var(--text-secondary);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    line-height: 1.5;
-  }
-  #wf-view-info .wf-view-label { color: var(--text-tertiary); margin-right: 4px; }
 
   /* ── _entity badge on nodes ── */
   .wf-entity-badge {
@@ -213,32 +192,63 @@
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-default);
-    background: var(--bg-panel);
+    background: #f0f4f8;
     overflow: hidden;
   }
 
   #wf-entity-panel-header {
-    height: 40px;
-    min-height: 40px;
-    padding: 0 var(--space-md);
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border-default);
     display: flex;
     align-items: center;
-    font-size: var(--font-sm);
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+  }
+
+  #wf-entity-panel-header > span {
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
-  #wf-entity-panel-note {
+  #wf-entity-panel-header .panel-header-link {
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #wf-entity-panel-header .panel-header-link:hover {
+    text-decoration: underline;
+  }
+
+  .wf-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-sm);
-    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
     border-bottom: 1px solid var(--border-default);
+  }
+
+  #wf-view-info {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     line-height: 1.5;
   }
+  #wf-view-info .wf-view-label { color: var(--text-tertiary); margin-right: 4px; }
 
   #wf-entity-list {
     flex: 1;
@@ -246,14 +256,14 @@
     padding: var(--space-md);
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: var(--space-md);
   }
 
   .wf-entity-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
     cursor: pointer;
     transition: outline 0.15s;
   }
@@ -271,17 +281,17 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
   }
 
   .wf-entity-card-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: var(--font-base);
+    font-size: 16px;
   }
 
   .wf-entity-card-role {
-    font-size: var(--font-sm);
+    font-size: 13px;
     color: var(--text-tertiary);
   }
 
@@ -302,7 +312,7 @@
   }
 
   .wf-entity-card-no-data {
-    font-size: var(--font-sm);
+    font-size: 13px;
     color: var(--text-muted);
     padding: var(--space-md);
     text-align: center;
@@ -650,10 +660,11 @@
 <div id="wf-entity-panel">
   <div id="wf-entity-panel-header">
     <span>View</span>
+    <a class="panel-header-link" href="conceptual-model.html" target="_blank">Edit in Conceptual Model</a>
   </div>
   <div id="wf-view-info"></div>
-  <div id="wf-entity-panel-note">
-    Entities &amp; attributes are read-only.<br>Edit in Conceptual Model.
+  <div class="wf-section-header">
+    <span>Entity &amp; Attributes (Read-only)</span>
   </div>
   <div id="wf-entity-list"></div>
 </div>
@@ -1247,8 +1258,19 @@ function handleNodeClick(e) {
 // ── Entity Panel ──
 
 function findCmEntity(entityName) {
-  if (!CM_DATA || !CM_DATA.entities) return null;
-  return CM_DATA.entities.find(e => e.name === entityName) || null;
+  if (!CM_DATA || !CM_DATA.root) return null;
+  // root.children内を再帰的に探索してtype=entityのノードを見つける
+  function search(nodes) {
+    for (const n of (nodes || [])) {
+      if (n.type === 'entity' && n.name === entityName) return n;
+      if (n.children) {
+        const found = search(n.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  return search(CM_DATA.root.children);
 }
 
 function renderEntityPanel() {
@@ -1613,17 +1635,6 @@ function init() {
     if (v.context) {
       const s = document.createElement('span');
       s.innerHTML = '<span class="wf-view-label">コンテキスト:</span>' + v.context;
-      info.appendChild(s);
-    }
-    // エンティティ表示: entities配列 or 旧形式entity（フォールバック）
-    if (v.entities && v.entities.length > 0) {
-      const s = document.createElement('span');
-      const entitiesStr = v.entities.map(e => e.entity + '\uff08' + (e.role || '') + '\uff09').join(', ');
-      s.innerHTML = '<span class="wf-view-label">エンティティ:</span>' + entitiesStr;
-      info.appendChild(s);
-    } else if (v.entity) {
-      const s = document.createElement('span');
-      s.innerHTML = '<span class="wf-view-label">エンティティ:</span>' + v.entity;
       info.appendChild(s);
     }
     if (v.primaryType) {

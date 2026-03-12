@@ -129,7 +129,7 @@
     letter-spacing: 0.5px;
   }
   .pane-header-name {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-tertiary);
     letter-spacing: 0.5px;
@@ -280,7 +280,7 @@
   }
 
   .group-name {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-secondary);
     border: none;
@@ -360,7 +360,7 @@
   .entity-header:active { cursor: grabbing; }
 
   .entity-name {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
     border: none;
@@ -508,6 +508,16 @@
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: var(--space-md);
+    cursor: pointer;
+    transition: outline 0.15s;
+  }
+  .view-card:hover {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+  }
+  .view-card.selected {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
   }
 
   .view-card-header {
@@ -517,13 +527,21 @@
     margin-bottom: var(--space-sm);
   }
 
-  .view-card-header .view-label {
-    font-size: 13px;
+  .view-card-header .view-name-input {
+    flex: 1;
+    font-size: 16px;
     font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    border: none;
+    background: none;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
   }
+  .view-card-header .view-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
+  .view-card-header .view-name-input:hover { background: var(--bg-subtle); }
+  .view-card-header .view-name-input:focus { border-bottom: 1px solid var(--accent); background: var(--bg-surface); }
 
   .view-card-header .view-delete-btn {
     margin-left: auto;
@@ -752,6 +770,8 @@ function doRedo() {
 
 // ===== 選択 =====
 let selectedPath = null; // 配列: ルートからのchildren index
+let selectedViewIndex = null; // ビューの選択インデックス
+let viewClipboard = null; // ビューのコピー用
 
 function getNodeByPath(path) {
   let node = model.root;
@@ -1155,6 +1175,7 @@ function renderGroup(node, path) {
   header.addEventListener('click', e => {
     e.stopPropagation();
     selectedPath = pathEquals(selectedPath, path) ? null : path;
+    selectedViewIndex = null;
     render();
   });
 
@@ -1248,6 +1269,7 @@ function renderEntity(node, path) {
   header.addEventListener('click', e => {
     e.stopPropagation();
     selectedPath = pathEquals(selectedPath, path) ? null : path;
+    selectedViewIndex = null;
     render();
   });
 
@@ -1359,15 +1381,37 @@ function renderEntity(node, path) {
 
 function renderViewCard(view, viewIndex, entityNames) {
   const card = document.createElement('div');
-  card.className = 'view-card';
+  card.className = 'view-card' + (selectedViewIndex === viewIndex ? ' selected' : '');
+  card.addEventListener('click', e => {
+    // input/button内のクリックは選択トグルしない
+    if (e.target.closest('input, button, select')) return;
+    selectedViewIndex = selectedViewIndex === viewIndex ? null : viewIndex;
+    selectedPath = null;
+    render();
+  });
 
-  // ヘッダー
+  // ヘッダー（name input + 削除ボタン）
   const header = document.createElement('div');
   header.className = 'view-card-header';
-  const label = document.createElement('span');
-  label.className = 'view-label';
-  label.textContent = 'View';
-  header.appendChild(label);
+  const nameInput = document.createElement('input');
+  nameInput.className = 'view-name-input';
+  nameInput.value = view.name;
+  nameInput.placeholder = 'task-list（英数字・ハイフン）';
+  nameInput.addEventListener('change', e => {
+    let newName = e.target.value.trim();
+    const views = model.views || [];
+    // 重複があればナンバリングで回避
+    const baseName = newName;
+    let suffix = 2;
+    while (views.some((v, i) => i !== viewIndex && v.name === newName)) {
+      newName = baseName + '-' + suffix++;
+    }
+    pushUndo();
+    view.name = newName;
+    e.target.value = newName;
+    scheduleAutoSave();
+  });
+  header.appendChild(nameInput);
   const delBtn = document.createElement('button');
   delBtn.className = 'view-delete-btn';
   delBtn.textContent = '✕';
@@ -1375,24 +1419,6 @@ function renderViewCard(view, viewIndex, entityNames) {
   delBtn.addEventListener('click', () => deleteView(viewIndex));
   header.appendChild(delBtn);
   card.appendChild(header);
-
-  // name フィールド
-  const nameField = document.createElement('div');
-  nameField.className = 'view-field';
-  const nameLabel = document.createElement('label');
-  nameLabel.textContent = 'name';
-  nameField.appendChild(nameLabel);
-  const nameInput = document.createElement('input');
-  nameInput.type = 'text';
-  nameInput.value = view.name;
-  nameInput.placeholder = 'task-list（英数字・ハイフン、ファイル名になります）';
-  nameInput.addEventListener('change', e => {
-    pushUndo();
-    view.name = e.target.value;
-    scheduleAutoSave();
-  });
-  nameField.appendChild(nameInput);
-  card.appendChild(nameField);
 
   // context フィールド
   const ctxField = document.createElement('div');
@@ -1539,30 +1565,83 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // ⌘C: コピー
-  if (isMeta && e.key === 'c' && selectedPath && !isInputFocused()) {
-    e.preventDefault();
-    const node = getNodeByPath(selectedPath);
-    if (node) clipboard = JSON.stringify(node);
-    return;
+  // ⌘C: コピー（ノード or ビュー）
+  if (isMeta && e.key === 'c' && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      const node = getNodeByPath(selectedPath);
+      if (node) clipboard = JSON.stringify(node);
+      return;
+    }
   }
 
-  // ⌘V: ペースト
-  if (isMeta && e.key === 'v' && clipboard && !isInputFocused()) {
+  // ⌘V: ペースト（ノード or ビュー）
+  if (isMeta && e.key === 'v' && !isInputFocused()) {
+    if (selectedViewIndex != null && viewClipboard) {
+      e.preventDefault();
+      pushUndo();
+      const pasted = JSON.parse(viewClipboard);
+      // name重複回避
+      if (!model.views) model.views = [];
+      let newName = pasted.name;
+      const baseName = newName;
+      let suffix = 2;
+      while (model.views.some(v => v.name === newName)) {
+        newName = baseName + '-' + suffix++;
+      }
+      pasted.name = newName;
+      const insertAt = selectedViewIndex + 1;
+      model.views.splice(insertAt, 0, pasted);
+      selectedViewIndex = insertAt;
+      render();
+      return;
+    }
+    if (clipboard) {
+      e.preventDefault();
+      pushUndo();
+      const pasted = JSON.parse(clipboard);
+      const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
+      const parent = (target && target.children) ? target : model.root;
+      parent.children.push(pasted);
+      render();
+      return;
+    }
+  }
+
+  // Delete / Backspace: 削除（ノード or ビュー）
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
+    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
+      e.preventDefault();
+      pushUndo();
+      model.views.splice(selectedViewIndex, 1);
+      selectedViewIndex = null;
+      render();
+      return;
+    }
+    if (selectedPath) {
+      e.preventDefault();
+      deleteNode(selectedPath);
+      return;
+    }
+  }
+
+  // 矢印キー: ビュー並び替え（↑↓）
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedViewIndex != null && !isInputFocused()) {
+    const views = model.views || [];
+    const delta = e.key === 'ArrowUp' ? -1 : 1;
+    const newIdx = selectedViewIndex + delta;
+    if (newIdx < 0 || newIdx >= views.length) return;
     e.preventDefault();
     pushUndo();
-    const pasted = JSON.parse(clipboard);
-    const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
-    const parent = (target && target.children) ? target : model.root;
-    parent.children.push(pasted);
+    const [removed] = views.splice(selectedViewIndex, 1);
+    views.splice(newIdx, 0, removed);
+    selectedViewIndex = newIdx;
     render();
-    return;
-  }
-
-  // Delete / Backspace: 削除
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPath && !isInputFocused()) {
-    e.preventDefault();
-    deleteNode(selectedPath);
     return;
   }
 
@@ -1605,6 +1684,7 @@ function isInputFocused() {
 // ===== キャンバスクリックで選択解除 =====
 document.getElementById('canvas').addEventListener('click', () => {
   selectedPath = null;
+  selectedViewIndex = null;
   render();
 });
 
