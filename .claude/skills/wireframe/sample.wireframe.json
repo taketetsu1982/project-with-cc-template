@@ -50,20 +50,13 @@
                 "name": "メンバー",
                 "type": "button"
               }
-            ],
-            "justify": "flex-start",
-            "align": "center",
-            "gap": 8
+            ]
           },
           {
             "name": "ユーザーアイコン",
             "type": "icon",
             "width": 32,
-            "height": 32,
-            "_entity": "メンバー",
-            "_attributes": [
-              "アバター"
-            ]
+            "height": 32
           }
         ]
       },
@@ -75,8 +68,7 @@
           {
             "name": "検索",
             "type": "input",
-            "placeholder": "タスクを検索...",
-            "_note": "タイトル・担当者名でインクリメンタル検索"
+            "placeholder": "タスクを検索..."
           },
           {
             "name": "ステータスフィルター",
@@ -96,8 +88,34 @@
           },
           {
             "name": "新規タスク",
-            "type": "button",
-            "_note": "クリックでタスク作成モーダルを開く"
+            "type": "button"
+          }
+        ]
+      },
+      {
+        "name": "メインコンテンツ",
+        "direction": "vertical",
+        "grow": true,
+        "_entity": "タスク",
+        "_attributes": [
+          "タイトル",
+          "期限",
+          "ステータス",
+          "優先度",
+          "担当者"
+        ],
+        "children": [
+          {
+            "name": "タスクテーブル",
+            "type": "table",
+            "columns": [
+              "タイトル",
+              "期限",
+              "ステータス",
+              "優先度",
+              "担当者"
+            ],
+            "rows": 8
           }
         ]
       },
@@ -136,34 +154,6 @@
                 "type": "button"
               }
             ]
-          }
-        ]
-      },
-      {
-        "name": "メインコンテンツ",
-        "direction": "vertical",
-        "grow": true,
-        "children": [
-          {
-            "name": "タスクテーブル",
-            "type": "table",
-            "columns": [
-              "タイトル",
-              "期限",
-              "ステータス",
-              "優先度",
-              "担当者"
-            ],
-            "rows": 8,
-            "_entity": "タスク",
-            "_attributes": [
-              "タイトル",
-              "期限",
-              "ステータス",
-              "優先度",
-              "担当者"
-            ],
-            "_note": "ヘッダークリックでソート切替。期限が近いものは赤くハイライト。"
           }
         ]
       }

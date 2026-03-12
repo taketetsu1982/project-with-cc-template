@@ -298,17 +298,6 @@
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: var(--space-md);
-    cursor: pointer;
-    transition: outline 0.15s;
-  }
-  .wf-entity-card:hover {
-    outline: 1px solid var(--accent);
-    outline-offset: -1px;
-  }
-  .wf-entity-card.wf-entity-card-active {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-    background: var(--accent-bg);
   }
 
   .wf-entity-card-header {
@@ -555,9 +544,6 @@
   /* 選択状態 */
   .wf-selected { outline: 2px solid var(--accent) !important; outline-offset: -2px; background: var(--accent-bg-subtle) !important; }
   .wf-selected > .wf-label { color: var(--accent) !important; }
-
-  /* エンティティハイライト */
-  .wf-entity-highlight { outline: 2px solid var(--status-saving) !important; outline-offset: -2px; background: var(--accent-overlay) !important; }
 
   /* ── Node name label ── */
   .wf-label {
@@ -889,7 +875,6 @@ let dropIndicator = null;
 let fileHandle = null;
 let selectedPath = null;
 let clipboardNode = null;
-let highlightedEntity = null;
 const undoStack = [];
 const redoStack = [];
 const MAX_UNDO = 50;
@@ -1791,9 +1776,15 @@ function renderPropsPanel() {
     renderPropsPanel();
   });
   if (node._entity) {
+    // CM_DATAがあれば全属性一覧、なければノードの_attributesを使用
     const cmEntity = findCmEntity(node._entity);
+    let allAttrs;
     if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
-      const allAttrs = cmEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+      allAttrs = cmEntity.attributes.map(a => typeof a === 'string' ? a.split(':')[0].trim() : (a.name || a));
+    } else {
+      allAttrs = node._attributes ? [...node._attributes] : [];
+    }
+    if (allAttrs.length > 0) {
       const currentAttrs = node._attributes || [];
       addAttrCheckboxes(content, allAttrs, currentAttrs, selected => {
         saveSnapshot();
@@ -2034,7 +2025,6 @@ function renderEntityPanel() {
   entities.forEach(ent => {
     const card = document.createElement('div');
     card.className = 'wf-entity-card';
-    card.dataset.entityName = ent.entity;
 
     // ヘッダー
     const header = document.createElement('div');
@@ -2051,53 +2041,27 @@ function renderEntityPanel() {
     }
     card.appendChild(header);
 
-    // CM_DATAからattributesを取得して表示
-    const cmEntity = findCmEntity(ent.entity);
-    if (cmEntity && cmEntity.attributes && cmEntity.attributes.length > 0) {
+    // wireframe内の該当entityノードから_attributesを収集
+    const collected = new Set();
+    (function collect(n) {
+      if (n._entity === ent.entity && n._attributes) n._attributes.forEach(a => collected.add(a));
+      if (n.children) n.children.forEach(collect);
+    })(WIREFRAME_DATA.root);
+    const attrNames = [...collected];
+    if (attrNames.length > 0) {
       const attrsDiv = document.createElement('div');
       attrsDiv.className = 'wf-entity-card-attrs';
-      cmEntity.attributes.forEach(attr => {
+      attrNames.forEach(attr => {
         const attrSpan = document.createElement('span');
         attrSpan.className = 'wf-entity-card-attr';
-        attrSpan.textContent = typeof attr === 'string' ? attr : (attr.name || attr);
+        attrSpan.textContent = attr;
         attrsDiv.appendChild(attrSpan);
       });
       card.appendChild(attrsDiv);
     }
 
-    // クリックでキャンバス上の該当エンティティノードをハイライト
-    card.addEventListener('click', () => {
-      highlightEntityNodes(ent.entity);
-    });
-
     list.appendChild(card);
   });
-}
-
-function highlightEntityNodes(entityName) {
-  // 以前のハイライトをクリア
-  document.querySelectorAll('.wf-entity-highlight').forEach(el => el.classList.remove('wf-entity-highlight'));
-  document.querySelectorAll('.wf-entity-card-active').forEach(el => el.classList.remove('wf-entity-card-active'));
-
-  // 同じエンティティをクリックしたらトグル
-  if (highlightedEntity === entityName) {
-    highlightedEntity = null;
-    return;
-  }
-
-  highlightedEntity = entityName;
-
-  // キャンバス上の_entityが一致するノードをハイライト
-  document.querySelectorAll('#wf-root [data-path]').forEach(el => {
-    const badge = el.querySelector('.wf-entity-badge');
-    if (badge && badge.textContent === entityName) {
-      el.classList.add('wf-entity-highlight');
-    }
-  });
-
-  // 右ペインのカードをアクティブに
-  const card = document.querySelector(`.wf-entity-card[data-entity-name="${entityName}"]`);
-  if (card) card.classList.add('wf-entity-card-active');
 }
 
 // ── Render ──
