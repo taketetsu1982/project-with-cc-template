@@ -815,8 +815,8 @@
     <span id="wf-toolbar-title">WIREFRAME</span>
     <button class="save-status-btn" id="wf-connect-btn" onclick="connectFile()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
     <span id="wf-edited-badge">Edited</span>
-    <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
-    <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
+    <button class="wf-btn" onclick="handleUndo()" title="元に戻す (⌘Z)">↩ 元に戻す</button>
+    <button class="wf-btn" onclick="handleRedo()" title="やり直す (⌘⇧Z)">↪ やり直す</button>
     <div class="wf-add-wrap">
       <button class="wf-btn" onclick="toggleAddDropdown(event)">+ 追加</button>
       <div id="wf-add-dropdown" class="wf-add-dropdown">
@@ -849,8 +849,8 @@
   </div>
   <div id="wf-view-info"></div>
   <div class="wf-tab-bar">
-    <button class="wf-tab active" data-tab="entity" onclick="switchTab('entity')">Entity &amp; Attributes</button>
-    <button class="wf-tab" data-tab="props" onclick="switchTab('props')">Properties</button>
+    <button class="wf-tab active" data-tab="entity" onclick="switchTab('entity')">エンティティ &amp; 属性</button>
+    <button class="wf-tab" data-tab="props" onclick="switchTab('props')">プロパティ</button>
   </div>
   <div id="wf-tab-entity" class="wf-tab-content active">
     <div id="wf-entity-list"></div>
@@ -900,7 +900,7 @@ function handleUndo() {
 
   render();
   updateJSONPanel();
-  showToast('Undo');
+  showToast('元に戻しました');
 
   // undoで全て戻した場合はeditedバッジを消す
   if (undoStack.length === 0) {
@@ -920,14 +920,15 @@ function handleRedo() {
 
   render();
   updateJSONPanel();
-  showToast('Redo');
+  showToast('やり直しました');
 }
 
 // ── JSON tree traversal ──
 
 function getNodeByPath(path) {
-  if (!path && path !== '0') return null;
+  if (path === null || path === undefined || path === '') return null;
   const indices = String(path).split('.').map(Number);
+  if (indices.some(n => isNaN(n))) return null;
   let parent = WIREFRAME_DATA.root;
   let node = parent;
   let index = 0;
@@ -1003,11 +1004,15 @@ function findClosestNode(e) {
   return closest;
 }
 
+let _dragOverRAF = null;
 function handleDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
   if (!dragPath) return;
+  // RAFでスロットリング（毎フレーム1回に制限）
+  if (_dragOverRAF) return;
+  _dragOverRAF = requestAnimationFrame(() => { _dragOverRAF = null; });
 
   const nodeEl = findClosestNode(e);
   if (!nodeEl) { removeDropIndicator(); wfDropTarget = null; return; }
@@ -1069,24 +1074,25 @@ function handleDrop(e) {
   const sourceInfo = getNodeByPath(sourcePath);
   if (!sourceInfo) return;
 
-  // ドロップ先のノード参照をソース除去前に取得しておく（パスずれ防止）
-  const tgtInfoBeforeSplice = getNodeByPath(wfDropTarget.path);
+  // ドロップ先の参照情報をsplice前に取得
+  const tgtNode = getNodeByPath(wfDropTarget.path);
+  if (!tgtNode && !wfDropTarget.intoGroup) return;
+  // ターゲットノードへの直接参照を保持（パスずれに依存しない）
+  const tgtNodeRef = tgtNode ? tgtNode.node : null;
+  const tgtParentRef = tgtNode ? tgtNode.parent : null;
 
   saveSnapshot();
   const [movedNode] = sourceInfo.parent.children.splice(sourceInfo.index, 1);
 
   if (wfDropTarget.intoGroup) {
     // グループ内にドロップ
-    if (tgtInfoBeforeSplice) tgtInfoBeforeSplice.node.children.push(movedNode);
+    if (tgtNodeRef) tgtNodeRef.children.push(movedNode);
   } else {
-    // 兄弟として挿入
-    if (!tgtInfoBeforeSplice) return;
-    let tgtIdx = tgtInfoBeforeSplice.index;
-    // 同一親の場合のインデックス調整
-    const sameParent = getParentPath(sourcePath) === getParentPath(wfDropTarget.path);
-    if (sameParent && sourceInfo.index < tgtIdx) tgtIdx--;
-    if (!wfDropTarget.before) tgtIdx++;
-    tgtInfoBeforeSplice.parent.children.splice(tgtIdx, 0, movedNode);
+    // 兄弟として挿入 — splice後に実インデックスを再計算
+    const actualIdx = tgtParentRef.children.indexOf(tgtNodeRef);
+    if (actualIdx === -1) return;
+    const insertIdx = wfDropTarget.before ? actualIdx : actualIdx + 1;
+    tgtParentRef.children.splice(insertIdx, 0, movedNode);
   }
 
   markModified();
@@ -1191,7 +1197,9 @@ async function connectFile() {
     alert('このブラウザはFile System Access APIに対応していません。JSONファイルをドロップして接続してください。');
     return;
   }
-  const filename = WF_FILENAME || originalFilename;
+  const rawName = WF_FILENAME || originalFilename;
+  // パストラバーサル防止: ファイル名のみ抽出
+  const filename = rawName.replace(/[/\\]/g, '').replace(/\.\./g, '') || 'wireframe.json';
   try {
     const dirHandle = await window.showDirectoryPicker({ id: 'wf-editor', mode: 'readwrite' });
     fileHandle = await dirHandle.getFileHandle(filename, { create: true });
@@ -1300,11 +1308,13 @@ function markModified() {
   scheduleAutoSave();
 }
 
+let _toastTimer = null;
 function showToast(message) {
   const toast = document.getElementById('wf-toast');
   toast.textContent = message;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { toast.classList.remove('show'); _toastTimer = null; }, 3000);
 }
 
 // ── Add Node ──
@@ -1356,7 +1366,7 @@ function addNode(type) {
   render();
   updateSelection();
   updateJSONPanel();
-  showToast(`Added: ${newNode.name}`);
+  showToast(`追加: ${newNode.name}`);
 }
 
 // ── Direction Toggle ──
@@ -1423,7 +1433,7 @@ function handleCopy() {
   const info = getNodeByPath(selectedPath);
   if (!info) return;
   clipboardNode = JSON.parse(JSON.stringify(info.node));
-  showToast(`Copied: ${clipboardNode.name}`);
+  showToast(`コピー: ${clipboardNode.name}`);
 }
 
 function handlePaste() {
@@ -1446,7 +1456,7 @@ function handlePaste() {
   render();
   updateSelection();
   updateJSONPanel();
-  showToast(`Pasted: ${copy.name}`);
+  showToast(`貼り付け: ${copy.name}`);
 }
 
 function handleDuplicate() {
@@ -1466,7 +1476,7 @@ function handleDuplicate() {
   render();
   updateSelection();
   updateJSONPanel();
-  showToast(`Duplicated: ${info.node.name}`);
+  showToast(`複製: ${info.node.name}`);
 }
 
 function handleDelete() {
@@ -1484,7 +1494,7 @@ function handleDelete() {
 
   render();
   updateJSONPanel();
-  showToast(`Deleted: ${name}`);
+  showToast(`削除: ${name}`);
 }
 
 function isInputFocused() {
@@ -1514,9 +1524,9 @@ function handleKeyDown(e) {
     e.preventDefault();
     if (fileHandle) {
       writeToFile();
-      showToast('Saved — auto-save is also enabled');
+      showToast('保存しました（自動保存も有効）');
     } else {
-      showToast('Connect a file first (click Connect or drop a JSON file)');
+      showToast('先にファイルを接続してください（Connectまたはドロップ）');
     }
     return;
   }
@@ -1692,9 +1702,9 @@ function renderPropsPanel() {
       ['select', 'select'], ['link', 'link'], ['image', 'image'], ['icon', 'icon'],
       ['card', 'card'], ['table', 'table'], ['divider', 'divider'],
     ];
-    addSelectProp(content, 'type', node.type || '', typeOptions, v => {
+    addSelectProp(content, 'type', node.type || node._originalType || '', typeOptions, v => {
       saveSnapshot();
-      if (v) { node.type = v; } else { delete node.type; }
+      if (v) { node.type = v; delete node._originalType; } else { delete node.type; }
       // type変更時にtype固有フィールドをクリーンアップ
       if (v !== 'text') { delete node.variant; delete node.content; }
       if (v !== 'input' && v !== 'select') { delete node.placeholder; }
@@ -2202,7 +2212,7 @@ function renderNode(node, container, path) {
   // Padding
   if (node.padding != null) {
     if (Array.isArray(node.padding)) {
-      el.style.padding = `${node.padding[0]}px ${node.padding[1]}px`;
+      el.style.padding = node.padding.map(v => `${v}px`).join(' ');
     } else {
       el.style.padding = `${node.padding}px`;
     }
@@ -2218,54 +2228,59 @@ function renderNode(node, container, path) {
     el.appendChild(label);
   }
 
-  appendNoteIndicator(el, node._note);
+  // Leaf content for typed elements（テキスト系はspanで追加し、既存の子要素を壊さない）
+  if (node.type && !hasChildren) {
+    switch (node.type) {
+      case 'text': {
+        const span = document.createElement('span');
+        span.textContent = node.content || node.name || 'Text';
+        el.appendChild(span);
+        if (node.variant) el.dataset.variant = node.variant;
+        break;
+      }
+      case 'image': {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '24'); svg.setAttribute('height', '24');
+        svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.5');
+        svg.style.color = 'var(--text-muted)';
+        svg.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>';
+        el.appendChild(svg);
+        break;
+      }
+      case 'icon':
+        if (!node.width) el.style.width = '32px';
+        if (!node.height) el.style.height = '32px';
+        break;
+      case 'button': case 'link': case 'input': case 'select': {
+        const span = document.createElement('span');
+        span.textContent = node.name || node.type;
+        el.appendChild(span);
+        break;
+      }
+      case 'card': {
+        const cardLabel = document.createElement('span');
+        cardLabel.className = 'wf-card-label';
+        cardLabel.textContent = node.name || 'Card';
+        el.appendChild(cardLabel);
+        break;
+      }
+    }
+  }
 
-  // _entity バッジ表示
+  // _note / _entity / _attributes（Leaf content の後に追加）
+  appendNoteIndicator(el, node._note);
   if (node._entity) {
     const badge = document.createElement('span');
     badge.className = 'wf-entity-badge';
     badge.textContent = node._entity;
     el.appendChild(badge);
   }
-
-  // _attributes ラベル表示
   if (node._attributes && node._attributes.length > 0) {
     const attrEl = document.createElement('div');
     attrEl.className = 'wf-entity-attrs';
     attrEl.textContent = node._attributes.join(' \u00b7 ');
     el.appendChild(attrEl);
-  }
-
-  // Leaf content for typed elements
-  if (node.type && !hasChildren) {
-    switch (node.type) {
-      case 'text':
-        el.textContent = node.name || 'Text';
-        if (node.variant) el.dataset.variant = node.variant;
-        break;
-      case 'image':
-        el.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
-        break;
-      case 'icon':
-        if (!node.width) el.style.width = '32px';
-        if (!node.height) el.style.height = '32px';
-        break;
-      case 'button':
-        el.textContent = node.name || 'Button';
-        break;
-      case 'link':
-        el.textContent = node.name || 'Link';
-        break;
-      case 'input':
-        el.textContent = node.name || 'Input';
-        break;
-      case 'card':
-        const cardLabel = document.createElement('span');
-        cardLabel.className = 'wf-card-label';
-        cardLabel.textContent = node.name || 'Card';
-        el.appendChild(cardLabel);
-        break;
-    }
   }
 
   // Render children
@@ -2342,7 +2357,7 @@ function init() {
       label1.className = 'wf-view-label';
       label1.textContent = 'ビュー:';
       s.appendChild(label1);
-      s.appendChild(document.createTextNode(primaryEntity + (v.context || '')));
+      s.appendChild(document.createTextNode(primaryEntity));
       info.appendChild(s);
     }
     if (v.context) {
@@ -2358,7 +2373,7 @@ function init() {
       const s = document.createElement('span');
       const label3 = document.createElement('span');
       label3.className = 'wf-view-label';
-      label3.textContent = 'Type:';
+      label3.textContent = 'タイプ:';
       s.appendChild(label3);
       s.appendChild(document.createTextNode(v.primaryType));
       info.appendChild(s);
