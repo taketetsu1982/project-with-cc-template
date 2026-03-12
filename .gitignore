@@ -9,3 +9,4 @@ CLAUDE.local.md
 .claude/settings.local.json
 docs/reqs/conceptual-model.html
 docs/specs/wireframes/*.html
+docs/specs/wireframes/test.wireframe.json
