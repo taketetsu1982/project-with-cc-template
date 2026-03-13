@@ -41,25 +41,21 @@
 - 計測設計: @docs/specs/analytics-spec.md
 - 検証環境のインフラ構成定義: @docs/specs/infra-spec.md
 - テスト仕様: @docs/specs/test-spec.md
+- US単位の実装順序・依存関係・タスクカード: @docs/specs/impl-plan.md
 
 ### 企画・設計・開発の流れ
 ```
 Product Goals（Fit Journeyごとのゴールとドキュメントの確信度を管理）
-        ↓　　↑ ドキュメントの確信度の履歴
-PG{Number}（WHEN） ⇔ PRD（WHO:User, WHY, WHAT） ⇔ MRD（WHERE, WHO:Buyer, HOW MUCH）
-        ↓ 3つの情報を基に
-Conceptual Model（このプロダクトの概念モデル）
-        ↓ 各ビューごとに
-Wireframe（レイアウト）
         ↓
-User Story（スクラム開発のユーザーストーリー） → Test Spec（テスト設計・仕様）
+企画（req/）
         ↓
-DB Schema（DB設計）
-API Spec（API設計）
-Auth Spec（認証・認可設計）
-UI Spec（UI設計・UI実装仕様）
-Analytics Spec（計測設計）
-Infra Spec（検証環境/Localのインフラ構成設計）
+設計（specs/）
+        ↓
+開発・実装（backend/, frontend/）
+        ↓
+テスト・人間の確認
+        ↓
+次のProduct Goalsへ
 ```
 
 - **Fit Journey に沿って進む。** PMF（プロダクト・マーケット・フィット）に至るまでの仮説検証を段階的に進める。「今のフェーズで何をどこまで書くか」を確信度で管理し、全部一気に書かない。不確かな段階に深く書き過ぎない。

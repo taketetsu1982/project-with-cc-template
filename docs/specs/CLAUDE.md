@@ -19,14 +19,6 @@
 | test-spec.md | テスト計画・シナリオテスト | reqs/user-stories.md + 全specs |
 | impl-plan.md | US単位の実装順序・依存関係・タスクカード | user-stories.md + 全specs |
 
-## ドキュメントの流れ
-
-```
-   specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec, infra-spec.md
-        │
-   test-spec
-```
-
 ## 編集ルール
 
 - 実装は必ずこのディレクトリのファイルを参照する（reqs/ を直接パースしない）
