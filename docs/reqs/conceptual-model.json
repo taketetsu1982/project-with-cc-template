@@ -1,0 +1,174 @@
+{
+  "name": "プロジェクト管理ツール",
+  "root": {
+    "name": "プロジェクト管理",
+    "direction": "horizontal",
+    "children": [
+      {
+        "name": "組織",
+        "direction": "vertical",
+        "children": [
+          {
+            "name": "ワークスペース",
+            "type": "entity",
+            "attributes": [
+              "名前: ワークスペースの表示名",
+              "スラッグ: URL用の一意識別子",
+              "プラン: 契約プラン（free / pro / enterprise）"
+            ]
+          },
+          {
+            "name": "メンバー",
+            "type": "entity",
+            "attributes": [
+              "表示名: ユーザーの表示名",
+              "メール: ログイン用メールアドレス",
+              "ロール: ワークスペース内の権限（owner / admin / member）",
+              "アバター: プロフィール画像URL"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "プロジェクト管理",
+        "direction": "vertical",
+        "children": [
+          {
+            "name": "プロジェクト",
+            "type": "entity",
+            "attributes": [
+              "名前: プロジェクトの表示名",
+              "説明: プロジェクトの概要",
+              "ステータス: 進行状態（active / archived）",
+              "オーナー: プロジェクト責任者（メンバー）"
+            ]
+          },
+          {
+            "name": "タスク",
+            "type": "entity",
+            "attributes": [
+              "タイトル: タスクの件名",
+              "説明: タスクの詳細",
+              "ステータス: 進行状態（todo / in_progress / done）",
+              "優先度: 重要度（low / medium / high / urgent）",
+              "担当者: 割り当てられたメンバー",
+              "期限: 完了期限日"
+            ]
+          },
+          {
+            "name": "ラベル",
+            "type": "entity",
+            "attributes": [
+              "名前: ラベルの表示名",
+              "色: 表示カラーコード"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "コミュニケーション",
+        "direction": "vertical",
+        "children": [
+          {
+            "name": "コメント",
+            "type": "entity",
+            "attributes": [
+              "本文: コメントの内容（Markdown）",
+              "投稿者: コメントしたメンバー",
+              "投稿日時: コメントの作成日時"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "views": [
+    {
+      "name": "プロジェクト一覧",
+      "context": "一覧",
+      "primaryType": "card",
+      "entities": [
+        {
+          "entity": "プロジェクト",
+          "role": "primary"
+        },
+        {
+          "entity": "メンバー",
+          "role": "avatar"
+        }
+      ]
+    },
+    {
+      "name": "プロジェクト詳細",
+      "context": "詳細",
+      "primaryType": "card",
+      "entities": [
+        {
+          "entity": "プロジェクト",
+          "role": "primary"
+        },
+        {
+          "entity": "タスク",
+          "role": "list"
+        },
+        {
+          "entity": "メンバー",
+          "role": "avatar"
+        }
+      ]
+    },
+    {
+      "name": "タスク一覧",
+      "context": "一覧",
+      "primaryType": "table",
+      "entities": [
+        {
+          "entity": "タスク",
+          "role": "primary"
+        },
+        {
+          "entity": "ラベル",
+          "role": "tag"
+        },
+        {
+          "entity": "メンバー",
+          "role": "avatar"
+        }
+      ]
+    },
+    {
+      "name": "タスク詳細",
+      "context": "詳細",
+      "primaryType": "card",
+      "entities": [
+        {
+          "entity": "タスク",
+          "role": "primary"
+        },
+        {
+          "entity": "コメント",
+          "role": "list"
+        },
+        {
+          "entity": "ラベル",
+          "role": "tag"
+        }
+      ]
+    },
+    {
+      "name": "メンバー管理",
+      "context": "一覧",
+      "primaryType": "table",
+      "entities": [
+        {
+          "entity": "メンバー",
+          "role": "primary"
+        },
+        {
+          "entity": "ワークスペース",
+          "role": "context"
+        }
+      ]
+    }
+  ]
+}
