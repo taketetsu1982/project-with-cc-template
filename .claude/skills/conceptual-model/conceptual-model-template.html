@@ -1023,7 +1023,7 @@ function onDragOver(e, targetPath) {
     return;
   }
 
-  // 葉ノード（エンティティ）: 前/後のインジケータ
+  // 子ノード（エンティティ）: 前/後のインジケータ
   const el = getNodeElement(targetPath);
   if (!el) return;
   const rect = el.getBoundingClientRect();

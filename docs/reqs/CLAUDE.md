@@ -2,18 +2,19 @@
 
 ## このディレクトリの責務
 
-プロダクトの「Why」と「What」を定義する企画ドキュメント群。
-`docs/specs/` はここから導出される。矛盾がある場合はこちらが正。
+プロダクトの「5WとHow much」を定義する企画ドキュメント群。
+設計書群の `docs/specs/` はここから導出される。矛盾がある場合はこちらが正。
 
 ## 各ファイルの責務
 
 | ファイル | 責務 | 主な読者 |
 |---|---|---|
-| product-goals.md | PG一覧・確信度定義・ドキュメント確信度 | 全員 |
-| pg0.md (pg1.md ...) | PGごとのスコープ・出口条件（WHEN） | 全員 |
-| mrd.md | 市場構造・WHO:Buyer・参入戦略（WHERE, HOW MUCH） | 企画 |
-| prd.md | WHO:User・提供価値・機能定義・スコープ（WHY, WHAT） | 企画・開発 |
+| product-goals.md | Product Goal一覧・確信度定義・スコープ・出口条件 | 全員 |
+| pg0.md (pg1.md ...) | Product Goalごとのスコープ・出口条件（WHEN） | 全員 |
+| mrd.md | 市場構造・購入者・参入戦略（WHERE, WHO:Buyer, HOW MUCH） | PMMとPdM |
+| prd.md | 利用者・提供価値・機能定義・スコープ（WHY, WHO:User ,WHAT） | PdMとPMM・開発 |
 | conceptual-model.md | エンティティ・関係・画面階層（Model of WHAT） | 開発 |
+| conceptual-model.json | エンティティ＋ビュー定義（Conceptual Model HTMLで操作） | 開発 |
 | user-stories.md | ユーザーストーリーと受け入れ条件（WHAT to develop） | QA・開発 |
 
 ## 編集ルール

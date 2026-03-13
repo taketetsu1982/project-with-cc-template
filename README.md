@@ -174,8 +174,8 @@ product-goals（PG一覧・確信度）
         │
    user-stories
         │
-   specs/db-schema, api-spec,
-   auth-spec, ui-spec, analytics-spec
+   specs/db-schema, api-spec, auth-spec, 
+   ui-spec, analytics-spec, infra-spec
         │
    test-spec
 ```

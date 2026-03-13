@@ -7,6 +7,10 @@
 **最終更新:** {日付}
 
 ---
+## デザインシステム
+特別に指定がない場合、下記のレポジトリを踏襲してデザインする。
+https://github.com/material-components/material-web
+
 
 ## デザイントークン
 
