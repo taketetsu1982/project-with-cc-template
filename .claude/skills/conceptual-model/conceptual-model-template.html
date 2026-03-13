@@ -709,14 +709,11 @@
 const CM_DATA = null;
 const CM_FILENAME = null;
 
-let model = CM_DATA ? structuredClone(CM_DATA) : {
+let model = {
   name: 'Conceptual Model',
   root: { name: 'ルート', direction: 'vertical', children: [] },
   views: []
 };
-
-// views配列がなければ初期化
-model.views = model.views || [];
 
 // ===== Toast通知 =====
 let toastTimer = null;
@@ -861,6 +858,9 @@ async function loadJsonFromHandle(handle) {
   selectedViewIndex = null;
   fileHandle = handle;
   updateSaveStatus('connected', handle.name);
+  // 空状態オーバーレイを非表示にする
+  const emptyState = document.getElementById('emptyState');
+  if (emptyState) emptyState.style.display = 'none';
   render();
   renderViews();
   return true;
@@ -1146,6 +1146,27 @@ function deleteNode(path) {
   parent.children.splice(idx, 1);
   selectedPath = null;
   render();
+}
+
+// ===== 空状態表示 =====
+function showEmptyState() {
+  const canvas = document.getElementById('canvas');
+  const viewsList = document.getElementById('viewsList');
+  // 空状態オーバーレイをcanvasに表示
+  const overlay = document.createElement('div');
+  overlay.id = 'emptyState';
+  overlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:#888;';
+  overlay.innerHTML = `
+    <div style="font-size:48px;">📂</div>
+    <div style="font-size:16px;font-weight:600;">JSONファイルを読み込んでください</div>
+    <div style="font-size:13px;color:#aaa;text-align:center;line-height:1.6;">
+      JSONファイルをドラッグ&ドロップするか、<br>
+      上部の「Connect」ボタンをクリックしてファイルを選択してください。<br>
+      接続すると編集内容が自動保存されます。
+    </div>
+  `;
+  canvas.appendChild(overlay);
+  viewsList.innerHTML = '<div style="padding:16px;color:#888;text-align:center;font-size:13px;">JSONファイル接続後に表示されます</div>';
 }
 
 // ===== レンダリング =====
@@ -1813,7 +1834,16 @@ document.getElementById('rootLabel').addEventListener('change', e => {
 });
 
 // ===== 初期レンダリング =====
-render();
+if (CM_DATA) {
+  // スキルからデータが埋め込まれた場合：表示するがauto-save未接続
+  Object.keys(model).forEach(k => delete model[k]);
+  Object.assign(model, structuredClone(CM_DATA));
+  model.views = model.views || [];
+  render();
+} else {
+  // データなし：空状態を表示してファイル読み込みを促す
+  showEmptyState();
+}
 </script>
 </body>
 </html>
