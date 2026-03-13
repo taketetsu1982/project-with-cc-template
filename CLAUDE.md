@@ -13,7 +13,7 @@
 ├── frontend/         # {フロントエンドフレームワーク}
 │   └── src/
 ├── docs/
-│   ├── reqs/         # 企画（canonical）: product-goals / pg0 / mrd / prd / conceptual-model / user-stories
+│   ├── reqs/         # 企画（canonical）: product-goals / pg{num} / mrd / prd / conceptual-model / user-stories
 │   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / infra-spec / test-spec
 ├── .claude/
 │   ├── rules/        # 開発ルール
@@ -26,10 +26,11 @@
 
 ### 企画（reqs/ — canonical）
 - Product Goals（一覧・確信度）: @docs/reqs/product-goals.md
-- PG0: @docs/reqs/pg0.md
+- PG{num}: @docs/reqs/pg{num}.md
 - 市場・ユーザー定義: @docs/reqs/mrd.md
 - 提供価値・機能定義: @docs/reqs/prd.md
-- 概念モデル: @docs/reqs/conceptual-model.md
+- 概念モデル（設計意図）: @docs/reqs/conceptual-model.md
+- 概念モデル（構造定義）: @docs/reqs/conceptual-model.json
 - ユーザーストーリー: @docs/reqs/user-stories.md
 
 ### 設計（specs/ — reqs/ から導出）
