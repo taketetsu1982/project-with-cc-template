@@ -706,9 +706,6 @@
 
 <script>
 // ===== データ =====
-const CM_DATA = null;
-const CM_FILENAME = null;
-
 let model = {
   name: 'Conceptual Model',
   root: { name: 'ルート', direction: 'vertical', children: [] },
@@ -842,10 +839,20 @@ function checkDepth(obj, depth) {
 }
 
 async function loadJsonFromHandle(handle) {
-  const file = await handle.getFile();
-  const text = await file.text();
-  let data;
-  try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return false; }
+  let file, text, data;
+  try {
+    file = await handle.getFile();
+    text = await file.text();
+  } catch (e) {
+    console.error('Failed to read file:', e);
+    updateSaveStatus('error', 'ファイルの読み込みに失敗しました');
+    return false;
+  }
+  try { data = JSON.parse(text); } catch (e) {
+    console.error('JSON parse error:', e);
+    updateSaveStatus('error', 'Invalid JSON: ' + e.message);
+    return false;
+  }
   if (data.root && !checkDepth(data.root, 0)) {
     updateSaveStatus('error', 'JSON too deeply nested'); return false;
   }
@@ -1152,7 +1159,6 @@ function deleteNode(path) {
 function showEmptyState() {
   const canvas = document.getElementById('canvas');
   const viewsList = document.getElementById('viewsList');
-  // 空状態オーバーレイをcanvasに表示
   const overlay = document.createElement('div');
   overlay.id = 'emptyState';
   overlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:#888;';
@@ -1834,16 +1840,7 @@ document.getElementById('rootLabel').addEventListener('change', e => {
 });
 
 // ===== 初期レンダリング =====
-if (CM_DATA) {
-  // スキルからデータが埋め込まれた場合：表示するがauto-save未接続
-  Object.keys(model).forEach(k => delete model[k]);
-  Object.assign(model, structuredClone(CM_DATA));
-  model.views = model.views || [];
-  render();
-} else {
-  // データなし：空状態を表示してファイル読み込みを促す
-  showEmptyState();
-}
+showEmptyState();
 </script>
 </body>
 </html>
