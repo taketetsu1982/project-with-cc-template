@@ -85,7 +85,7 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 
 ## Execution Steps
 
-### Step 0: Conceptual Modelを読み込む
+### Step 1: Conceptual Modelを読み込む
 
 `docs/reqs/conceptual-model.json` が存在する場合は読み込む。
 エンティティ・属性の一覧を把握した上でwireframe JSONを生成する。
@@ -95,7 +95,7 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 - ビュー情報（context・primaryType・entities）をトップレベルの `view` フィールドに記述する
 - `view.entities[].attributes` に conceptual-model.json から該当エンティティの全属性を埋め込む
 
-### Step 1: 認知モデルを読み込みJSONを生成
+### Step 2: 認知モデルを読み込みJSONを生成
 
 1. `.claude/skills/wireframe/wireframe-designer.md` を読み込む
 2. Phases 1–7の知覚シーケンスに従いレイアウトを推論する
@@ -108,13 +108,13 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 - CSS flexboxに1:1対応する
 - ボタン・リンク・入力は固定 `width` 禁止（`height` のみ）
 
-### Step 2: JSONファイルを書き出す
+### Step 3: JSONファイルを書き出す
 
 ファイル名はJSON `name` フィールドからスラッグ化する（例: "タスク一覧" → `task-list`）。
 
 `docs/specs/wireframes/{screen-name}.wireframe.json` に書き出す。
 
-### Step 3: HTMLプレビューを生成（初回のみ）
+### Step 4: HTMLプレビューを生成（初回のみ）
 
 `docs/specs/wireframes/wireframe.html` が存在しない場合のみ生成する。
 
@@ -128,13 +128,13 @@ if not os.path.exists(html_path):
 "
 ```
 
-### Step 4: ブラウザで開く
+### Step 5: ブラウザで開く
 
 ```bash
 open docs/specs/wireframes/wireframe.html
 ```
 
-### Step 5: 完了報告
+### Step 6: 完了報告
 
 ```
 Wireframe generated:
