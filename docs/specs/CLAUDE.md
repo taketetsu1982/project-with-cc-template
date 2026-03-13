@@ -13,6 +13,7 @@
 | api-spec.md | エンドポイント定義・リクエスト/レスポンス形式 | reqs/prd.md, reqs/conceptual-model.md |
 | auth-spec.md | 認証・認可フロー・ロール定義 | reqs/prd.md |
 | ui-spec.md | フロントエンド実装仕様・状態定義 | reqs/conceptual-model.md, reqs/prd.md |
+| {screen}.wireframe.json | 定義（Wireframe HTMLで操作） | 開発 |
 | analytics-spec.md | 計測設計・イベント定義 | reqs/product-goals.md |
 | infra-spec.md | 検証環境のインフラ構成定義 | local環境を調査 |
 | test-spec.md | テスト計画・シナリオテスト | reqs/user-stories.md + 全specs |

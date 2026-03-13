@@ -1065,7 +1065,7 @@ function _processDragOver(e) {
     return;
   }
 
-  // 葉ノード: 前後判定
+  // 子ノード: 前後判定
   const parentNode = targetInfo.parent;
   const isVertical = (parentNode.direction || 'vertical') === 'vertical';
   let before;
@@ -1764,7 +1764,7 @@ function renderPropsPanel() {
   // --- name ---
   addTextProp(content, 'name', node.name || '', v => applyProp('name', v || undefined), '要素名');
 
-  // --- type (葉ノードのみ) ---
+  // --- type (子ノードのみ) ---
   if (!isContainer) {
     const typeOptions = [
       ['', '(none)'], ['text', 'text'], ['button', 'button'], ['input', 'input'],

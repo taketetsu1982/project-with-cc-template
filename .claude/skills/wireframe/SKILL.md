@@ -64,7 +64,7 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 - `_note` の内容はデザイン・挙動・インタラクションなど何でも含みうる。Claude Codeが文脈を読んで実装する
 - `_note` が空文字または存在しない場合はJSONに含めない
 
-**葉ノードの `type` 値一覧:**
+**子ノードの `type` 値一覧:**
 
 | type | 説明 | 備考 |
 |------|------|------|
@@ -104,7 +104,7 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 **スキーマルール:**
 - すべてのノードは `name` 必須
 - レイアウトコンテナは `direction` と `children` 必須
-- 葉要素は `type` を持つべき
+- 子要素は `type` を持つべき
 - CSS flexboxに1:1対応する
 - ボタン・リンク・入力は固定 `width` 禁止（`height` のみ）
 

@@ -17,6 +17,7 @@
 │   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / infra-spec / test-spec
 ├── .claude/
 │   ├── rules/        # 開発ルール
+│   ├── skills/        # Skills 定義
 │   └── teams/        # Agent Teams 定義
 └── docker-compose.yml
 ```
@@ -40,18 +41,29 @@
 - 検証環境のインフラ構成定義: @docs/specs/infra-spec.md
 - テスト仕様: @docs/specs/test-spec.md
 
-### ドキュメントの流れ
+### 企画・設計・開発の流れ
 ```
-reqs/product-goals（PG一覧・確信度）
+Product Goals（Fit Journeyごとのゴールとドキュメントの確信度を管理）
+        ↓　　↑ ドキュメントの確信度の履歴
+PG{Number}（WHEN） ⇔ PRD（WHO:User, WHY, WHAT） ⇔ MRD（WHERE, WHO:Buyer, HOW MUCH）
+        ↓ 3つの情報を基に
+Conceptual Model（このプロダクトの概念モデル）
+        ↓ 各ビューごとに
+Wireframe（レイアウト）
         ↓
-reqs/pg0 ⇔ reqs/prd（WHO:User, WHY, WHAT） ⇔ reqs/mrd（WHERE, WHO:Buyer, HOW MUCH）
-                          ↓
-                reqs/conceptual-model ← cm-review（デザイン×テクニカル）
-                          ↓
-                reqs/user-stories → specs/test-spec
-                          ↓
-                specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec, infra-spec
+User Story（スクラム開発のユーザーストーリー） → Test Spec（テスト設計・仕様）
+        ↓
+DB Schema（DB設計）
+API Spec（API設計）
+Auth Spec（認証・認可設計）
+UI Spec（UI設計・UI実装仕様）
+Analytics Spec（計測設計）
+Infra Spec（検証環境/Localのインフラ構成設計）
 ```
+
+- **Fit Journey に沿って進む。** PMF（プロダクト・マーケット・フィット）に至るまでの仮説検証を段階的に進める。「今のフェーズで何をどこまで書くか」を確信度で管理し、全部一気に書かない。不確かな段階に深く書き過ぎない。
+- **アジャイルに動く。** ドキュメントは一度書いたら固定ではなく確信度で決める。学びが得られるたびに上流から更新し、下流に伝播させる。ドキュメントもアジャイルにアップデートをする。
+- **実装は作り変えることも想定する。** 仮説検証しながらフェーズを進めていくため、開発済の機能を固定化しすぎず、必要であれば設計し直して作り変える。
 
 ## Agent Teams
 

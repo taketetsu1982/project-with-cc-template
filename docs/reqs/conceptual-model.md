@@ -48,6 +48,7 @@
 
 ## ビュー定義
 
+ビュー定義は `.claude/rules/ui-design.md` を理解してから生成する。
 ビュー定義は `conceptual-model.json` の `views` 配列が正。HTMLエディタの右ペインで追加・編集する。
 ビュー定義後、`/wireframe` を実行して各ビューのレイアウト（wireframe.json）を生成する。
 
