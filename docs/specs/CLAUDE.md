@@ -14,7 +14,16 @@
 | auth-spec.md | 認証・認可フロー・ロール定義 | reqs/prd.md |
 | ui-spec.md | フロントエンド実装仕様・状態定義 | reqs/conceptual-model.md, reqs/prd.md |
 | analytics-spec.md | 計測設計・イベント定義 | reqs/product-goals.md |
+| infra-spec.md | 検証環境のインフラ構成定義 | local環境を調査 |
 | test-spec.md | テスト計画・シナリオテスト | reqs/user-stories.md + 全specs |
+
+## ドキュメントの流れ
+
+```
+   specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec, infra-spec.md
+        │
+   test-spec
+```
 
 ## 編集ルール
 

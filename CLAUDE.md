@@ -14,7 +14,7 @@
 │   └── src/
 ├── docs/
 │   ├── reqs/         # 企画（canonical）: product-goals / pg0 / mrd / prd / conceptual-model / user-stories
-│   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / test-spec
+│   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / infra-spec / test-spec
 ├── .claude/
 │   ├── rules/        # 開発ルール
 │   └── teams/        # Agent Teams 定義
@@ -37,6 +37,7 @@
 - 認証・認可: @docs/specs/auth-spec.md
 - UI実装仕様: @docs/specs/ui-spec.md
 - 計測設計: @docs/specs/analytics-spec.md
+- 検証環境のインフラ構成定義: @docs/specs/infra-spec.md
 - テスト仕様: @docs/specs/test-spec.md
 
 ### ドキュメントの流れ
@@ -49,7 +50,7 @@ reqs/pg0 ⇔ reqs/prd（WHO:User, WHY, WHAT） ⇔ reqs/mrd（WHERE, WHO:Buyer, 
                           ↓
                 reqs/user-stories → specs/test-spec
                           ↓
-                specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec
+                specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec, infra-spec
 ```
 
 ## Agent Teams
