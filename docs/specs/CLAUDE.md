@@ -17,14 +17,7 @@
 | analytics-spec.md | 計測設計・イベント定義 | reqs/product-goals.md |
 | infra-spec.md | 検証環境のインフラ構成定義 | local環境を調査 |
 | test-spec.md | テスト計画・シナリオテスト | reqs/user-stories.md + 全specs |
-
-## ドキュメントの流れ
-
-```
-   specs/db-schema, api-spec, auth-spec, ui-spec, analytics-spec, infra-spec.md
-        │
-   test-spec
-```
+| impl-plan.md | US単位の実装順序・依存関係・タスクカード | user-stories.md + 全specs |
 
 ## 編集ルール
 
