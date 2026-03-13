@@ -29,7 +29,6 @@ docs/specs/db-schema（conceptual-model.jsonを参照して導出）
 docs/specs/api-spec / auth-spec / analytics-spec
 ```
 
-
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
 - `conceptual-model.md` にないエンティティをDBに追加しない。先にPRDに戻る
 - APIを追加するときは `docs/specs/api-spec.md` の命名規則に従い、対応するPRD機能を明記する
