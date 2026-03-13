@@ -69,15 +69,14 @@ Infra Spec（検証環境/Localのインフラ構成設計）
 
 | チーム | 用途 | 構成 |
 |---|---|---|
-| mrd-planning | MRD企画 | 対話・調査・分析 |
-| mrd-review | MRDレビュー | 顧客・市場・競合 |
-| prd-planning | PRD企画 | 対話・PRD構造化・モデリング |
-| prd-review | PRDレビュー | UX・技術・スコープ |
-| cm-review | 概念モデルレビュー | デザイン・テクニカル・cm-writer |
-| specs-planning | Specs設計 | バックエンド・デザイン・PdM |
-| specs-review | Specsレビュー | 技術・機能・統合 |
-| code-review | コードレビュー | Code Quality・Performance・UI Consistency |
-| pr-review | PRレビュー | セキュリティ・パフォーマンス・テスト |
+| plan-mrd | MRD企画 | 対話・調査・分析 |
+| review-mrd | MRDレビュー | 顧客・市場・競合 |
+| plan-prd | PRD企画 | 対話・PRD構造化・モデリング |
+| review-prd | PRDレビュー | UX・技術・スコープ |
+| review-model | 概念モデルレビュー | デザイン・テクニカル・cm-writer |
+| plan-specs | Specs設計 | バックエンド・デザイン・PdM |
+| review-specs | Specsレビュー | 技術・機能・統合 |
+| review-code | コードレビュー | Code Quality・Performance・UI Consistency |
 
 ## Workflows
 
