@@ -6,7 +6,7 @@ paths:
 
 # 実装計画ワークフロー
 
-> test-spec.md の生成が完了した時点で自動起動する。
+> Track A（Specs）と Track B（User Stories → Test Spec）の両方が完了した時点で自動起動する。
 > 成果物は `docs/specs/impl-plan.md` に出力する。
 
 ## 前提確認

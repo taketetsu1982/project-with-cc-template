@@ -10,7 +10,7 @@
 
 | PG | 名前 | 検証フェーズ | ステータス | 詳細 |
 |---|---|---|---|---|
-| PG0 | {名前} | {CPF/PSF/SPF/PMF/GTM/Growth} | {Not Started / In Progress / Done} | @docs/reqs/pg0-{名前}.md |
+| PG0 | {名前} | {CPF/PSF/SPF/PMF/GTM/Growth} | {Not Started / In Progress / Done} | @docs/reqs/pg0.md |
 
 ---
 

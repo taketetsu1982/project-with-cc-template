@@ -26,10 +26,6 @@ Wireframe完了後、以下の2トラックを並列で進める。
 
 #### Track A: Specs（設計仕様群）を順次導出
 
-```
-DB Schema → API Spec → Auth Spec → UI Spec → Analytics Spec, Infra Spec
-```
-
 | 順序 | Spec | 導出元 | ファイル |
 |---|---|---|---|
 | 1 | DB Schema | conceptual-model.json | `docs/specs/db-schema.md` |
@@ -45,19 +41,19 @@ DB Schema → API Spec → Auth Spec → UI Spec → Analytics Spec, Infra Spec
 2. **Test Spec**: ユーザーストーリーの受け入れ条件から `docs/specs/test-spec.md` を導出
 
 ### 4. Impl Plan
-- **トリガー**: test-spec.md の生成が完了したとき
+- **トリガー**: Track AとTrack Bの両方が完了したとき
 - **アクション**: impl-planning.md のワークフローを実行して `docs/specs/impl-plan.md` を生成する
 
 ### 5. Specs → 実装
 - **トリガー**: 必要なspecsが揃ったとき
-- **アクション**: specsを参照して実装する（reqsを直接パースしない）
+- **アクション**: specsを参照し `docs/specs/impl-plan.md` に沿って実装する（reqsを直接パースしない）
 - Spec変更が必要になったら、実装前にSpec文書を更新する
 
 #### 実装時の制約
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
 - `conceptual-model.md` にないエンティティをDBに追加しない。先にPRDに戻る
 - APIを追加するときは `docs/specs/api-spec.md` の命名規則に従い、対応するPRD機能を明記する
-- 画面を追加するときは `docs/reqs/conceptual-model.md` の画面階層を先に更新する
+- 画面を追加するときは conceptual-modelとwireframe を先に追加/更新する
 - イベント計測を追加するときは `docs/specs/analytics-spec.md` のイベント命名規則に従う
 
 ## スキップのルール
