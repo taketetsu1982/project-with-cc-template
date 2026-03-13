@@ -43,6 +43,7 @@ DB Schema → API Spec → Auth Spec → UI Spec → Analytics Spec, Infra Spec
 
 1. **User Stories**: ワイヤーフレームと概念モデルを参照して `docs/reqs/user-stories.md` を更新。各ストーリーに受け入れ条件とシナリオ（Gherkin）を定義
 2. **Test Spec**: ユーザーストーリーの受け入れ条件から `docs/specs/test-spec.md` を導出
+3. **Impl Plan**: test-spec.md の生成が完了したら、impl-planning.md のワークフローを実行して `docs/specs/impl-plan.md` を生成する
 
 ### 4. Specs → 実装
 - **トリガー**: 必要なspecsが揃ったとき

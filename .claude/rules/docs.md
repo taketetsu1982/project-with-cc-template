@@ -24,6 +24,8 @@ docs/specs/wireframes/{screen}.wireframe.json（レイアウト・Wireframe HTML
         ↓
 docs/reqs/user-stories → docs/specs/test-spec
         ↓
+docs/specs/impl-plan（US単位の実装順序。test-spec生成後に自動生成）
+        ↓
 docs/specs/ui-spec（wireframe.jsonを参照して導出）
 docs/specs/db-schema（conceptual-model.jsonを参照して導出）
 docs/specs/api-spec / auth-spec / analytics-spec
