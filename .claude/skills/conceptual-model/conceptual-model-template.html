@@ -956,7 +956,7 @@ function deleteView(index) {
 
 function addViewEntity(viewIndex) {
   pushUndo();
-  model.views[viewIndex].entities.push({ entity: '', role: '' });
+  model.views[viewIndex].entities.push({ entity: '', role: 'primary' });
   render();
 }
 
@@ -1564,17 +1564,22 @@ function renderViewCard(view, viewIndex, entityNames) {
     });
     row.appendChild(entSelect);
 
-    // role テキスト入力
-    const roleInput = document.createElement('input');
-    roleInput.type = 'text';
-    roleInput.value = ent.role;
-    roleInput.placeholder = '例: primary, list, form, filter';
-    roleInput.addEventListener('change', e => {
+    // role セレクト
+    const roleSelect = document.createElement('select');
+    ['primary', 'related'].forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = r;
+      if (ent.role === r) opt.selected = true;
+      roleSelect.appendChild(opt);
+    });
+    if (!ent.role) ent.role = 'primary';
+    roleSelect.addEventListener('change', e => {
       pushUndo();
       ent.role = e.target.value;
       scheduleAutoSave();
     });
-    row.appendChild(roleInput);
+    row.appendChild(roleSelect);
 
     // 削除ボタン
     const removeBtn = document.createElement('button');

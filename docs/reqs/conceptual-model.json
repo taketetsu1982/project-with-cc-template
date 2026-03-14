@@ -94,7 +94,7 @@
         },
         {
           "entity": "メンバー",
-          "role": "avatar"
+          "role": "related"
         }
       ]
     },
@@ -109,11 +109,11 @@
         },
         {
           "entity": "タスク",
-          "role": "list"
+          "role": "related"
         },
         {
           "entity": "メンバー",
-          "role": "avatar"
+          "role": "related"
         }
       ]
     },
@@ -128,11 +128,11 @@
         },
         {
           "entity": "ラベル",
-          "role": "tag"
+          "role": "related"
         },
         {
           "entity": "メンバー",
-          "role": "avatar"
+          "role": "related"
         }
       ]
     },
@@ -147,11 +147,11 @@
         },
         {
           "entity": "コメント",
-          "role": "list"
+          "role": "related"
         },
         {
           "entity": "ラベル",
-          "role": "tag"
+          "role": "related"
         }
       ]
     },
@@ -166,7 +166,7 @@
         },
         {
           "entity": "ワークスペース",
-          "role": "context"
+          "role": "related"
         }
       ]
     }
