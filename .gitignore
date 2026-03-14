@@ -7,5 +7,3 @@ __pycache__/
 .venv/
 CLAUDE.local.md
 .claude/settings.local.json
-docs/reqs/conceptual-model.html
-docs/reqs/screens.html
