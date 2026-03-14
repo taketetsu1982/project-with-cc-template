@@ -68,7 +68,7 @@
       "primaryType": "table",
       "entities": [
         { "entity": "タスク", "role": "primary" },
-        { "entity": "メンバー", "role": "filter" }
+        { "entity": "メンバー", "role": "related" }
       ]
     },
     {
@@ -77,8 +77,8 @@
       "primaryType": "card",
       "entities": [
         { "entity": "タスク", "role": "primary" },
-        { "entity": "コメント", "role": "list" },
-        { "entity": "メンバー", "role": "reference" }
+        { "entity": "コメント", "role": "related" },
+        { "entity": "メンバー", "role": "related" }
       ]
     },
     {
@@ -87,8 +87,8 @@
       "primaryType": "card",
       "entities": [
         { "entity": "プロジェクト", "role": "primary" },
-        { "entity": "タスク", "role": "list" },
-        { "entity": "メンバー", "role": "list" }
+        { "entity": "タスク", "role": "related" },
+        { "entity": "メンバー", "role": "related" }
       ]
     }
   ]
