@@ -9,14 +9,16 @@
 ## このファイルについて
 
 このファイルは**人間が読むための設計意図・背景・関係性の説明**を記述する。
-エンティティの構造定義とビュー定義は `conceptual-model.json` が正であり、HTMLエディタで操作する。
+構造定義は `conceptual-model.json` が正であり、HTMLエディタで操作する。
 
 | ファイル | 役割 |
 |---------|------|
 | `conceptual-model.md`（このファイル） | 設計意図・関係の意味・背景（人間用） |
-| `conceptual-model.json` | エンティティ・属性・グルーピング・ビュー定義（機械用・正） |
+| `conceptual-model.json` | entities・actors・composites・screens・navigation（機械用・正） |
+| `conceptual-model.html` | CMエディタ（Entity / Actor / Composite を編集） |
+| `screens.html` | Screensエディタ（Screens / Navigation を編集） |
 
-**エンティティはビューを知らない。ビューがエンティティを参照する（一方向）。**
+**1つのJSONファイルを2つのエディタが共有する。各エディタは担当外フィールドをパススルーで保持する。**
 
 ---
 
@@ -33,7 +35,6 @@
 ### {エンティティ名}
 
 **定義:** {1文の定義}
-**属性:** {主要な属性}
 **責務:** {このエンティティが担う責任}
 **境界:** {このエンティティが担わないこと}
 
@@ -41,16 +42,21 @@
 
 ## エンティティ間の関係
 
-エンティティ間の関係は `conceptual-model.json` で表現
-親子関係等のテーブルも表現
+エンティティ間の関係は `conceptual-model.json` の `entities[].relations` で表現。
 
 ---
 
-## ビュー定義
+## アクター定義
 
-ビュー定義は `.claude/rules/ui-design.md` を理解してから生成する。
-ビュー定義は `conceptual-model.json` の `views` 配列が正。HTMLエディタの右ペインで追加・編集する。
-ビュー定義後、`/wireframe` を実行して各ビューのレイアウト（wireframe.json）を生成する。
+アクター（操作者ロール）は `conceptual-model.json` の `actors` で定義。
+各アクターがどのエンティティにどの権限（CRUD + scope）でアクセスするかを管理する。
+
+---
+
+## 画面定義
+
+画面定義は `conceptual-model.json` の `screens` / `navigation` で管理。
+`/wireframe` を実行してScreensエディタで編集する。
 
 ---
 
