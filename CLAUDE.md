@@ -30,7 +30,7 @@
 - 市場・ユーザー定義: @docs/reqs/mrd.md
 - 提供価値・機能定義: @docs/reqs/prd.md
 - 概念モデル（設計意図）: @docs/reqs/conceptual-model.md
-- 概念モデル（構造定義）: @docs/reqs/conceptual-model.json
+- 概念モデル（統合JSON）: @docs/reqs/conceptual-model.json — entities/actors/composites/screens/navigation
 - ユーザーストーリー: @docs/reqs/user-stories.md
 
 ### 設計（specs/ — reqs/ から導出）
