@@ -1,162 +1,116 @@
 ---
 name: wireframe
-description: Generate JSON wireframe with HTML preview from conceptual model
+description: Generate screens definition in conceptual-model JSON with HTML editor
 ---
 
 # /wireframe
 
-Conceptual Modelからビュー定義とレイアウトを持つWireframe JSONを生成し、HTML プレビューを起動する。
+conceptual-model.json の screens / navigation を生成し、HTMLエディタで画面遷移図を編集する。
+entities / actors / composites は /conceptual-model で編集する（同じJSONファイルを共有）。
 
 ## Input
 
-1. **Conversation**: レイアウトの説明からJSON を生成
-2. **screen名引数**: `wireframe {screen-name}` — 既存wireframe.jsonを読み込んでHTMLで開く
+1. **Conversation**: conceptual-model.json のentities/actorsからscreens/navigationを生成
+2. **既存JSON**: `docs/reqs/conceptual-model.json` のscreens/navigation部分を編集
 
 ## Output
 
-- `docs/specs/wireframes/{screen-name}.wireframe.json` — ビュー情報+レイアウト（ビューごとに生成）
-- `docs/specs/wireframes/wireframe.html` — HTMLプレビュー（1つだけ生成。JSONはドロップで切替）
+- `docs/reqs/conceptual-model.json` — 統合JSON（screens/navigation部分を更新）
+- `docs/reqs/screens.html` — HTMLエディタ（ブラウザで開く）
 
 ## JSON Schema
 
-### トップレベル
+`docs/reqs/conceptual-model.json` の統合スキーマ（全体定義は /conceptual-model の SKILL.md を参照）。
+このスキルは **screens** と **navigation** フィールドのみ編集する。
+
+### screens
 
 ```json
 {
+  "id": "kebab-case識別子",
   "name": "画面名",
-  "view": {
-    "context": "一覧 | 詳細 | etc",
-    "primaryType": "table | card | form | etc",
-    "entities": [
-      { "entity": "エンティティ名", "attributes": ["属性1: 説明", "属性2: 説明"] },
-      { "entity": "関連エンティティ名", "attributes": ["属性1: 説明"] }
-    ]
-  },
-  "viewport": { "width": 1280, "height": 800 },
-  "root": { "..." }
+  "actorId": "conceptual-model.jsonのactor id",
+  "x": 60, "y": 60,
+  "prompt": "この画面の実装についての補足指示（自然言語）",
+  "objects": [
+    {
+      "id": "一意ID",
+      "entityId": "entity id",
+      "variant": "collection | single",
+      "crud": ["C", "R", "U", "D"]
+    }
+  ]
 }
 ```
 
-### ノードフィールド
+- `actorId`: この画面を使うアクター
+- `x`, `y`: HTMLエディタのMap View上での配置座標
+- `prompt`: 画面レイアウトや振る舞いの補足指示
+- `variant`: `collection` = 一覧表示、`single` = 単体表示
+- `crud`: この画面で実行可能な操作（actorのtouches権限の範囲内）
 
-wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/wireframe/wireframe-designer.md` を参照。
-
-**Annotation fields:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `_note` | string | 自然言語による実装指示。挙動・デザイン・インタラクションの意図を自由に記述。空の場合は省略。 |
-| `_entity` | string | 対応するConceptual Modelのエンティティ名 |
-| `_attributes` | string[] | 表示するエンティティの属性（conceptual-model.jsonから選択） |
+### navigation
 
 ```json
-{
-  "name": "タスク行",
-  "type": "card",
-  "_entity": "タスク",
-  "_attributes": ["タイトル", "期限", "ステータス"],
-  "_note": "ソート可能にしたい。期限が近いものは赤くハイライト。"
-}
+{ "id": "一意ID", "from": "screen id", "to": "screen id", "trigger": "遷移トリガー" }
 ```
 
-**`_note` ルール:**
-- `_note` が存在するノードは、その内容を実装の指示として解釈する
-- `_note` の内容はデザイン・挙動・インタラクションなど何でも含みうる。Claude Codeが文脈を読んで実装する
-- `_note` が空文字または存在しない場合はJSONに含めない
+### スキーマルール
 
-**子ノードの `type` 値一覧:**
-
-| type | 説明 | 備考 |
-|------|------|------|
-| `text` | テキスト表示 | variant: display / heading / caption |
-| `button` | ボタン | |
-| `link` | リンク | |
-| `input` | テキスト入力 | |
-| `select` | セレクトボックス | input と同じ表示 |
-| `image` | 画像プレースホルダ | |
-| `icon` | アイコン | デフォルト 32x32 |
-| `card` | カード | |
-| `table` | テーブル | columns, rows フィールドを使用 |
-| `divider` | 区切り線 | |
-
-**制約:**
-- `_entity`/`_attributes` はWireframe HTML上ではread-only（変更はConceptual Modelから）
-- `_attributes` の値は `conceptual-model.json` の該当エンティティの `attributes` から選択すること
+- 各screenは1つのactorIdを持つ
+- objectsのcrudはactorのtouches権限の範囲内で設定する
+- navigationは同一actor内の遷移のみ定義する
+- **パススルールール**: Screensエディタはentities/actors/compositesフィールドを読み込み時に保持し、保存時にそのまま書き戻す。これらが空でもエラーにしない
 
 ## Execution Steps
 
 ### Step 1: Conceptual Modelを読み込む
 
-`docs/reqs/conceptual-model.json` が存在する場合は読み込む。
-エンティティ・属性の一覧を把握した上でwireframe JSONを生成する。
+`docs/reqs/conceptual-model.json` を読み込む。
+entities・actorsを把握した上でscreens/navigationを生成する。
 
-- エンティティをUIノードに割り当てる際は `_entity` フィールドにエンティティ名を明記する
-- 表示する属性は `_attributes` に列挙する
-- ビュー情報（context・primaryType・entities）をトップレベルの `view` フィールドに記述する
-- `view.entities[].attributes` に conceptual-model.json から該当エンティティの全属性を埋め込む
+### Step 2: 画面を設計する
 
-### Step 2: 認知モデルを読み込みJSONを生成
+actorごとに必要な画面を洗い出す。
 
-1. `.claude/skills/wireframe/wireframe-designer.md` を読み込む
-2. Phases 1–7の設計プロセスに従いレイアウトを推論する
-3. 上記スキーマに従うJSONを生成する
+1. 各actorのtouchesからCRUD権限を確認
+2. R権限 → 一覧（collection）+ 詳細（single）
+3. C権限 → 作成画面
+4. compositesのダッシュボード画面を追加
+5. 画面間のnavigationを定義
 
-**スキーマルール:**
-- すべてのノードは `name` 必須
-- レイアウトコンテナは `direction` と `children` 必須
-- 子要素は `type` を持つべき
-- CSS flexboxに1:1対応する
-- ボタン・リンク・入力は固定 `width` 禁止（`height` のみ）
-
-### Step 3: JSONファイルを書き出し、HTMLを準備する
-
-ファイル名はJSON name フィールドからスラッグ化する（例: "タスク一覧" → task-list）。
+### Step 3: JSONファイルを更新し、HTMLを準備する
 
 ```bash
-# 1. JSONを書き出す
-# docs/specs/wireframes/{screen-name}.wireframe.json に保存
+# 1. conceptual-model.json のscreens/navigationを更新
+# 既存のentities/actors/compositesはそのまま保持
 
-# 2. wireframe.html を準備し、WF_SUGGESTED_PATH を置換する
-#    （wireframe.html が存在しない場合はテンプレートからコピーして初回生成）
+# 2. screens.html を準備する
 python3 -c "
 import shutil, os
 src = '.claude/skills/wireframe/wireframe-template.html'
-dst = 'docs/specs/wireframes/wireframe.html'
+dst = 'docs/reqs/screens.html'
 if not os.path.exists(dst):
-    shutil.copy(src, dst)  # 初回のみコピー
-with open(dst, 'r') as f:
-    html = f.read()
-html = html.replace(
-    'const WF_SUGGESTED_PATH = null; // %%WF_SUGGESTED_PATH%%',
-    'const WF_SUGGESTED_PATH = \"docs/specs/wireframes/{screen-name}.wireframe.json\"; // %%WF_SUGGESTED_PATH%%'
-)
-with open(dst, 'w') as f:
-    f.write(html)
+    shutil.copy(src, dst)
 "
 ```
-
-`WF_SUGGESTED_PATH` を埋め込むことで `Save to...` ダイアログが正しいファイル名で開く。
-JSONデータ自体の埋め込みは行わない。HTMLはドロップして接続するまで空白のまま。
 
 ### Step 4: ブラウザで開く
 
 ```bash
-open docs/specs/wireframes/wireframe.html
+open docs/reqs/screens.html
 ```
 
 ### Step 5: 完了報告
 
 ```
-Wireframe generated:
-- JSON:    docs/specs/wireframes/{screen-name}.wireframe.json
-- Preview: docs/specs/wireframes/wireframe.html (opened)
+Screens generated:
+- JSON:   docs/reqs/conceptual-model.json (screens/navigation updated)
+- Editor: docs/reqs/screens.html (opened)
 
-{screen-name}.wireframe.json をHTMLにドロップして接続してください。
+conceptual-model.json をHTMLにドロップして接続してください。
+同じJSONファイルにentities/actors/screens全てが含まれています。
 
-保存操作:
-- [Save to...]  保存先ファイルを選択して書き込み（デフォルト名: {screen-name}.wireframe.json）
-- [Save]        接続中ファイルに即時上書き（⌘S）
-- [Auto ○/●]   トグルONで変更のたびに自動保存
-
-エンティティ・属性の変更は /conceptual-model から行ってください。
+- Actorタブ: アクターごとの画面遷移図を確認・編集
+- 画面カードの ↗ ボタン: 画面詳細（objects + prompt）を編集
 ```

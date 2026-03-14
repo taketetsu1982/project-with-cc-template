@@ -1,0 +1,828 @@
+{
+  "entities": [
+    {
+      "id": "customer",
+      "name": "得意先",
+      "relations": [
+        {
+          "id": "r1",
+          "targetId": "contact",
+          "type": "has-many",
+          "label": "has"
+        },
+        {
+          "id": "r2",
+          "targetId": "sales-order",
+          "type": "has-many",
+          "label": "places"
+        },
+        {
+          "id": "r3",
+          "targetId": "quotation",
+          "type": "has-many",
+          "label": "receives"
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "name": "担当者",
+      "relations": [
+        {
+          "id": "r4",
+          "targetId": "customer",
+          "type": "belongs-to",
+          "label": "belongs to"
+        }
+      ]
+    },
+    {
+      "id": "quotation",
+      "name": "見積",
+      "relations": [
+        {
+          "id": "r5",
+          "targetId": "quotation-item",
+          "type": "has-many",
+          "label": "has"
+        },
+        {
+          "id": "r6",
+          "targetId": "sales-order",
+          "type": "has-one",
+          "label": "becomes"
+        },
+        {
+          "id": "r7",
+          "targetId": "employee",
+          "type": "belongs-to",
+          "label": "by"
+        }
+      ]
+    },
+    {
+      "id": "quotation-item",
+      "name": "見積明細",
+      "relations": [
+        {
+          "id": "r8",
+          "targetId": "product",
+          "type": "belongs-to",
+          "label": "ref"
+        }
+      ]
+    },
+    {
+      "id": "sales-order",
+      "name": "受注",
+      "relations": [
+        {
+          "id": "r9",
+          "targetId": "sales-order-item",
+          "type": "has-many",
+          "label": "has"
+        },
+        {
+          "id": "r10",
+          "targetId": "delivery",
+          "type": "has-many",
+          "label": "triggers"
+        },
+        {
+          "id": "r11",
+          "targetId": "invoice",
+          "type": "has-one",
+          "label": "generates"
+        },
+        {
+          "id": "r12",
+          "targetId": "employee",
+          "type": "belongs-to",
+          "label": "by"
+        }
+      ]
+    },
+    {
+      "id": "sales-order-item",
+      "name": "受注明細",
+      "relations": [
+        {
+          "id": "r13",
+          "targetId": "product",
+          "type": "belongs-to",
+          "label": "ref"
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "name": "商品",
+      "relations": [
+        {
+          "id": "r14",
+          "targetId": "product-category",
+          "type": "belongs-to",
+          "label": "in"
+        }
+      ]
+    },
+    {
+      "id": "product-category",
+      "name": "商品カテゴリ",
+      "relations": [
+        {
+          "id": "r15",
+          "targetId": "product",
+          "type": "has-many",
+          "label": "contains"
+        }
+      ]
+    },
+    {
+      "id": "delivery",
+      "name": "納品",
+      "relations": [
+        {
+          "id": "r16",
+          "targetId": "sales-order",
+          "type": "belongs-to",
+          "label": "for"
+        }
+      ]
+    },
+    {
+      "id": "invoice",
+      "name": "請求",
+      "relations": [
+        {
+          "id": "r17",
+          "targetId": "payment",
+          "type": "has-many",
+          "label": "receives"
+        }
+      ]
+    },
+    {
+      "id": "payment",
+      "name": "入金",
+      "relations": [
+        {
+          "id": "r18",
+          "targetId": "invoice",
+          "type": "belongs-to",
+          "label": "for"
+        }
+      ]
+    },
+    {
+      "id": "employee",
+      "name": "担当社員",
+      "relations": [
+        {
+          "id": "r19",
+          "targetId": "sales-order",
+          "type": "has-many",
+          "label": "handles"
+        }
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "id": "sales-rep",
+      "name": "営業担当",
+      "touches": [
+        {
+          "entityId": "customer",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "contact",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "quotation",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "quotation-item",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "sales-order",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "sales-order-item",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "product",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "product-category",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "delivery",
+          "scope": "own",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "invoice",
+          "scope": "own",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sales-manager",
+      "name": "営業マネージャー",
+      "touches": [
+        {
+          "entityId": "customer",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "contact",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "quotation",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "quotation-item",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "sales-order",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "sales-order-item",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "product",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "product-category",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "delivery",
+          "scope": "all",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "invoice",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "payment",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "employee",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "accounting",
+      "name": "経理担当",
+      "touches": [
+        {
+          "entityId": "sales-order",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "invoice",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "payment",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "customer",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    }
+  ],
+  "composites": [
+    {
+      "id": "sales-dashboard",
+      "name": "営業ダッシュボード",
+      "actorId": "sales-manager",
+      "uses": [
+        "sales-order",
+        "quotation",
+        "customer",
+        "employee",
+        "invoice"
+      ]
+    },
+    {
+      "id": "customer-360",
+      "name": "得意先360°",
+      "actorId": "sales-rep",
+      "uses": [
+        "customer",
+        "contact",
+        "quotation",
+        "sales-order",
+        "invoice"
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "customer-list",
+      "name": "得意先一覧",
+      "actorId": "sales-rep",
+      "x": 60,
+      "y": 60,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o1",
+          "entityId": "customer",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "customer-360",
+      "name": "得意先360°",
+      "actorId": "sales-rep",
+      "x": 60,
+      "y": 240,
+      "prompt": "得意先の全情報をタブで切り替え表示。基本情報・担当者・見積履歴・受注履歴・請求状況をそれぞれのタブで表示。右上に新規見積作成ボタン。",
+      "objects": [
+        {
+          "id": "o2",
+          "entityId": "customer",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o3",
+          "entityId": "contact",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o4",
+          "entityId": "quotation",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o5",
+          "entityId": "sales-order",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quotation-list",
+      "name": "見積一覧",
+      "actorId": "sales-rep",
+      "x": 300,
+      "y": 60,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o6",
+          "entityId": "quotation",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quotation-detail",
+      "name": "見積詳細",
+      "actorId": "sales-rep",
+      "x": 300,
+      "y": 240,
+      "prompt": "明細はインライン編集可能なテーブル形式。行追加・削除・単価・数量を直接編集。合計・税額・税込合計を自動計算して下部に表示。PDFプレビュー・送付ボタンを右上に。受注確定ボタンで受注画面に遷移。",
+      "objects": [
+        {
+          "id": "o7",
+          "entityId": "quotation",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o8",
+          "entityId": "quotation-item",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o9",
+          "entityId": "product",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sales-order-list",
+      "name": "受注一覧",
+      "actorId": "sales-rep",
+      "x": 540,
+      "y": 60,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o10",
+          "entityId": "sales-order",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sales-order-detail",
+      "name": "受注詳細",
+      "actorId": "sales-rep",
+      "x": 540,
+      "y": 240,
+      "prompt": "受注明細・納品状況・請求状況をそれぞれセクションで表示。ステータスに応じてアクション可能なボタンを変化させる（確認中→承認待ち→出荷準備中→完了）。",
+      "objects": [
+        {
+          "id": "o11",
+          "entityId": "sales-order",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o12",
+          "entityId": "sales-order-item",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o13",
+          "entityId": "delivery",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o14",
+          "entityId": "invoice",
+          "variant": "single",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sales-dashboard",
+      "name": "営業ダッシュボード",
+      "actorId": "sales-manager",
+      "x": 60,
+      "y": 60,
+      "prompt": "KPI（月次売上・受注件数・見積→受注転換率）をカード形式で上部に表示。担当者別売上グラフ・受注ステータス別件数ドーナツチャートを中段に。未フォロー見積一覧を下部に表示。",
+      "objects": [
+        {
+          "id": "o15",
+          "entityId": "sales-order",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o16",
+          "entityId": "quotation",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o17",
+          "entityId": "customer",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o18",
+          "entityId": "employee",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "product-master",
+      "name": "商品マスタ",
+      "actorId": "sales-manager",
+      "x": 60,
+      "y": 260,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o19",
+          "entityId": "product",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o20",
+          "entityId": "product-category",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "invoice-list",
+      "name": "請求一覧",
+      "actorId": "accounting",
+      "x": 60,
+      "y": 60,
+      "prompt": "未入金・一部入金・入金済みでステータスフィルター。期日超過の請求を赤くハイライト。",
+      "objects": [
+        {
+          "id": "o21",
+          "entityId": "invoice",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "invoice-detail",
+      "name": "請求詳細",
+      "actorId": "accounting",
+      "x": 60,
+      "y": 240,
+      "prompt": "入金履歴をタイムライン形式で表示。部分入金の場合は残額を自動計算して表示。",
+      "objects": [
+        {
+          "id": "o22",
+          "entityId": "invoice",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o23",
+          "entityId": "payment",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        }
+      ]
+    }
+  ],
+  "navigation": [
+    {
+      "id": "n1",
+      "from": "customer-list",
+      "to": "customer-360",
+      "trigger": "Tap row"
+    },
+    {
+      "id": "n2",
+      "from": "customer-360",
+      "to": "quotation-detail",
+      "trigger": "Tap quotation"
+    },
+    {
+      "id": "n3",
+      "from": "customer-360",
+      "to": "sales-order-detail",
+      "trigger": "Tap order"
+    },
+    {
+      "id": "n4",
+      "from": "quotation-list",
+      "to": "quotation-detail",
+      "trigger": "Tap row"
+    },
+    {
+      "id": "n5",
+      "from": "quotation-detail",
+      "to": "sales-order-detail",
+      "trigger": "確定→受注"
+    },
+    {
+      "id": "n6",
+      "from": "sales-order-list",
+      "to": "sales-order-detail",
+      "trigger": "Tap row"
+    },
+    {
+      "id": "n7",
+      "from": "sales-dashboard",
+      "to": "sales-order-list",
+      "trigger": "View all orders"
+    },
+    {
+      "id": "n8",
+      "from": "sales-dashboard",
+      "to": "quotation-list",
+      "trigger": "View all quotes"
+    },
+    {
+      "id": "n9",
+      "from": "invoice-list",
+      "to": "invoice-detail",
+      "trigger": "Tap row"
+    }
+  ]
+}
