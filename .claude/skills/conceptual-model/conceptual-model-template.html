@@ -5,1847 +5,267 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conceptual Model Editor</title>
 <style>
-  :root {
-    /* Text */
-    --text-primary: #333;
-    --text-secondary: #555;
-    --text-tertiary: #888;
-    --text-muted: #B0B0B0;
-
-    /* Background */
-    --bg-page: #F8F8F8;
-    --bg-surface: #FFF;
-    --bg-panel: #FAFAFA;
-    --bg-subtle: #F0F0F0;
-    --bg-placeholder: #E8E8E8;
-    --bg-placeholder-dark: #DDD;
-    --bg-dark: #333;
-
-    /* Border */
-    --border-default: #E0E0E0;
-    --border-light: #F0F0F0;
-
-    /* Accent */
-    --accent: #4A90D9;
-    --accent-bg: #E8F0FE;
-    --drop-indicator: #29b3f1;
-    --success-bg: #E8F5E9;
-    --success-border: #A5D6A7;
-    --success-text: #2E7D32;
-
-    /* Status */
-    --status-connected: #4caf50;
-    --status-saving: #ff9800;
-    --status-error: #f44336;
-    --danger: #e44;
-    --accent-overlay: rgba(74, 144, 217, 0.08);
-    --shadow-dropdown: rgba(0, 0, 0, 0.1);
-
-    /* Radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-full: 999px;
-
-    /* Font size */
-    --font-sm: 12px;
-    --font-base: 16px;
-    --font-lg: 24px;
-    --font-xl: 32px;
-
-    /* Font family */
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Consolas', monospace;
-
-    /* Spacing */
-    --space-xs: 4px;
-    --space-sm: 8px;
-    --space-md: 16px;
-    --space-lg: 24px;
-    --space-xl: 32px;
-
-    /* ビューエリア専用 */
-    --bg-views: #f0f4f8;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: var(--font-sans);
-    background: var(--bg-page);
-    color: var(--text-primary);
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  /* ===== レイアウト ===== */
-  .app {
-    display: grid;
-    grid-template-rows: 48px 1fr;
-    grid-template-columns: 7fr 3fr;
-    height: 100vh;
-  }
-
-  .toolbar {
-    grid-column: 1 / -1;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-sm);
-    padding: 0 var(--space-md);
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-default);
-    z-index: 100;
-    font-size: 13px;
-  }
-
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-
-  .toolbar-title {
-    font-weight: 600;
-    font-size: 20px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .pane-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--border-default);
-    flex-shrink: 0;
-  }
-  .pane-header > span {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .pane-header-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    letter-spacing: 0.5px;
-    border: none;
-    background: transparent;
-    padding: 2px 4px;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-sans);
-    width: auto;
-  }
-  .pane-header-name:hover { background: var(--bg-subtle); }
-  .pane-header-name:focus { outline: 1px solid var(--accent); background: var(--bg-surface); color: var(--text-primary); }
-  .pane-header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-  }
-  .pane-header-actions button {
-    font-size: 12px;
-    padding: 3px 8px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-family: var(--font-sans);
-  }
-  .pane-header-actions button:hover { background: var(--bg-subtle); }
-
-  .edited-badge {
-    display: none;
-    background: var(--accent-bg);
-    color: var(--accent);
-    font-weight: 600;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-full);
-  }
-
-
-  .toolbar button {
-    padding: 6px 14px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text-primary);
-    transition: background 0.15s;
-  }
-  .toolbar button:hover { background: var(--bg-subtle); }
-  .toolbar button:active { background: var(--border-default); }
-  .toolbar button.primary { background: var(--bg-dark); color: var(--bg-surface); border-color: var(--bg-dark); }
-  .toolbar button.primary:hover { background: var(--text-secondary); }
-
-  .canvas-pane {
-    grid-column: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .canvas {
-    flex: 1;
-    overflow: auto;
-    padding: var(--space-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .views-pane {
-    grid-column: 2;
-    background: var(--bg-views);
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid var(--border-default);
-    overflow: hidden;
-  }
-
-
-  .views-body {
-    flex: 1;
-    overflow: auto;
-    padding: var(--space-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  /* ===== ノード共通 ===== */
-  .node {
-    position: relative;
-    user-select: none;
-  }
-
-  .node.selected > .node-inner {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .node.drag-over > .node-inner {
-    outline: 2px dashed var(--accent);
-    outline-offset: 2px;
-  }
-
-  .drop-indicator {
-    position: absolute;
-    background: var(--drop-indicator);
-    z-index: 50;
-    pointer-events: none;
-    border-radius: 2px;
-  }
-
-  /* ===== グループノード ===== */
-  .group > .node-inner {
-    border: 1px solid var(--border-default);
-    border-radius: 6px;
-    background: var(--bg-panel);
-    min-width: 120px;
-    min-height: 60px;
-  }
-
-  .group-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--border-default);
-    background: var(--bg-subtle);
-    border-radius: 6px 6px 0 0;
-    cursor: grab;
-  }
-  .group-header:active { cursor: grabbing; }
-
-  .grab-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    opacity: 0.4;
-    flex-shrink: 0;
-  }
-  .grab-bar span {
-    display: block;
-    width: 12px;
-    height: 2px;
-    background: var(--text-tertiary);
-    border-radius: 1px;
-  }
-
-  .group-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    border: none;
-    background: none;
-    outline: none;
-    flex: 1;
-    min-width: 60px;
-  }
-  .group-name:focus { border-bottom: 1px solid var(--accent); }
-
-  .direction-btn {
-    font-size: 13px;
-    padding: 2px 6px;
-    border: 1px solid var(--border-default);
-    border-radius: 3px;
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-tertiary);
-    flex-shrink: 0;
-  }
-  .direction-btn:hover { background: var(--bg-placeholder); }
-
-  .group-actions {
-    display: flex;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-  .group-actions button {
-    font-size: 13px;
-    padding: 2px 6px;
-    border: 1px solid var(--border-default);
-    border-radius: 3px;
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-tertiary);
-  }
-  .group-actions button:hover { background: var(--bg-placeholder); }
-
-  .group-children {
-    padding: 10px;
-    display: flex;
-    gap: 10px;
-  }
-  .group-children.vertical { flex-direction: column; }
-  .group-children.horizontal { flex-direction: row; flex-wrap: wrap; }
-  .group-children.horizontal > .node { flex: 1; min-width: 0; }
-
-  .drop-zone {
-    min-height: 40px;
-    min-width: 40px;
-    border: 2px dashed var(--border-default);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 13px;
-  }
-  .drop-zone:empty::after { content: 'ドラッグで追加'; }
-
-  /* ===== エンティティノード ===== */
-  .entity > .node-inner {
-    border: 1px solid var(--border-default);
-    border-radius: 6px;
-    background: var(--bg-surface);
-    min-width: 140px;
-  }
-
-  .entity-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--bg-placeholder);
-    cursor: grab;
-  }
-  .entity-header:active { cursor: grabbing; }
-
-  .entity-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    border: none;
-    background: none;
-    outline: none;
-    flex: 1;
-    min-width: 60px;
-  }
-  .entity-name:focus { border-bottom: 1px solid var(--accent); }
-
-  .entity-actions {
-    display: flex;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-  .entity-actions button {
-    font-size: 13px;
-    padding: 2px 6px;
-    border: 1px solid var(--border-default);
-    border-radius: 3px;
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-tertiary);
-  }
-  .entity-actions button:hover { background: var(--bg-placeholder); }
-
-  .attributes {
-    padding: var(--space-sm) 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
-    min-height: 32px;
-  }
-
-  .attr-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: 2px var(--space-sm);
-    background: var(--bg-placeholder);
-    border: 1px solid var(--border-default);
-    border-radius: 12px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: default;
-  }
-
-  .attr-tag .attr-key,
-  .attr-tag .attr-val {
-    border: none;
-    background: none;
-    outline: none;
-    font-size: 13px;
-    width: 30px; /* JS で動的に設定 */
-    min-width: 20px;
-  }
-  .attr-tag .attr-key { color: var(--text-primary); font-weight: 600; }
-  .attr-tag .attr-val { color: var(--text-secondary); }
-  .attr-tag .attr-key:focus,
-  .attr-tag .attr-val:focus { color: var(--text-primary); }
-  .attr-tag .attr-sep {
-    color: var(--text-muted);
-    font-size: 13px;
-    margin: 0 1px;
-    flex-shrink: 0;
-  }
-
-  .attr-tag .attr-remove {
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 14px;
-    line-height: 1;
-    padding: 0 2px;
-  }
-  .attr-tag .attr-remove:hover { color: var(--danger); }
-
-  .attr-add {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border: 1px dashed var(--border-default);
-    border-radius: 12px;
-    font-size: 14px;
-    color: var(--text-muted);
-    cursor: pointer;
-    background: none;
-  }
-  .attr-add:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ===== Auto Save ステータスボタン ===== */
-  .save-status-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-size: 13px;
-    color: var(--text-tertiary);
-    background: none;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: 4px 10px;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .save-status-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .save-status-btn .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--border-default);
-    flex-shrink: 0;
-  }
-  .save-status-btn .dot.connected { background: var(--status-connected); }
-  .save-status-btn .dot.saving { background: var(--status-saving); }
-  .save-status-btn .dot.error { background: var(--status-error); }
-  .save-status-btn .save-hint { color: var(--text-muted); }
-
-  /* ===== ファイルドロップオーバーレイ ===== */
-  .file-drop-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: var(--accent-overlay);
-    border: 3px dashed var(--accent);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .file-drop-overlay.active { display: flex; }
-  .file-drop-overlay .drop-msg {
-    padding: var(--space-md) var(--space-xl);
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    font-size: 15px;
-    color: var(--accent);
-    font-weight: 600;
-    box-shadow: 0 2px 12px var(--shadow-dropdown);
-  }
-
-  .view-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-    cursor: pointer;
-    transition: outline 0.15s;
-  }
-  .view-card:hover {
-    outline: 1px solid var(--accent);
-    outline-offset: -1px;
-  }
-  .view-card.selected {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-  }
-
-  .view-card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
-  }
-
-  .view-card-header .view-name-input {
-    flex: 1;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    border: none;
-    background: none;
-    outline: none;
-    padding: 2px 4px;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-sans);
-  }
-  .view-card-header .view-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
-  .view-card-header .view-name-input:hover { background: var(--bg-subtle); }
-  .view-card-header .view-name-input:focus { border-bottom: 1px solid var(--accent); background: var(--bg-surface); }
-
-  .view-card-header .view-delete-btn {
-    margin-left: auto;
-    font-size: 13px;
-    padding: 2px 8px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-tertiary);
-  }
-  .view-card-header .view-delete-btn:hover { background: var(--bg-subtle); color: var(--danger); }
-
-  .view-field {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
-  }
-
-  .view-field label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    min-width: 80px;
-    flex-shrink: 0;
-  }
-
-  .view-field input,
-  .view-field select {
-    flex: 1;
-    padding: 6px var(--space-sm);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-family: var(--font-sans);
-    color: var(--text-primary);
-    background: var(--bg-surface);
-  }
-  .view-field input:focus,
-  .view-field select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .view-entities-section {
-    margin-top: var(--space-sm);
-  }
-
-  .view-entities-section .section-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-xs);
-  }
-
-  .view-entity-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-xs);
-  }
-
-  .view-entity-row select,
-  .view-entity-row input {
-    flex: 1;
-    padding: 6px var(--space-sm);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-family: var(--font-sans);
-    color: var(--text-primary);
-    background: var(--bg-surface);
-  }
-  .view-entity-row select:focus,
-  .view-entity-row input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .view-entity-row .entity-remove-btn {
-    font-size: 13px;
-    padding: 2px 6px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    cursor: pointer;
-    color: var(--text-tertiary);
-    flex-shrink: 0;
-  }
-  .view-entity-row .entity-remove-btn:hover { color: var(--danger); }
-
-  .view-add-entity-btn {
-    font-size: 13px;
-    padding: var(--space-xs) var(--space-sm);
-    border: 1px dashed var(--border-default);
-    border-radius: var(--radius-sm);
-    background: none;
-    cursor: pointer;
-    color: var(--text-tertiary);
-    margin-top: var(--space-xs);
-  }
-  .view-add-entity-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ===== Toast通知 ===== */
-  .toast {
-    display: none;
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-dark);
-    color: var(--bg-surface);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .toast.show { display: block; opacity: 1; }
-
-  /* ===== ユーティリティ ===== */
-  .hidden { display: none !important; }
-
-  /* ドラッグ中のゴースト */
-  .dragging { opacity: 0.4; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body,#root{height:100%;overflow:hidden}
+  .file-drop-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(79,70,229,.08);border:3px dashed #4f46e5;align-items:center;justify-content:center}
+  .file-drop-overlay.active{display:flex}
+  .drop-msg{font:600 18px system-ui;color:#4f46e5;background:white;padding:18px 36px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+  #cm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#18181b;color:white;padding:8px 20px;border-radius:8px;font:12px system-ui;opacity:0;transition:opacity .2s;z-index:10000;pointer-events:none}
+  #cm-toast.show{opacity:1}
+  #cm-toolbar{height:36px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;padding:0 12px;gap:8;flex-shrink:0;font:12px system-ui}
+  .cm-tb-btn{background:#f4f4f5;border:1px solid #e4e4e7;border-radius:5px;padding:3px 10px;font:600 11px system-ui;color:#3f3f46;cursor:pointer}
+  .cm-tb-btn:hover{background:#e4e4e7}
+  .cm-connect-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid #e4e4e7;border-radius:5px;padding:3px 10px;font:600 11px system-ui;color:#3f3f46;cursor:pointer}
+  .cm-connect-btn:hover{background:#f4f4f5}
+  .cm-dot{width:7px;height:7px;border-radius:50%;background:#d4d4d8}
+  .cm-dot.connected{background:#4caf50}.cm-dot.saving{background:#ff9800}.cm-dot.error{background:#f44336}
+  .cm-hint{font-weight:400;color:#a1a1aa;font-size:10px}
+  #cm-edited{display:none;font-size:10px;color:#d97706;font-weight:600}
+  .cm-auto-switch{display:none;align-items:center;gap:5px;font-size:11px;color:#71717a;cursor:pointer;user-select:none}
+  .cm-auto-switch .cm-switch-track{position:relative;width:30px;height:16px;background:#d4d4d8;border-radius:999px;transition:background .2s}
+  .cm-auto-switch.active .cm-switch-track{background:#4f46e5}
+  .cm-auto-switch .cm-switch-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+  .cm-auto-switch.active .cm-switch-thumb{left:16px}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="toolbar">
-    <div class="toolbar-left">
-      <span class="toolbar-title">Conceptual Model</span>
-      <button class="save-status-btn" id="btnConnect" onclick="connectFile()"><span class="dot" id="saveDot"></span><span id="saveLabel">Connect</span> <span class="save-hint" id="saveHint">(Drop a JSON file)</span></button>
-      <span class="edited-badge" id="editedBadge">Edited</span>
-      <button onclick="doUndo()" title="⌘Z">↩ Undo</button>
-      <button onclick="doRedo()" title="⌘⇧Z">↪ Redo</button>
-    </div>
-  </div>
-  <div class="canvas-pane">
-    <div class="pane-header">
-      <input id="rootLabel" class="pane-header-name" value="Root">
-      <div class="pane-header-actions">
-        <button onclick="addGroup()">+ Group</button>
-        <button onclick="addEntity()">+ Entity</button>
-        <button id="rootDirBtn" onclick="toggleRootDirection()">↕ Vertical</button>
-      </div>
-    </div>
-    <div class="canvas" id="canvas"></div>
-  </div>
-  <div class="views-pane" id="viewsPane">
-    <div class="pane-header">
-      <span>Views</span>
-      <div class="pane-header-actions">
-        <button onclick="addView()">+ Add View</button>
-      </div>
-    </div>
-    <div class="views-body" id="viewsList"></div>
-  </div>
+<div class="file-drop-overlay" id="cm-drop-overlay"><span class="drop-msg">Drop JSON file to connect</span></div>
+<div id="cm-toast"></div>
+<div id="cm-toolbar">
+  <label class="cm-auto-switch" id="cm-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="cm-switch-track"><span class="cm-switch-thumb"></span></span></label>
+  <button class="cm-connect-btn" id="cm-connect-btn" onclick="handleConnect()">
+    <span class="cm-dot" id="cm-dot"></span>
+    <span id="cm-label">Connect</span>
+    <span class="cm-hint" id="cm-hint">(Drop a JSON file)</span>
+  </button>
+  <span id="cm-edited">Edited</span>
+  <button class="cm-tb-btn" id="cm-saveas-btn" style="display:none" onclick="handleSaveAs()">Save to...</button>
 </div>
-<div class="file-drop-overlay" id="fileDropOverlay"><span class="drop-msg">JSONファイルをドロップして接続</span></div>
-<div class="toast" id="toast"></div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <script>
-// ===== データ =====
-let model = {
-  name: 'Conceptual Model',
-  root: { name: 'ルート', direction: 'vertical', children: [] },
-  views: []
-};
+// パススルーフィールド: CMエディタが編集しないフィールドを保持
+let passthrough={};
+let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,modelRef=null;
 
-// ===== Toast通知 =====
-let toastTimer = null;
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+function getFullJson(){
+  if(!modelRef)return null;
+  // CMフィールド + パススルーフィールドをマージ
+  return{...passthrough,entities:modelRef.entities,actors:modelRef.actors,composites:modelRef.composites};
 }
 
-// ===== Editedバッジ =====
-function showEditedBadge() {
-  document.getElementById('editedBadge').style.display = 'inline-block';
-}
-function hideEditedBadge() {
-  document.getElementById('editedBadge').style.display = 'none';
-}
+function updateStatus(s,l,h){document.getElementById('cm-dot').className='cm-dot '+(s||'');document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
+function showToast(m){const t=document.getElementById('cm-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000);}
+function markModified(){document.getElementById('cm-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
+function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
+async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('cm-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
+function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};if(saveTimer)clearTimeout(saveTimer);document.getElementById('cm-saveas-btn').style.display='none';document.getElementById('cm-auto-btn').style.display='none';document.getElementById('cm-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
+function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('cm-saveas-btn').style.display='';document.getElementById('cm-auto-btn').style.display='flex';}
 
-// ===== Undo / Redo =====
-const undoStack = [];
-const redoStack = [];
-const MAX_UNDO = 50;
-
-function pushUndo() {
-  undoStack.push(JSON.stringify(model));
-  if (undoStack.length > MAX_UNDO) undoStack.shift();
-  redoStack.length = 0;
-  showEditedBadge();
+function splitData(data){
+  // CMフィールドとパススルーフィールドに分離
+  const{entities,actors,composites,...rest}=data;
+  passthrough=rest; // screens, navigation, その他
+  return{entities:entities||[],actors:actors||[],composites:composites||[]};
 }
 
-function doUndo() {
-  if (!undoStack.length) return;
-  redoStack.push(JSON.stringify(model));
-  model = JSON.parse(undoStack.pop());
-  model.views = model.views || [];
-  selectedPath = null;
-  render();
-  showToast('Undo');
-}
+async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
+async function handleSaveAs(){const full=getFullJson();if(!full)return;try{const h=await window.showSaveFilePicker({id:'cm-editor',suggestedName:fileHandle?fileHandle.name:'conceptual-model.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});onFileConnected(h);await writeFile();showToast('保存しました: '+h.name);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
+function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
+let dragC=0;const ov=document.getElementById('cm-drop-overlay');
+document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
+document.addEventListener('dragleave',e=>{if(e.dataTransfer.types.includes('Files')){dragC--;if(dragC<=0){dragC=0;ov.classList.remove('active');}}});
+document.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();});
+document.addEventListener('drop',async e=>{dragC=0;ov.classList.remove('active');if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();for(const i of[...e.dataTransfer.items]){if(i.kind!=='file'||typeof i.getAsFileSystemHandle!=='function')continue;const h=await i.getAsFileSystemHandle();if(h.kind==='file'&&h.name.endsWith('.json')){const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);return;}}updateStatus('error','Drop not supported');});
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='s'){e.preventDefault();if(fileHandle)writeFile().then(()=>showToast('保存しました'));}});
+</script>
 
-function doRedo() {
-  if (!redoStack.length) return;
-  undoStack.push(JSON.stringify(model));
-  model = JSON.parse(redoStack.pop());
-  model.views = model.views || [];
-  selectedPath = null;
-  render();
-  showToast('Redo');
-}
+<script type="text/babel">
+const{useState,useRef,useCallback,useEffect}=React;
+const CRUD_OPS=["C","R","U","D"],CRUD_COLOR={C:"#16a34a",R:"#2563eb",U:"#d97706",D:"#dc2626"},CRUD_BG={C:"#f0fdf4",R:"#eff6ff",U:"#fffbeb",D:"#fef2f2"},SCOPE_OPTS=["all","own"],REL_TYPES=["has-many","has-one","belongs-to","many-to-many"],ENT_COLORS=["#4f46e5","#7c3aed","#db2777","#b45309","#047857","#0369a1","#c2410c","#0891b2"],EW=120,EH=42;
+const uid=()=>Math.random().toString(36).slice(2,8);
+const entColor=(ents,id)=>ENT_COLORS[Math.max(0,ents.findIndex(e=>e.id===id))%ENT_COLORS.length];
+function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
+const EMPTY={entities:[],actors:[],composites:[]};
+function ensurePositions(data){if(!data||!data.entities)return data;const cols=4,gapX=180,gapY=100,padX=80,padY=60;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
 
-// ===== 選択 =====
-let selectedPath = null; // 配列: ルートからのchildren index
-let selectedViewIndex = null; // ビューの選択インデックス
-let viewClipboard = null; // ビューのコピー用
+function Input({style,...p}){return<input{...p}style={{border:"1px solid #e4e4e7",borderRadius:5,background:"#fff",color:"#18181b",fontSize:12,padding:"5px 9px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#4f46e5";e.target.style.boxShadow="0 0 0 3px #e0e7ff"}}onBlur={e=>{e.target.style.borderColor="#e4e4e7";e.target.style.boxShadow="none"}}/>;}
+function Sel({style,children,...p}){return<select{...p}style={{border:"1px solid #e4e4e7",borderRadius:5,background:"#fff",color:"#52525b",fontSize:12,padding:"5px 8px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
+function Btn({children,onClick,accent,small,danger,ghost}){return<button onClick={onClick}style={{background:danger?"#fef2f2":accent?"#4f46e5":ghost?"transparent":"#f4f4f5",border:`1px solid ${danger?"#fca5a5":accent?"#4f46e5":ghost?"#e4e4e7":"#e4e4e7"}`,color:danger?"#dc2626":accent?"#fff":ghost?"#71717a":"#3f3f46",borderRadius:6,padding:small?"3px 9px":"6px 14px",fontSize:small?11:12,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",lineHeight:1.4}}>{children}</button>;}
+const SLabel=({children})=><div style={{fontSize:10,fontWeight:700,color:"#a1a1aa",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
-function getNodeByPath(path) {
-  let node = model.root;
-  for (const idx of path) {
-    if (!node.children) return null;
-    node = node.children[idx];
-    if (!node) return null;
-  }
-  return node;
-}
-
-function getParentByPath(path) {
-  if (path.length === 0) return null;
-  return getNodeByPath(path.slice(0, -1));
-}
-
-// ===== エンティティ名の収集（ビュー用） =====
-function collectEntityNames(node) {
-  const names = [];
-  if (node.type === 'entity') {
-    names.push(node.name);
-  }
-  if (node.children) {
-    for (const child of node.children) {
-      names.push(...collectEntityNames(child));
-    }
-  }
-  return names;
-}
-
-// ===== 文字幅計測 =====
-const _measureCanvas = document.createElement('canvas');
-const _measureCtx = _measureCanvas.getContext('2d');
-
-function measureTextWidth(text, font) {
-  _measureCtx.font = font || '13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  return Math.ceil(_measureCtx.measureText(text).width);
-}
-
-function fitInputWidth(input) {
-  const width = measureTextWidth(input.value || ' ') + 8; // 余白分
-  input.style.width = Math.max(width, 20) + 'px';
-}
-
-// ===== Auto Save（File System Access API） =====
-let fileHandle = null;
-let autoSaveTimer = null;
-let isSaving = false;
-const AUTO_SAVE_DELAY = 500; // ms
-
-function updateSaveStatus(state, label, hint) {
-  document.getElementById('saveDot').className = 'dot ' + state;
-  document.getElementById('saveLabel').textContent = label;
-  document.getElementById('saveHint').textContent = hint || '';
-}
-
-function disconnectFile() {
-  fileHandle = null;
-  clearTimeout(autoSaveTimer);
-  updateSaveStatus('', 'Connect', '(Drop a JSON file)');
-}
-
-// JSONファイルを読み込んで描画する共通処理
-const MAX_DEPTH = 50;
-function checkDepth(obj, depth) {
-  if (depth > MAX_DEPTH) return false;
-  if (obj && obj.children && Array.isArray(obj.children)) {
-    return obj.children.every(c => checkDepth(c, depth + 1));
-  }
-  return true;
-}
-
-async function loadJsonFromHandle(handle) {
-  let file, text, data;
-  try {
-    file = await handle.getFile();
-    text = await file.text();
-  } catch (e) {
-    console.error('Failed to read file:', e);
-    updateSaveStatus('error', 'ファイルの読み込みに失敗しました');
-    return false;
-  }
-  try { data = JSON.parse(text); } catch (e) {
-    console.error('JSON parse error:', e);
-    updateSaveStatus('error', 'Invalid JSON: ' + e.message);
-    return false;
-  }
-  if (data.root && !checkDepth(data.root, 0)) {
-    updateSaveStatus('error', 'JSON too deeply nested'); return false;
-  }
-  Object.keys(model).forEach(k => delete model[k]);
-  Object.assign(model, data);
-  model.views = model.views || [];
-  undoStack.length = 0;
-  redoStack.length = 0;
-  selectedPath = null;
-  selectedViewIndex = null;
-  fileHandle = handle;
-  updateSaveStatus('connected', handle.name);
-  // 空状態オーバーレイを非表示にする
-  const emptyState = document.getElementById('emptyState');
-  if (emptyState) emptyState.style.display = 'none';
-  render();
-  renderViews();
-  return true;
-}
-
-async function connectFile() {
-  // 接続中ならDisconnect
-  if (fileHandle) { disconnectFile(); return; }
-  if (!('showOpenFilePicker' in window)) {
-    alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
-    return;
-  }
-  try {
-    const [handle] = await window.showOpenFilePicker({
-      id: 'cm-editor',
-      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
-    });
-    await loadJsonFromHandle(handle);
-  } catch (e) {
-    if (e.name !== 'AbortError') {
-      console.error(e);
-      updateSaveStatus('error', 'Error');
-    }
-  }
-}
-
-async function writeToFile() {
-  if (!fileHandle || isSaving) return;
-  isSaving = true;
-  updateSaveStatus('saving', 'Saving...');
-  try {
-    const json = JSON.stringify(model, null, 2) + '\n';
-    const writable = await fileHandle.createWritable();
-    await writable.write(json);
-    await writable.close();
-    updateSaveStatus('connected', fileHandle.name);
-    hideEditedBadge();
-  } catch (e) {
-    console.error(e);
-    updateSaveStatus('error', 'Save failed');
-    // 権限が失われた場合はfileHandleをリセット
-    if (e.name === 'NotAllowedError') {
-      fileHandle = null;
-      updateSaveStatus('', 'Connect', '(Drop a JSON file)');
-    }
-  } finally {
-    isSaving = false;
-  }
-}
-
-function scheduleAutoSave() {
-  if (!fileHandle) return;
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => writeToFile(), AUTO_SAVE_DELAY);
-}
-
-// ===== ノード追加 =====
-function addGroup() {
-  pushUndo();
-  const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
-  const parent = (target && target.children) ? target : model.root;
-  parent.children.push({ name: '新規グループ', direction: 'vertical', children: [] });
-  render();
-}
-
-function addEntity() {
-  pushUndo();
-  const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
-  const parent = (target && target.children) ? target : model.root;
-  parent.children.push({ name: '新規エンティティ', type: 'entity', attributes: [] });
-  render();
-}
-
-// ===== ビュー操作 =====
-function addView() {
-  pushUndo();
-  model.views.push({ name: '', context: '', primaryType: 'table', entities: [] });
-  render();
-}
-
-function deleteView(index) {
-  pushUndo();
-  model.views.splice(index, 1);
-  render();
-}
-
-function addViewEntity(viewIndex) {
-  pushUndo();
-  model.views[viewIndex].entities.push({ entity: '', role: 'primary' });
-  render();
-}
-
-function removeViewEntity(viewIndex, entityIndex) {
-  pushUndo();
-  model.views[viewIndex].entities.splice(entityIndex, 1);
-  render();
-}
-
-// ===== ドラッグ&ドロップ =====
-let dragPath = null;
-let dropIndicator = null;
-let dropTarget = null; // { path, before }
-
-function onDragStart(e, path) {
-  dragPath = path;
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', '');
-  requestAnimationFrame(() => {
-    const el = getNodeElement(path);
-    if (el) el.classList.add('dragging');
-  });
-}
-
-function onDragEnd(e, path) {
-  const el = getNodeElement(path);
-  if (el) el.classList.remove('dragging');
-  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-  removeDropIndicator();
-  dragPath = null;
-  dropTarget = null;
-}
-
-function onDragOver(e, targetPath) {
-  if (!dragPath) return;
-  if (isDescendant(dragPath, targetPath)) return;
-  if (pathEquals(dragPath, targetPath)) { removeDropIndicator(); return; }
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-
-  const targetNode = getNodeByPath(targetPath);
-  // グループノードの上半分→グループの前に挿入、下半分→グループ内にドロップ
-  if (targetNode && targetNode.children) {
-    const el = getNodeElement(targetPath);
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const threshold = Math.min(rect.height * 0.25, 30);
-    const parent = getParentByPath(targetPath);
-    const parentDir = parent ? (parent.direction || 'vertical') : 'vertical';
-
-    if (parentDir === 'vertical' && e.clientY < rect.top + threshold) {
-      // グループの前にインジケータ表示
-      dropTarget = { path: targetPath, before: true, intoGroup: false };
-      showDropIndicator(el, true, true);
-    } else if (parentDir === 'vertical' && e.clientY > rect.bottom - threshold) {
-      // グループの後にインジケータ表示
-      dropTarget = { path: targetPath, before: false, intoGroup: false };
-      showDropIndicator(el, true, false);
-    } else if (parentDir === 'horizontal' && e.clientX < rect.left + threshold) {
-      dropTarget = { path: targetPath, before: true, intoGroup: false };
-      showDropIndicator(el, false, true);
-    } else if (parentDir === 'horizontal' && e.clientX > rect.right - threshold) {
-      dropTarget = { path: targetPath, before: false, intoGroup: false };
-      showDropIndicator(el, false, false);
-    } else {
-      // グループ内にドロップ
-      removeDropIndicator();
-      el.classList.add('drag-over');
-      dropTarget = { path: targetPath, before: false, intoGroup: true };
-    }
-    return;
-  }
-
-  // 子ノード（エンティティ）: 前/後のインジケータ
-  const el = getNodeElement(targetPath);
-  if (!el) return;
-  const rect = el.getBoundingClientRect();
-  const parent = getParentByPath(targetPath);
-  const isVertical = parent ? (parent.direction || 'vertical') === 'vertical' : true;
-  let before;
-  if (isVertical) {
-    before = e.clientY < rect.top + rect.height / 2;
-  } else {
-    before = e.clientX < rect.left + rect.width / 2;
-  }
-  dropTarget = { path: targetPath, before, intoGroup: false };
-  showDropIndicator(el, isVertical, before);
-}
-
-function onDragEnter(e, targetPath) {
-  if (!dragPath || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
-  e.preventDefault();
-}
-
-function onDragLeave(e, targetPath) {
-  const el = getNodeElement(targetPath);
-  if (el) el.classList.remove('drag-over');
-}
-
-function onDrop(e, targetPath) {
-  e.preventDefault();
-  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-  removeDropIndicator();
-  if (!dragPath || !dropTarget || isDescendant(dragPath, targetPath) || pathEquals(dragPath, targetPath)) return;
-
-  // ソースノードを削除
-  const srcParent = getParentByPath(dragPath);
-  if (!srcParent) return;
-  const srcIdx = dragPath[dragPath.length - 1];
-
-  pushUndo();
-
-  if (dropTarget.intoGroup) {
-    // グループの中にドロップ
-    const targetNode = getNodeByPath(dropTarget.path);
-    const [removed] = srcParent.children.splice(srcIdx, 1);
-    targetNode.children.push(removed);
-  } else {
-    // 兄弟として挿入
-    const tgtParent = getParentByPath(dropTarget.path);
-    if (!tgtParent) return;
-    let tgtIdx = dropTarget.path[dropTarget.path.length - 1];
-
-    // 同一親の場合のインデックス調整
-    const sameParent = pathEquals(dragPath.slice(0, -1), dropTarget.path.slice(0, -1));
-    const [removed] = srcParent.children.splice(srcIdx, 1);
-    if (sameParent && srcIdx < tgtIdx) tgtIdx--;
-    if (!dropTarget.before) tgtIdx++;
-    tgtParent.children.splice(tgtIdx, 0, removed);
-  }
-
-  dragPath = null;
-  dropTarget = null;
-  selectedPath = null;
-  render();
-}
-
-function showDropIndicator(targetEl, isVertical, before) {
-  removeDropIndicator();
-  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-
-  dropIndicator = document.createElement('div');
-  dropIndicator.className = 'drop-indicator';
-
-  const rect = targetEl.getBoundingClientRect();
-  if (isVertical) {
-    dropIndicator.style.height = '4px';
-    dropIndicator.style.left = `${rect.left}px`;
-    dropIndicator.style.width = `${rect.width}px`;
-    dropIndicator.style.top = before ? `${rect.top - 2}px` : `${rect.bottom - 2}px`;
-  } else {
-    dropIndicator.style.width = '4px';
-    dropIndicator.style.top = `${rect.top}px`;
-    dropIndicator.style.height = `${rect.height}px`;
-    dropIndicator.style.left = before ? `${rect.left - 2}px` : `${rect.right - 2}px`;
-  }
-  document.body.appendChild(dropIndicator);
-}
-
-function removeDropIndicator() {
-  if (dropIndicator) {
-    dropIndicator.remove();
-    dropIndicator = null;
-  }
-}
-
-function isDescendant(parentPath, childPath) {
-  if (childPath.length <= parentPath.length) return false;
-  for (let i = 0; i < parentPath.length; i++) {
-    if (parentPath[i] !== childPath[i]) return false;
-  }
-  return true;
-}
-
-function pathEquals(a, b) {
-  if (!a || !b) return false;
-  if (a.length !== b.length) return false;
-  return a.every((v, i) => v === b[i]);
-}
-
-function getNodeElement(path) {
-  return document.querySelector(`[data-path="${path.join(',')}"]`);
-}
-
-// ===== コピー&ペースト =====
-let clipboard = null;
-
-// ===== 削除 =====
-function deleteNode(path) {
-  if (path.length === 0) return; // ルートは削除不可
-  pushUndo();
-  const parent = getParentByPath(path);
-  const idx = path[path.length - 1];
-  parent.children.splice(idx, 1);
-  selectedPath = null;
-  render();
-}
-
-// ===== 空状態表示 =====
-function showEmptyState() {
-  const canvas = document.getElementById('canvas');
-  const viewsList = document.getElementById('viewsList');
-  const overlay = document.createElement('div');
-  overlay.id = 'emptyState';
-  overlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:#888;';
-  overlay.innerHTML = `
-    <div style="font-size:48px;">📂</div>
-    <div style="font-size:16px;font-weight:600;">JSONファイルを読み込んでください</div>
-    <div style="font-size:13px;color:#aaa;text-align:center;line-height:1.6;">
-      JSONファイルをドラッグ&ドロップするか、<br>
-      上部の「Connect」ボタンをクリックしてファイルを選択してください。<br>
-      接続すると編集内容が自動保存されます。
+function EntityView({model,setModel}){
+  const[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
+  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const ents=model.entities,selEnt=ents.find(e=>e.id===selId);
+  const onBoxMD=(e,id)=>{e.stopPropagation();if(conn!==null){if(conn===""){setConn(id);return;}if(conn!==id){const nr={id:uid(),targetId:id,type:"has-many",label:""};setModel(m=>({...m,entities:m.entities.map(en=>en.id===conn?{...en,relations:[...en.relations,nr]}:en)}));setConn(null);}return;}setSelId(id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:e.clientX-r.left+pan.x-en.x,y:e.clientY-r.top+pan.y-en.y};setDrag(id);};
+  const onBgMD=e=>{if(conn!==null)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
+  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModel(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,e.clientX-r.left+pan.x-dOff.current.x),y:Math.max(0,e.clientY-r.top+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x),y:panStart.current.py-(e.clientY-panStart.current.y)});}},[drag,panning,pan]);
+  const onUp=()=>{setDrag(null);setPanning(false);};
+  const onWheel=useCallback(e=>{e.preventDefault();setPan(p=>({x:p.x+e.deltaX,y:p.y+e.deltaY}));},[]);
+  const upd=u=>setModel(m=>({...m,entities:m.entities.map(e=>e.id===u.id?u:e)}));
+  const addEnt=()=>{const id=uid();setModel(m=>({...m,entities:[...m.entities,{id,name:"NewEntity",x:120+pan.x,y:120+pan.y,relations:[]}]}));setSelId(id);};
+  const connOn=conn!==null,connHasSrc=conn!==null&&conn!=="";
+  return(
+    <div style={{display:"flex",height:"100%"}}>
+      <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+        <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":panning?"grabbing":connOn?"crosshair":"grab",display:"block"}} onMouseMove={onMM} onMouseUp={onUp} onMouseLeave={onUp} onWheel={onWheel} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg')){if(!connOn)setSelId(null);}}}>
+          <defs><pattern id="dotpat" width="24" height="24" patternUnits="userSpaceOnUse" x={-pan.x%24} y={-pan.y%24}><circle cx="1" cy="1" r="1" fill="#e4e4e7"/></pattern><marker id="marr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker><marker id="marr-hi" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f46e5"/></marker></defs>
+          <rect width="100%" height="100%" fill="url(#dotpat)" data-bg="1" onMouseDown={onBgMD}/>
+          <g transform={`translate(${-pan.x},${-pan.y})`}>
+          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<g key={`${ent.id}-${ri}`}><path d={`M${lx},${ty} C${lx+38},${ty-14} ${lx+38},${ty+28} ${lx},${ty+20}`} fill="none" stroke="#cbd5e1" strokeWidth="1.5" markerEnd="url(#marr)"/>{rel.label&&<text x={lx+42} y={ty+6} fontSize={9} fill="#94a3b8">{rel.label}</text>}</g>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2,hi=selId===ent.id||selId===tgt.id,col=hi?"#4f46e5":"#94a3b8";return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray="5 3" markerEnd={hi?"url(#marr-hi)":"url(#marr)"}/>{rel.label&&<><rect x={mx-22} y={my-8} width={44} height={15} rx={3} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={9} fill={col} textAnchor="middle">{rel.label}</text></>}</g>;}))}
+          {ents.map(ent=>{const c=entColor(ents,ent.id),isSel=selId===ent.id,isCS=conn===ent.id;return<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:connOn?"pointer":"grab"}}><rect x={2} y={3} width={EW} height={EH} rx={8} fill="rgba(0,0,0,0.05)"/><rect width={EW} height={EH} rx={8} fill="white" stroke={isCS?"#f59e0b":isSel?c:"#e4e4e7"} strokeWidth={isSel||isCS?2:1}/><rect width={EW} height={EH} rx={8} fill={c} opacity="0.08"/><rect x={0} y={0} width={4} height={EH} rx={2} fill={c}/><text x={16} y={EH/2+5} fontSize={13} fontWeight="700" fill={c} fontFamily="inherit">{ent.name}</text></g>;})}
+          </g>
+        </svg>
+        <div style={{position:"absolute",top:16,left:16,display:"flex",gap:8,alignItems:"center"}}><Btn small onClick={addEnt}>+ Entity</Btn><Btn small ghost={!connOn} accent={connOn} onClick={()=>setConn(connOn?null:"")}>{connOn?(connHasSrc?"→ select target":"← select source"):"↗ Connect"}</Btn>{connOn&&<Btn small ghost onClick={()=>setConn(null)}>✕</Btn>}</div>
+      </div>
+      {selEnt&&<EntityPanel key={selEnt.id} entity={selEnt} entities={ents} onUpdate={upd} onDelete={()=>{setSelId(null);setModel(m=>({...m,entities:m.entities.filter(e=>e.id!==selEnt.id)}));}} onClose={()=>setSelId(null)}/>}
     </div>
-  `;
-  canvas.appendChild(overlay);
-  viewsList.innerHTML = '<div style="padding:16px;color:#888;text-align:center;font-size:13px;">JSONファイル接続後に表示されます</div>';
+  );
 }
 
-// ===== レンダリング =====
-function render() {
-  // サブヘッダーにルート名とdirectionを反映
-  document.getElementById('rootLabel').value = model.root.name || 'Root';
-  const dirBtn = document.getElementById('rootDirBtn');
-  dirBtn.textContent = model.root.direction === 'vertical' ? '↕ Vertical' : '↔ Horizontal';
-  dirBtn.title = model.root.direction === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical';
-
-  // 左ペイン: ルートのchildrenだけ描画（ルートカードは不要）
-  const canvas = document.getElementById('canvas');
-  canvas.innerHTML = '';
-  canvas.style.flexDirection = model.root.direction === 'vertical' ? 'column' : 'row';
-  model.root.children.forEach((child, i) => {
-    canvas.appendChild(renderNode(child, [i]));
-  });
-
-  // 右ペイン: ビュー定義
-  renderViews();
-
-  scheduleAutoSave();
+function EntityPanel({entity,entities,onUpdate,onDelete,onClose}){
+  const c=entColor(entities,entity.id),upd=p=>onUpdate({...entity,...p});
+  const addRel=()=>{const o=entities.find(e=>e.id!==entity.id);if(!o)return;upd({relations:[...entity.relations,{id:uid(),targetId:o.id,type:"has-many",label:""}]});};
+  const updRel=(id,k,v)=>upd({relations:entity.relations.map(r=>r.id===id?{...r,[k]:v}:r)});
+  const delRel=id=>upd({relations:entity.relations.filter(r=>r.id!==id)});
+  return(
+    <div style={{width:280,borderLeft:"1px solid #e4e4e7",background:"#fafafa",display:"flex",flexDirection:"column",flexShrink:0}}>
+      <div style={{padding:"11px 16px",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"center",justifyContent:"space-between",background:"white"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:11,fontWeight:700,color:"#71717a",letterSpacing:"0.08em",textTransform:"uppercase"}}>Entity</span></div><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#d4d4d8",lineHeight:1,padding:"0 2px"}}>×</button></div>
+      <div style={{flex:1,overflowY:"auto",padding:16}}>
+        <div style={{marginBottom:18}}><SLabel>Name</SLabel><Input value={entity.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:14,fontWeight:600}}/></div>
+        <div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><SLabel>Relations</SLabel>{entities.length>1&&<Btn small ghost onClick={addRel}>+ Add</Btn>}</div>
+          {entity.relations.map(r=>(<div key={r.id} style={{background:"white",border:"1px solid #e4e4e7",borderRadius:6,padding:"7px 8px",marginBottom:4}}><div style={{display:"flex",gap:4,marginBottom:4,alignItems:"center"}}><Sel value={r.targetId} onChange={e=>updRel(r.id,"targetId",e.target.value)} style={{flex:1}}>{entities.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</Sel><button onClick={()=>delRel(r.id)} style={{background:"none",border:"none",color:"#d4d4d8",cursor:"pointer",fontSize:15,lineHeight:1,padding:"0 1px"}}>×</button></div><div style={{display:"flex",gap:4}}><Sel value={r.type} onChange={e=>updRel(r.id,"type",e.target.value)} style={{flex:1,fontSize:11}}>{REL_TYPES.map(t=><option key={t}>{t}</option>)}</Sel><Input value={r.label} placeholder="label" onChange={e=>updRel(r.id,"label",e.target.value)} style={{flex:1,fontSize:11}}/></div></div>))}
+          {entity.relations.length===0&&<div style={{fontSize:11,color:"#d4d4d8",padding:"4px 0"}}>No relations — use ↗ Connect on canvas or + Add</div>}
+        </div>
+      </div>
+      <div style={{borderTop:"1px solid #f4f4f5",padding:16}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
+    </div>
+  );
 }
 
-function renderViews() {
-  const list = document.getElementById('viewsList');
-  list.innerHTML = '';
-
-  const entityNames = collectEntityNames(model.root);
-
-  model.views.forEach((view, vi) => {
-    list.appendChild(renderViewCard(view, vi, entityNames));
-  });
+function ActorView({model,setModel}){
+  const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null),[editingName,setEditingName]=useState(false);
+  const svgRef=useRef(),dOff=useRef({x:0,y:0});
+  const actor=model.actors.find(a=>a.id===actorId),ents=model.entities,selEnt=ents.find(e=>e.id===selEntId),touch=actor?actor.touches.find(t=>t.entityId===selEntId):null;
+  const updActor=u=>setModel(m=>({...m,actors:m.actors.map(a=>a.id===u.id?u:a)}));
+  const addActor=()=>{const id=uid();setModel(m=>({...m,actors:[...m.actors,{id,name:"New Actor",touches:[]}]}));setActorId(id);setSelEntId(null);};
+  const delActor=()=>{const r=model.actors.filter(a=>a.id!==actorId);setActorId(r[0]?.id||null);setSelEntId(null);setModel(m=>({...m,actors:r}));};
+  const onBoxMD=(e,id)=>{e.stopPropagation();setSelEntId(prev=>prev===id?null:id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:e.clientX-r.left-en.x,y:e.clientY-r.top-en.y};setDrag(id);};
+  const onMM=useCallback(e=>{if(!drag)return;const r=svgRef.current.getBoundingClientRect();setModel(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,e.clientX-r.left-dOff.current.x),y:Math.max(0,e.clientY-r.top-dOff.current.y)}:en)}));},[drag]);
+  const addTouch=eid=>{if(!actor)return;updActor({...actor,touches:[...actor.touches,{entityId:eid,scope:"all",crud:["R"]}]});setSelEntId(eid);};
+  const removeTouch=eid=>{if(!actor)return;updActor({...actor,touches:actor.touches.filter(t=>t.entityId!==eid)});setSelEntId(null);};
+  const updTouch=(eid,k,v)=>{if(!actor)return;updActor({...actor,touches:actor.touches.map(t=>t.entityId===eid?{...t,[k]:v}:t)});};
+  const toggleCrud=(eid,op)=>{if(!actor)return;const t=actor.touches.find(t=>t.entityId===eid);if(!t)return;const crud=t.crud.includes(op)?t.crud.filter(c=>c!==op):[...t.crud,op];updActor({...actor,touches:actor.touches.map(tt=>tt.entityId===eid?{...tt,crud}:tt)});};
+  if(!actor)return(<div style={{display:"flex",height:"100%",flexDirection:"column"}}><div style={{padding:16,borderBottom:"1px solid #e4e4e7",background:"white",display:"flex",gap:8}}><Btn small onClick={addActor}>+ Add Actor</Btn></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#d4d4d8",fontSize:13}}>No actors yet</div></div>);
+  return(
+    <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+      <div style={{background:"white",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:12,minHeight:42}}>
+        {model.actors.map(a=>(<button key={a.id} onClick={()=>{setActorId(a.id);setSelEntId(null);}} style={{padding:"0 16px",border:"none",background:"transparent",cursor:"pointer",color:actorId===a.id?"#18181b":"#a1a1aa",fontSize:12,fontWeight:actorId===a.id?700:400,borderBottom:`2px solid ${actorId===a.id?"#4f46e5":"transparent"}`,borderTop:"2px solid transparent",fontFamily:"inherit",whiteSpace:"nowrap"}}>{a.name}</button>))}
+        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",paddingRight:12,gap:6}}><Btn small ghost onClick={addActor}>+ Add</Btn></div>
+      </div>
+      <div style={{flex:1,display:"flex",overflow:"hidden"}}>
+        <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+          <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":"default",display:"block"}} onMouseMove={onMM} onMouseUp={()=>setDrag(null)} onMouseLeave={()=>setDrag(null)} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg'))setSelEntId(null);}}>
+            <defs><pattern id="dotpat2" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#e4e4e7"/></pattern><marker id="marr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker></defs>
+            <rect width="100%" height="100%" fill="url(#dotpat2)" data-bg="1"/>
+            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>{rel.label&&<><rect x={mx-22} y={my-8} width={44} height={15} rx={3} fill="white" stroke="#94a3b8" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={9} fill="#94a3b8" textAnchor="middle">{rel.label}</text></>}</g>;}))}
+            {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,c=entColor(ents,ent.id),isSel=selEntId===ent.id,boxC=touched?c:"#d4d4d8",fillOp=touched?0.08:0.03,textC=touched?(isSel?"#18181b":"#52525b"):"#b4b4b4";return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={2} y={3} width={EW} height={EH+(touched?20:0)} rx={8} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={EH+(touched?20:0)} rx={8} fill="white" stroke={isSel?boxC:"#e4e4e7"} strokeWidth={isSel?2:1}/><rect width={EW} height={EH+(touched?20:0)} rx={8} fill={boxC} opacity={fillOp}/><rect x={0} y={0} width={4} height={EH+(touched?20:0)} rx={2} fill={boxC}/><text x={16} y={EH/2+5} fontSize={13} fontWeight={touched?"700":"400"} fill={textC} fontFamily="inherit">{ent.name}</text>{touched&&t.crud.map((op,oi)=>(<g key={op} transform={`translate(${14+oi*26},${EH+2})`}><rect width={22} height={14} rx={3} fill={CRUD_BG[op]}/><text x={11} y={11} fontSize={9} fontWeight="800" fill={CRUD_COLOR[op]} textAnchor="middle">{op}</text></g>))}{touched&&t.scope==="own"&&(<text x={EW-8} y={EH+13} fontSize={9} fill="#a1a1aa" textAnchor="end" fontFamily="inherit">own</text>)}{!touched&&(<text x={EW/2} y={EH/2+5} fontSize={10} fill="#d4d4d8" textAnchor="middle" fontFamily="inherit" dx={12}>＋</text>)}</g>);})}
+          </svg>
+          <div style={{position:"absolute",bottom:16,left:16,display:"flex",alignItems:"center",gap:8}}>
+            {editingName?(<Input value={actor.name} onChange={e=>updActor({...actor,name:e.target.value})} onBlur={()=>setEditingName(false)} autoFocus style={{fontSize:13,fontWeight:600,width:160}}/>):(<button onClick={()=>setEditingName(true)} style={{background:"white",border:"1px solid #e4e4e7",borderRadius:6,padding:"5px 12px",fontSize:13,fontWeight:600,color:"#3f3f46",cursor:"pointer",fontFamily:"inherit"}}>✎ {actor.name}</button>)}
+            <Btn small danger onClick={delActor}>Delete actor</Btn>
+          </div>
+        </div>
+        {selEnt&&(
+          <div style={{width:260,borderLeft:"1px solid #e4e4e7",background:"#fafafa",display:"flex",flexDirection:"column",flexShrink:0}}>
+            <div style={{padding:"11px 16px",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"center",justifyContent:"space-between",background:"white"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:entColor(ents,selEnt.id)}}/><span style={{fontSize:12,fontWeight:700,color:"#18181b"}}>{selEnt.name}</span></div><button onClick={()=>setSelEntId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#d4d4d8",lineHeight:1,padding:"0 2px"}}>×</button></div>
+            <div style={{padding:16,flex:1,display:"flex",flexDirection:"column"}}>
+              {touch?(<><div style={{flex:1}}><div style={{marginBottom:16}}><SLabel>Scope</SLabel><div style={{display:"flex",gap:6}}>{SCOPE_OPTS.map(sc=>(<button key={sc} onClick={()=>updTouch(selEnt.id,"scope",sc)} style={{flex:1,padding:"6px 0",fontSize:12,fontWeight:700,borderRadius:6,cursor:"pointer",border:`1px solid ${touch.scope===sc?"#4f46e5":"#e4e4e7"}`,background:touch.scope===sc?"#eef2ff":"white",color:touch.scope===sc?"#4338ca":"#a1a1aa"}}>{sc}</button>))}</div></div><div><SLabel>CRUD</SLabel><div style={{display:"flex",gap:6}}>{CRUD_OPS.map(op=>{const on=touch.crud.includes(op);return<button key={op} onClick={()=>toggleCrud(selEnt.id,op)} style={{flex:1,padding:"10px 0",fontSize:13,fontWeight:800,borderRadius:6,cursor:"pointer",border:"none",background:on?CRUD_BG[op]:"#f4f4f5",color:on?CRUD_COLOR[op]:"#d4d4d8"}}>{op}</button>;})}</div></div></div><div style={{borderTop:"1px solid #f4f4f5",paddingTop:14,marginTop:14}}><Btn danger onClick={()=>removeTouch(selEnt.id)}>Remove access</Btn></div></>):(<div style={{textAlign:"center",paddingTop:24}}><div style={{fontSize:12,color:"#a1a1aa",marginBottom:16,lineHeight:1.6}}>{actor.name} has no access<br/>to {selEnt.name}</div><Btn accent onClick={()=>addTouch(selEnt.id)}>+ Grant access</Btn></div>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-function renderNode(node, path) {
-  if (node.type === 'entity') {
-    return renderEntity(node, path);
-  }
-  return renderGroup(node, path);
+function CompositeView({model,setModel}){
+  const[selId,setSelId]=useState(model.composites[0]?.id||null);
+  const sel_=model.composites.find(c=>c.id===selId);
+  const add=()=>{const id=uid();setModel(m=>({...m,composites:[...m.composites,{id,name:"New Composite",actorId:m.actors[0]?.id||"",uses:[]}]}));setSelId(id);};
+  const upd=u=>setModel(m=>({...m,composites:m.composites.map(c=>c.id===u.id?u:c)}));
+  return(
+    <div style={{display:"flex",height:"100%"}}>
+      <div style={{width:220,borderRight:"1px solid #e4e4e7",background:"white",display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"14px 16px 10px",borderBottom:"1px solid #f4f4f5",display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
+        <div style={{flex:1,overflowY:"auto"}}>
+          {model.composites.length===0&&<div style={{padding:16,fontSize:12,color:"#d4d4d8",lineHeight:1.6}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
+          {model.composites.map(comp=>{const isSel=selId===comp.id,actor=model.actors.find(a=>a.id===comp.actorId);return<div key={comp.id} onClick={()=>setSelId(comp.id)} style={{padding:"10px 16px",cursor:"pointer",borderBottom:"1px solid #fafafa",borderLeft:`3px solid ${isSel?"#f59e0b":"transparent"}`,background:isSel?"#fffbeb":"transparent"}}><div style={{fontSize:13,fontWeight:600,color:isSel?"#b45309":"#3f3f46"}}>{comp.name}</div><div style={{fontSize:11,color:"#a1a1aa",marginTop:2}}>{actor?.name||"—"} · {comp.uses.length} entities</div></div>;})}
+        </div>
+      </div>
+      {sel_?(<CompositePanel key={sel_.id} comp={sel_} model={model} onUpdate={upd} onDelete={()=>{setSelId(model.composites.find(c=>c.id!==sel_.id)?.id||null);setModel(m=>({...m,composites:m.composites.filter(c=>c.id!==sel_.id)}));}}/>):(<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#d4d4d8",fontSize:13}}>Select a composite</div>)}
+    </div>
+  );
 }
 
-function renderGroup(node, path) {
-  const div = document.createElement('div');
-  div.className = 'node group' + (pathEquals(selectedPath, path) ? ' selected' : '');
-  div.dataset.path = path.join(',');
-  div.setAttribute('draggable', path.length > 0 ? 'true' : 'false');
-
-  if (path.length > 0) {
-    div.addEventListener('dragstart', e => { e.stopPropagation(); onDragStart(e, path); });
-    div.addEventListener('dragend', e => onDragEnd(e, path));
-  }
-  div.addEventListener('dragover', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, path); });
-  div.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, path); });
-  div.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, path); });
-  div.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, path); });
-
-  const inner = document.createElement('div');
-  inner.className = 'node-inner';
-
-  // ヘッダー
-  const header = document.createElement('div');
-  header.className = 'group-header';
-  header.addEventListener('click', e => {
-    e.stopPropagation();
-    selectedPath = pathEquals(selectedPath, path) ? null : path;
-    selectedViewIndex = null;
-    render();
-  });
-
-  if (path.length > 0) {
-    const grab = document.createElement('div');
-    grab.className = 'grab-bar';
-    grab.innerHTML = '<span></span><span></span><span></span>';
-    header.appendChild(grab);
-  }
-
-  const nameInput = document.createElement('input');
-  nameInput.className = 'group-name';
-  nameInput.value = node.name;
-  if (path.length === 0) nameInput.style.display = 'none'; // ルート名はサブヘッダーで表示
-  nameInput.addEventListener('click', e => e.stopPropagation());
-  nameInput.addEventListener('change', e => {
-    pushUndo();
-    node.name = e.target.value;
-    if (path.length === 0) document.getElementById('rootLabel').textContent = e.target.value || 'Root';
-    scheduleAutoSave();
-  });
-  header.appendChild(nameInput);
-
-  const dirBtn = document.createElement('button');
-  dirBtn.className = 'direction-btn';
-  dirBtn.textContent = node.direction === 'vertical' ? '↕' : '↔';
-  dirBtn.title = node.direction === 'vertical' ? 'vertical → horizontal' : 'horizontal → vertical';
-  dirBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    pushUndo();
-    node.direction = node.direction === 'vertical' ? 'horizontal' : 'vertical';
-    render();
-  });
-  header.appendChild(dirBtn);
-
-  if (path.length > 0) {
-    const actions = document.createElement('div');
-    actions.className = 'group-actions';
-
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '✕';
-    delBtn.title = '削除';
-    delBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      deleteNode(path);
-    });
-    actions.appendChild(delBtn);
-    header.appendChild(actions);
-  }
-
-  inner.appendChild(header);
-
-  // 子要素
-  const children = document.createElement('div');
-  children.className = 'group-children ' + node.direction;
-
-  if (node.children.length === 0) {
-    const dropZone = document.createElement('div');
-    dropZone.className = 'drop-zone';
-    children.appendChild(dropZone);
-  } else {
-    node.children.forEach((child, i) => {
-      children.appendChild(renderNode(child, [...path, i]));
-    });
-  }
-
-  inner.appendChild(children);
-  div.appendChild(inner);
-  return div;
+function CompositePanel({comp,model,onUpdate,onDelete}){
+  const upd=p=>onUpdate({...comp,...p}),toggle=eid=>{const uses=comp.uses.includes(eid)?comp.uses.filter(u=>u!==eid):[...comp.uses,eid];upd({uses});};
+  return(
+    <div style={{flex:1,overflowY:"auto",padding:24,background:"#fafafa"}}>
+      <div style={{marginBottom:24}}><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:18,fontWeight:700,border:"none",background:"transparent",padding:0,width:"auto",boxShadow:"none"}}/></div>
+      <div style={{marginBottom:20}}><SLabel>Actor</SLabel><Sel value={comp.actorId} onChange={e=>upd({actorId:e.target.value})} style={{width:"100%"}}><option value="">— select —</option>{model.actors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</Sel></div>
+      <div><SLabel>Entities in this screen</SLabel><div style={{display:"flex",flexDirection:"column",gap:5}}>
+        {model.entities.map(ent=>{const c=entColor(model.entities,ent.id),used=comp.uses.includes(ent.id);return<div key={ent.id} onClick={()=>toggle(ent.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:used?c+"0f":"white",border:`1px solid ${used?c+"60":"#e4e4e7"}`,borderRadius:7,cursor:"pointer",transition:"all .1s"}}><div style={{width:16,height:16,borderRadius:4,border:`2px solid ${used?c:"#e4e4e7"}`,background:used?c:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{used&&<span style={{color:"white",fontSize:10,fontWeight:900,lineHeight:1}}>✓</span>}</div><div style={{display:"flex",alignItems:"center",gap:7}}><div style={{width:7,height:7,borderRadius:"50%",background:c}}/><span style={{fontSize:13,fontWeight:600,color:used?"#18181b":"#71717a"}}>{ent.name}</span></div></div>;})}
+      </div></div>
+      {comp.uses.length>0&&(<div style={{marginTop:20,padding:14,background:"white",border:"1px solid #fde68a",borderRadius:8}}><div style={{fontSize:10,fontWeight:700,color:"#a1a1aa",marginBottom:8,letterSpacing:"0.08em",textTransform:"uppercase"}}>Preview</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{comp.uses.map(eid=>{const ent=model.entities.find(e=>e.id===eid),c=entColor(model.entities,eid);return ent?<span key={eid} style={{padding:"3px 10px",background:c+"12",border:`1px solid ${c}40`,borderRadius:99,fontSize:11,color:c,fontWeight:600}}>{ent.name}</span>:null;})}</div></div>)}
+      <div style={{borderTop:"1px solid #f4f4f5",paddingTop:14,marginTop:14}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
+    </div>
+  );
 }
 
-function renderEntity(node, path) {
-  const div = document.createElement('div');
-  div.className = 'node entity' + (pathEquals(selectedPath, path) ? ' selected' : '');
-  div.dataset.path = path.join(',');
-  div.setAttribute('draggable', 'true');
+function JsonModal({onClose}){
+  const json=JSON.stringify(getFullJson(),null,2),[copied,setCopied]=useState(false);
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.35)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}} onClick={onClose}><div style={{background:"white",borderRadius:12,boxShadow:"0 24px 64px rgba(0,0,0,.18)",width:620,maxHeight:"78vh",display:"flex",flexDirection:"column",overflow:"hidden"}} onClick={e=>e.stopPropagation()}><div style={{padding:"13px 18px",borderBottom:"1px solid #f4f4f5",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:11,fontWeight:700,color:"#a1a1aa",letterSpacing:"0.1em",textTransform:"uppercase"}}>Full JSON (including screens)</span><div style={{display:"flex",gap:8}}><Btn small onClick={()=>{navigator.clipboard?.writeText(json);setCopied(true);setTimeout(()=>setCopied(false),1500);}}>{copied?"✓ Copied":"Copy"}</Btn><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#a1a1aa",lineHeight:1}}>×</button></div></div><textarea readOnly value={json} style={{flex:1,fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:11,lineHeight:1.6,background:"#fafafa",border:"none",color:"#52525b",padding:18,resize:"none",outline:"none",overflowY:"auto"}}/></div></div>);
+}
 
-  div.addEventListener('dragstart', e => { e.stopPropagation(); onDragStart(e, path); });
-  div.addEventListener('dragend', e => onDragEnd(e, path));
-  div.addEventListener('dragover', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, path); });
-  div.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, path); });
-  div.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, path); });
-  div.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, path); });
+const TABS=[{id:"entity",label:"Entity"},{id:"actor",label:"Actor"},{id:"composite",label:"Composite"}];
 
-  const inner = document.createElement('div');
-  inner.className = 'node-inner';
-
-  // ヘッダー
-  const header = document.createElement('div');
-  header.className = 'entity-header';
-  header.addEventListener('click', e => {
-    e.stopPropagation();
-    selectedPath = pathEquals(selectedPath, path) ? null : path;
-    selectedViewIndex = null;
-    render();
-  });
-
-  const grab = document.createElement('div');
-  grab.className = 'grab-bar';
-  grab.innerHTML = '<span></span><span></span><span></span>';
-  header.appendChild(grab);
-
-  const nameInput = document.createElement('input');
-  nameInput.className = 'entity-name';
-  nameInput.value = node.name;
-  nameInput.addEventListener('click', e => e.stopPropagation());
-  nameInput.addEventListener('change', e => {
-    pushUndo();
-    node.name = e.target.value;
-    scheduleAutoSave();
-  });
-  header.appendChild(nameInput);
-
-  const actions = document.createElement('div');
-  actions.className = 'entity-actions';
-
-  const delBtn = document.createElement('button');
-  delBtn.textContent = '✕';
-  delBtn.title = '削除';
-  delBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    deleteNode(path);
-  });
-  actions.appendChild(delBtn);
-  header.appendChild(actions);
-
-  inner.appendChild(header);
-
-  // 属性タグ
-  const attrs = document.createElement('div');
-  attrs.className = 'attributes';
-
-  node.attributes.forEach((attr, i) => {
-    const tag = document.createElement('span');
-    tag.className = 'attr-tag';
-
-    // "key: value" 形式をパース（最初の : で分割）
-    const colonIdx = attr.indexOf(':');
-    const keyStr = colonIdx >= 0 ? attr.substring(0, colonIdx).trim() : attr.trim();
-    const valStr = colonIdx >= 0 ? attr.substring(colonIdx + 1).trim() : '';
-
-    const commitAttr = () => {
-      pushUndo();
-      node.attributes[i] = keyInput.value.trim() + ': ' + valInput.value.trim();
-      scheduleAutoSave();
+function App(){
+  const[model,setModel]=useState(EMPTY),[tab,setTab]=useState("entity"),[showJson,setShowJson]=useState(false);
+  useEffect(()=>{modelRef=model;markModified();},[model]);
+  useEffect(()=>{
+    window.__cmLoadData=d=>{
+      const cmData=splitData(d);
+      setModel(ensurePositions(cmData));
+      setTab("entity");
     };
-
-    const keyInput = document.createElement('input');
-    keyInput.className = 'attr-key';
-    keyInput.value = keyStr;
-    keyInput.placeholder = 'field';
-    requestAnimationFrame(() => fitInputWidth(keyInput));
-    keyInput.addEventListener('click', e => e.stopPropagation());
-    keyInput.addEventListener('input', () => fitInputWidth(keyInput));
-    keyInput.addEventListener('change', commitAttr);
-    tag.appendChild(keyInput);
-
-    const sep = document.createElement('span');
-    sep.className = 'attr-sep';
-    sep.textContent = ':';
-    tag.appendChild(sep);
-
-    const valInput = document.createElement('input');
-    valInput.className = 'attr-val';
-    valInput.value = valStr;
-    valInput.placeholder = '説明';
-    requestAnimationFrame(() => fitInputWidth(valInput));
-    valInput.addEventListener('click', e => e.stopPropagation());
-    valInput.addEventListener('input', () => fitInputWidth(valInput));
-    valInput.addEventListener('change', commitAttr);
-    tag.appendChild(valInput);
-
-    const remove = document.createElement('span');
-    remove.className = 'attr-remove';
-    remove.textContent = '×';
-    remove.addEventListener('click', e => {
-      e.stopPropagation();
-      pushUndo();
-      node.attributes.splice(i, 1);
-      render();
-    });
-    tag.appendChild(remove);
-
-    attrs.appendChild(tag);
-  });
-
-  const addBtn = document.createElement('button');
-  addBtn.className = 'attr-add';
-  addBtn.textContent = '+';
-  addBtn.title = '属性を追加';
-  addBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    pushUndo();
-    node.attributes.push('field: 説明');
-    render();
-  });
-  attrs.appendChild(addBtn);
-
-  inner.appendChild(attrs);
-  div.appendChild(inner);
-  return div;
+    return()=>{window.__cmLoadData=null;};
+  },[]);
+  const stats=`${model.entities.length}E · ${model.actors.length}A · ${model.composites.length}C`;
+  return(
+    <div style={{height:"calc(100vh - 36px)",display:"flex",flexDirection:"column",background:"#fafafa",fontFamily:"'DM Sans','Outfit',system-ui,sans-serif"}}>
+      <div style={{height:46,background:"white",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:18}}>
+        <div style={{display:"flex",alignItems:"center",marginRight:24,gap:6}}><div style={{width:14,height:14,borderRadius:3,background:"#4f46e5"}}/><span style={{fontSize:12,fontWeight:700,color:"#18181b",letterSpacing:"0.02em"}}>conceptmodel</span></div>
+        {TABS.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"0 18px",border:"none",background:"transparent",cursor:"pointer",color:tab===t.id?"#18181b":"#a1a1aa",fontSize:13,fontWeight:tab===t.id?600:400,borderBottom:`2px solid ${tab===t.id?"#4f46e5":"transparent"}`,borderTop:"2px solid transparent",fontFamily:"inherit",transition:"color .1s"}}>{t.label}</button>))}
+        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:14,paddingRight:18}}><span style={{fontSize:11,color:"#d4d4d8",letterSpacing:"0.06em"}}>{stats}</span><button onClick={()=>setShowJson(v=>!v)} style={{fontSize:11,padding:"4px 11px",borderRadius:5,cursor:"pointer",border:`1px solid ${showJson?"#4f46e5":"#e4e4e7"}`,background:showJson?"#eef2ff":"transparent",color:showJson?"#4338ca":"#a1a1aa",fontFamily:"inherit"}}>{"{ }"}</button></div>
+      </div>
+      <div style={{flex:1,overflow:"hidden"}}>
+        {tab==="entity"&&<EntityView model={model} setModel={setModel}/>}
+        {tab==="actor"&&<ActorView model={model} setModel={setModel}/>}
+        {tab==="composite"&&<CompositeView model={model} setModel={setModel}/>}
+      </div>
+      {showJson&&<JsonModal onClose={()=>setShowJson(false)}/>}
+    </div>
+  );
 }
 
-function renderViewCard(view, viewIndex, entityNames) {
-  const card = document.createElement('div');
-  card.className = 'view-card' + (selectedViewIndex === viewIndex ? ' selected' : '');
-  card.addEventListener('click', e => {
-    // input/button内のクリックは選択トグルしない
-    if (e.target.closest('input, button, select')) return;
-    selectedViewIndex = selectedViewIndex === viewIndex ? null : viewIndex;
-    selectedPath = null;
-    render();
-  });
-
-  // ヘッダー（name input + 削除ボタン）
-  const header = document.createElement('div');
-  header.className = 'view-card-header';
-  const nameInput = document.createElement('input');
-  nameInput.className = 'view-name-input';
-  nameInput.value = view.name;
-  nameInput.placeholder = 'task-list（英数字・ハイフン）';
-  nameInput.addEventListener('change', e => {
-    let newName = e.target.value.trim();
-    const views = model.views || [];
-    // 重複があればナンバリングで回避
-    const baseName = newName;
-    let suffix = 2;
-    while (views.some((v, i) => i !== viewIndex && v.name === newName)) {
-      newName = baseName + '-' + suffix++;
-    }
-    pushUndo();
-    view.name = newName;
-    e.target.value = newName;
-    scheduleAutoSave();
-  });
-  header.appendChild(nameInput);
-  const delBtn = document.createElement('button');
-  delBtn.className = 'view-delete-btn';
-  delBtn.textContent = '✕';
-  delBtn.title = 'ビューを削除';
-  delBtn.addEventListener('click', () => deleteView(viewIndex));
-  header.appendChild(delBtn);
-  card.appendChild(header);
-
-  // context フィールド
-  const ctxField = document.createElement('div');
-  ctxField.className = 'view-field';
-  const ctxLabel = document.createElement('label');
-  ctxLabel.textContent = 'context';
-  ctxField.appendChild(ctxLabel);
-  const ctxInput = document.createElement('input');
-  ctxInput.type = 'text';
-  ctxInput.value = view.context;
-  ctxInput.placeholder = '例: 一覧, 詳細, 作成, ダッシュボード';
-  ctxInput.addEventListener('change', e => {
-    pushUndo();
-    view.context = e.target.value;
-    scheduleAutoSave();
-  });
-  ctxField.appendChild(ctxInput);
-  card.appendChild(ctxField);
-
-  // primaryType フィールド
-  const typeField = document.createElement('div');
-  typeField.className = 'view-field';
-  const typeLabel = document.createElement('label');
-  typeLabel.textContent = 'primaryType';
-  typeField.appendChild(typeLabel);
-  const typeSelect = document.createElement('select');
-  ['table', 'card', 'form', 'list', 'detail', 'dashboard'].forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t;
-    if (view.primaryType === t) opt.selected = true;
-    typeSelect.appendChild(opt);
-  });
-  typeSelect.addEventListener('change', e => {
-    pushUndo();
-    view.primaryType = e.target.value;
-    scheduleAutoSave();
-  });
-  typeField.appendChild(typeSelect);
-  card.appendChild(typeField);
-
-  // entities セクション
-  const entSection = document.createElement('div');
-  entSection.className = 'view-entities-section';
-  const entLabel = document.createElement('div');
-  entLabel.className = 'section-label';
-  entLabel.textContent = 'entities';
-  entSection.appendChild(entLabel);
-
-  view.entities.forEach((ent, ei) => {
-    const row = document.createElement('div');
-    row.className = 'view-entity-row';
-
-    // エンティティ名プルダウン
-    const entSelect = document.createElement('select');
-    const emptyOpt = document.createElement('option');
-    emptyOpt.value = '';
-    emptyOpt.textContent = '— エンティティを選択 —';
-    entSelect.appendChild(emptyOpt);
-    entityNames.forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      if (ent.entity === name) opt.selected = true;
-      entSelect.appendChild(opt);
-    });
-    // 現在の値がentityNamesに含まれない場合も表示
-    if (ent.entity && !entityNames.includes(ent.entity)) {
-      const opt = document.createElement('option');
-      opt.value = ent.entity;
-      opt.textContent = ent.entity + ' (不明)';
-      opt.selected = true;
-      entSelect.appendChild(opt);
-    }
-    entSelect.addEventListener('change', e => {
-      pushUndo();
-      ent.entity = e.target.value;
-      scheduleAutoSave();
-    });
-    row.appendChild(entSelect);
-
-    // role セレクト
-    const roleSelect = document.createElement('select');
-    ['primary', 'related'].forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
-      if (ent.role === r) opt.selected = true;
-      roleSelect.appendChild(opt);
-    });
-    if (!ent.role) ent.role = 'primary';
-    roleSelect.addEventListener('change', e => {
-      pushUndo();
-      ent.role = e.target.value;
-      scheduleAutoSave();
-    });
-    row.appendChild(roleSelect);
-
-    // 削除ボタン
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'entity-remove-btn';
-    removeBtn.textContent = '✕';
-    removeBtn.title = 'エンティティ参照を削除';
-    removeBtn.addEventListener('click', () => removeViewEntity(viewIndex, ei));
-    row.appendChild(removeBtn);
-
-    entSection.appendChild(row);
-  });
-
-  // 「+ エンティティを追加」ボタン
-  const addEntBtn = document.createElement('button');
-  addEntBtn.className = 'view-add-entity-btn';
-  addEntBtn.textContent = '+ エンティティを追加';
-  addEntBtn.addEventListener('click', () => addViewEntity(viewIndex));
-  entSection.appendChild(addEntBtn);
-
-  card.appendChild(entSection);
-
-  return card;
-}
-
-// ===== キーボードショートカット =====
-document.addEventListener('keydown', e => {
-  const isMeta = e.metaKey || e.ctrlKey;
-
-  // ⌘Z: Undo
-  if (isMeta && !e.shiftKey && e.key === 'z') {
-    e.preventDefault();
-    doUndo();
-    return;
-  }
-
-  // ⌘⇧Z: Redo
-  if (isMeta && e.shiftKey && e.key === 'z') {
-    e.preventDefault();
-    doRedo();
-    return;
-  }
-
-  // ⌘S: 手動保存
-  if (isMeta && e.key === 's') {
-    e.preventDefault();
-    if (fileHandle) {
-      writeToFile();
-      showToast('Saved — auto-save is also enabled');
-    } else {
-      showToast('Connect a file first (click Connect or drop a JSON file)');
-    }
-    return;
-  }
-
-  // ⌘X: 切り取り（ノード or ビュー）
-  if (isMeta && e.key === 'x' && !isInputFocused()) {
-    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
-      e.preventDefault();
-      const vName = model.views[selectedViewIndex].name;
-      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
-      pushUndo();
-      model.views.splice(selectedViewIndex, 1);
-      selectedViewIndex = null;
-      render();
-      showToast(`切り取り: ${vName}`);
-      return;
-    }
-    if (selectedPath) {
-      e.preventDefault();
-      const node = getNodeByPath(selectedPath);
-      if (node) {
-        const nName = node.name || '';
-        clipboard = JSON.stringify(node);
-        deleteNode(selectedPath);
-        showToast(`切り取り: ${nName}`);
-      }
-      return;
-    }
-  }
-
-  // ⌘C: コピー（ノード or ビュー）
-  if (isMeta && e.key === 'c' && !isInputFocused()) {
-    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
-      e.preventDefault();
-      viewClipboard = JSON.stringify(model.views[selectedViewIndex]);
-      return;
-    }
-    if (selectedPath) {
-      e.preventDefault();
-      const node = getNodeByPath(selectedPath);
-      if (node) clipboard = JSON.stringify(node);
-      return;
-    }
-  }
-
-  // ⌘V: ペースト（ノード or ビュー）
-  if (isMeta && e.key === 'v' && !isInputFocused()) {
-    if (selectedViewIndex != null && viewClipboard) {
-      e.preventDefault();
-      pushUndo();
-      const pasted = JSON.parse(viewClipboard);
-      // name重複回避
-      if (!model.views) model.views = [];
-      let newName = pasted.name;
-      const baseName = newName;
-      let suffix = 2;
-      while (model.views.some(v => v.name === newName)) {
-        newName = baseName + '-' + suffix++;
-      }
-      pasted.name = newName;
-      const insertAt = selectedViewIndex + 1;
-      model.views.splice(insertAt, 0, pasted);
-      selectedViewIndex = insertAt;
-      render();
-      return;
-    }
-    if (clipboard) {
-      e.preventDefault();
-      pushUndo();
-      const pasted = JSON.parse(clipboard);
-      const target = selectedPath ? getNodeByPath(selectedPath) : model.root;
-      const parent = (target && target.children) ? target : model.root;
-      parent.children.push(pasted);
-      render();
-      return;
-    }
-  }
-
-  // Delete / Backspace: 削除（ノード or ビュー）
-  if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
-    if (selectedViewIndex != null && model.views && model.views[selectedViewIndex]) {
-      e.preventDefault();
-      pushUndo();
-      model.views.splice(selectedViewIndex, 1);
-      selectedViewIndex = null;
-      render();
-      return;
-    }
-    if (selectedPath) {
-      e.preventDefault();
-      deleteNode(selectedPath);
-      return;
-    }
-  }
-
-  // 矢印キー: ビュー並び替え（↑↓）
-  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedViewIndex != null && !isInputFocused()) {
-    const views = model.views || [];
-    const delta = e.key === 'ArrowUp' ? -1 : 1;
-    const newIdx = selectedViewIndex + delta;
-    if (newIdx < 0 || newIdx >= views.length) return;
-    e.preventDefault();
-    pushUndo();
-    const [removed] = views.splice(selectedViewIndex, 1);
-    views.splice(newIdx, 0, removed);
-    selectedViewIndex = newIdx;
-    render();
-    return;
-  }
-
-  // 矢印キー: 選択中ノードを移動（親のdirectionに応じて）
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedPath && selectedPath.length > 0 && !isInputFocused()) {
-    const parent = getParentByPath(selectedPath);
-    if (!parent) return;
-    const dir = parent.direction || 'vertical';
-    const idx = selectedPath[selectedPath.length - 1];
-    let delta = 0;
-    if (dir === 'horizontal' && e.key === 'ArrowLeft') delta = -1;
-    if (dir === 'horizontal' && e.key === 'ArrowRight') delta = 1;
-    if (dir === 'vertical' && e.key === 'ArrowUp') delta = -1;
-    if (dir === 'vertical' && e.key === 'ArrowDown') delta = 1;
-    if (delta === 0) return;
-    const newIdx = idx + delta;
-    if (newIdx < 0 || newIdx >= parent.children.length) return;
-    e.preventDefault();
-    pushUndo();
-    const [removed] = parent.children.splice(idx, 1);
-    parent.children.splice(newIdx, 0, removed);
-    selectedPath = [...selectedPath.slice(0, -1), newIdx];
-    render();
-    return;
-  }
-
-});
-
-function isInputFocused() {
-  const el = document.activeElement;
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
-}
-
-// ===== キャンバスクリックで選択解除 =====
-document.getElementById('canvas').addEventListener('click', () => {
-  selectedPath = null;
-  selectedViewIndex = null;
-  render();
-});
-
-// ===== ファイルドラッグ&ドロップで接続 =====
-let fileDragCounter = 0;
-const overlay = document.getElementById('fileDropOverlay');
-
-document.addEventListener('dragenter', e => {
-  // 外部ファイルのドラッグのみ反応（内部ノードドラッグは無視）
-  if (!e.dataTransfer.types.includes('Files')) return;
-  fileDragCounter++;
-  overlay.classList.add('active');
-});
-
-document.addEventListener('dragleave', e => {
-  if (!e.dataTransfer.types.includes('Files')) return;
-  fileDragCounter--;
-  if (fileDragCounter <= 0) {
-    fileDragCounter = 0;
-    overlay.classList.remove('active');
-  }
-});
-
-document.addEventListener('dragover', e => {
-  if (e.dataTransfer.types.includes('Files')) e.preventDefault();
-});
-
-document.addEventListener('drop', async e => {
-  fileDragCounter = 0;
-  overlay.classList.remove('active');
-  if (!e.dataTransfer.types.includes('Files')) return;
-  e.preventDefault();
-
-  // DataTransferItem から FileSystemFileHandle を取得（Chrome/Edge）
-  const items = [...e.dataTransfer.items];
-  for (const item of items) {
-    if (item.kind !== 'file') continue;
-    if (typeof item.getAsFileSystemHandle === 'function') {
-      const handle = await item.getAsFileSystemHandle();
-      if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-        await loadJsonFromHandle(handle);
-        return;
-      }
-    }
-  }
-  // getAsFileSystemHandle 非対応の場合
-  updateSaveStatus('error', 'Drop not supported');
-});
-
-// ===== ルートdirection切り替え =====
-function toggleRootDirection() {
-  pushUndo();
-  model.root.direction = model.root.direction === 'vertical' ? 'horizontal' : 'vertical';
-  render();
-}
-
-// ===== canvasをルートのdropターゲットに =====
-const canvasEl = document.getElementById('canvas');
-canvasEl.addEventListener('dragover', e => { e.preventDefault(); if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragOver(e, []); });
-canvasEl.addEventListener('dragenter', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragEnter(e, []); });
-canvasEl.addEventListener('dragleave', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDragLeave(e, []); });
-canvasEl.addEventListener('drop', e => { if (!e.dataTransfer.types.includes('Files')) e.stopPropagation(); onDrop(e, []); });
-
-// ===== サブヘッダーのルート名編集 =====
-document.getElementById('rootLabel').addEventListener('change', e => {
-  pushUndo();
-  model.root.name = e.target.value;
-  scheduleAutoSave();
-});
-
-// ===== 初期レンダリング =====
-showEmptyState();
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
