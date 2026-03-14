@@ -93,7 +93,7 @@ project_root/
 
 順序：`pg0 ⇔ prd ⇔ mrd → conceptual-model → wireframe`
 
-pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（JSON + HTMLエディタ）を生成、ビュー定義後 `/wireframe` で各画面のレイアウトを生成する。HTMLエディタで微調整も可能。
+pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/wireframe` で画面定義（screens/navigation）を生成する。いずれも同じ `conceptual-model.json` に格納され、HTMLエディタで微調整も可能。
 
 **conceptual-model 以降は、Claude Code が生成し人が確認・調整するスタイルに変わる。**
 
@@ -167,9 +167,9 @@ product-goals（PG一覧・確信度）
    pg0 ⇔ prd（WHO:User, WHY, WHAT） ⇔ mrd（WHERE, WHO:Buyer, HOW MUCH）
         │                                          ↑ Claude Codeと対話しながらつくる
         │
-  conceptual-model.json（エンティティ・ビュー定義）  ← /conceptual-model で生成
+  conceptual-model.json（entities/actors）           ← /conceptual-model で生成
         │
-  wireframes/{screen}.wireframe.json（レイアウト）   ← /wireframe で生成
+  conceptual-model.json（screens/navigation）        ← /wireframe で生成
         │                                          ↑ ここからClaude Codeが生成、人が調整
         │
    user-stories
