@@ -40,7 +40,7 @@ project_root/
 │   │   └── agent-teams.md       #   Agent Teams設計ルール
 │   ├── skills/                  # スキル定義（/コマンドで起動）
 │   │   ├── conceptual-model/    #   /conceptual-model — JSON + HTMLエディタ生成
-│   │   └── wireframe/           #   /wireframe — JSON + HTMLエディタ生成
+│   │   └── screens/             #   /screens — JSON + HTMLエディタ生成
 │   └── teams/                   # Agent Teams定義
 │       ├── mrd-planning.md      #   MRD企画（対話・調査・分析）
 │       ├── mrd-review.md        #   MRDレビュー（顧客・市場・競合）
@@ -60,10 +60,11 @@ project_root/
 │   │   ├── prd.md               #   プロダクト要求定義
 │   │   ├── conceptual-model.md  #   概念モデル（設計意図・人間用）
 │   │   ├── conceptual-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
+│   │   ├── conceptual-model.html #  CMエディタ（ブラウザで開く）
+│   │   ├── screens.html          #  Screensエディタ（ブラウザで開く）
 │   │   └── user-stories.md      #   ユーザーストーリー
 │   └── specs/                   # 設計ドキュメント（reqs/から導出）
 │       ├── CLAUDE.md            #   このディレクトリの説明
-│       ├── wireframes/          #   ワイヤーフレーム（JSON + HTMLプレビュー）
 │       ├── db-schema.md         #   DBスキーマ定義
 │       ├── api-spec.md          #   APIエンドポイント定義
 │       ├── auth-spec.md         #   認証・認可設計
@@ -91,9 +92,9 @@ project_root/
 
 ### Step 3：企画ドキュメントを練り上げる
 
-順序：`pg0 ⇔ prd ⇔ mrd → conceptual-model → wireframe`
+順序：`pg0 ⇔ prd ⇔ mrd → conceptual-model → screens`
 
-pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/wireframe` で画面定義（screens/navigation）を生成する。いずれも同じ `conceptual-model.json` に格納され、HTMLエディタで微調整も可能。
+pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/screens` で画面定義（screens/navigation）を生成する。いずれも同じ `conceptual-model.json` に格納され、HTMLエディタで微調整も可能。
 
 **conceptual-model 以降は、Claude Code が生成し人が確認・調整するスタイルに変わる。**
 
@@ -169,7 +170,7 @@ product-goals（PG一覧・確信度）
         │
   conceptual-model.json（entities/actors）           ← /conceptual-model で生成
         │
-  conceptual-model.json（screens/navigation）        ← /wireframe で生成
+  conceptual-model.json（screens/navigation）        ← /screens で生成
         │                                          ↑ ここからClaude Codeが生成、人が調整
         │
    user-stories
