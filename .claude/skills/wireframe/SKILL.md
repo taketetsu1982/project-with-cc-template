@@ -108,41 +108,55 @@ wireframe-skill-plusのスキーマに準拠する。詳細は `.claude/skills/w
 - CSS flexboxに1:1対応する
 - ボタン・リンク・入力は固定 `width` 禁止（`height` のみ）
 
-### Step 3: JSONファイルを書き出す
+### Step 3: JSONファイルを書き出し、HTMLを準備する
 
-ファイル名はJSON `name` フィールドからスラッグ化する（例: "タスク一覧" → `task-list`）。
-
-`docs/specs/wireframes/{screen-name}.wireframe.json` に書き出す。
-
-### Step 4: HTMLプレビューを生成（初回のみ）
-
-`docs/specs/wireframes/wireframe.html` が存在しない場合のみ生成する。
+ファイル名はJSON name フィールドからスラッグ化する（例: "タスク一覧" → task-list）。
 
 ```bash
+# 1. JSONを書き出す
+# docs/specs/wireframes/{screen-name}.wireframe.json に保存
+
+# 2. wireframe.html を準備し、WF_SUGGESTED_PATH を置換する
+#    （wireframe.html が存在しない場合はテンプレートからコピーして初回生成）
 python3 -c "
-import os
-html_path = 'docs/specs/wireframes/wireframe.html'
-if not os.path.exists(html_path):
-    import shutil
-    shutil.copy('.claude/skills/wireframe/wireframe-template.html', html_path)
+import shutil, os
+src = '.claude/skills/wireframe/wireframe-template.html'
+dst = 'docs/specs/wireframes/wireframe.html'
+if not os.path.exists(dst):
+    shutil.copy(src, dst)  # 初回のみコピー
+with open(dst, 'r') as f:
+    html = f.read()
+html = html.replace(
+    'const WF_SUGGESTED_PATH = null; // %%WF_SUGGESTED_PATH%%',
+    'const WF_SUGGESTED_PATH = \"docs/specs/wireframes/{screen-name}.wireframe.json\"; // %%WF_SUGGESTED_PATH%%'
+)
+with open(dst, 'w') as f:
+    f.write(html)
 "
 ```
 
-### Step 5: ブラウザで開く
+`WF_SUGGESTED_PATH` を埋め込むことで `Save to...` ダイアログが正しいファイル名で開く。
+JSONデータ自体の埋め込みは行わない。HTMLはドロップして接続するまで空白のまま。
+
+### Step 4: ブラウザで開く
 
 ```bash
 open docs/specs/wireframes/wireframe.html
 ```
 
-### Step 6: 完了報告
+### Step 5: 完了報告
 
 ```
 Wireframe generated:
-- JSON: docs/specs/wireframes/{screen-name}.wireframe.json
-- Preview: docs/specs/wireframes/wireframe.html (opened in browser)
+- JSON:    docs/specs/wireframes/{screen-name}.wireframe.json
+- Preview: docs/specs/wireframes/wireframe.html (opened)
 
-HTMLプレビューでJSONファイルをドロップして読み込んでください。
-ConnectボタンでJSONに書き戻せます。
-右ペインにエンティティ一覧を表示しています（read-only）。
+{screen-name}.wireframe.json をHTMLにドロップして接続してください。
+
+保存操作:
+- [Save to...]  保存先ファイルを選択して書き込み（デフォルト名: {screen-name}.wireframe.json）
+- [Save]        接続中ファイルに即時上書き（⌘S）
+- [Auto ○/●]   トグルONで変更のたびに自動保存
+
 エンティティ・属性の変更は /conceptual-model から行ってください。
 ```

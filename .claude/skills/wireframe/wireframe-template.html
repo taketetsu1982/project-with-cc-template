@@ -314,6 +314,11 @@
     font-size: 16px;
   }
 
+  .wf-entity-card-role {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
   .wf-entity-card-attrs {
     display: flex;
     flex-wrap: wrap;
@@ -464,6 +469,40 @@
     color: var(--text-muted);
     padding: var(--space-md);
     text-align: center;
+  }
+
+  .wf-auto-switch {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .wf-auto-switch .wf-switch-track {
+    position: relative;
+    width: 34px;
+    height: 18px;
+    background: var(--bg-placeholder-dark);
+    border-radius: var(--radius-full);
+    transition: background 0.2s;
+  }
+  .wf-auto-switch.active .wf-switch-track {
+    background: var(--accent);
+  }
+  .wf-auto-switch .wf-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left 0.2s;
+  }
+  .wf-auto-switch.active .wf-switch-thumb {
+    left: 18px;
   }
 
   /* ── Save status button ── */
@@ -814,8 +853,10 @@
 <div id="wf-toolbar">
   <div id="wf-toolbar-left">
     <span id="wf-toolbar-title">WIREFRAME</span>
-    <button class="save-status-btn" id="wf-connect-btn" onclick="connectFile()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
-    <span id="wf-edited-badge">Edited</span>
+    <label class="wf-auto-switch" id="wf-autosave-btn" onclick="toggleAutoSave()" title="Toggle auto-save">Auto <span class="wf-switch-track"><span class="wf-switch-thumb"></span></span></label>
+    <button class="save-status-btn" id="wf-connect-btn" onclick="handleConnectClick()"><span class="dot" id="wf-save-dot"></span><span id="wf-save-label">Connect</span> <span class="save-hint" id="wf-save-hint">(Drop a JSON file)</span></button>
+    <span id="wf-edited-badge" style="display:none">Edited</span>
+    <button class="wf-btn" id="wf-save-btn" onclick="handleSaveAs()" style="display:none" title="Save to... (別名保存)">Save to...</button>
     <button class="wf-btn" onclick="handleUndo()" title="Undo (⌘Z)">↩ Undo</button>
     <button class="wf-btn" onclick="handleRedo()" title="Redo (⌘⇧Z)">↪ Redo</button>
     <div class="wf-add-wrap">
@@ -879,7 +920,10 @@ const undoStack = [];
 const redoStack = [];
 const MAX_UNDO = 50;
 const WF_FILENAME = null; // スキル実行時に置換される
-const originalFilename = WF_FILENAME || (WIREFRAME_DATA?.name || 'wireframe').replace(/\s+/g, '-').toLowerCase() + '.wireframe.json';
+const WF_SUGGESTED_PATH = null; // %%WF_SUGGESTED_PATH%% — Claude Codeが置換
+const originalFilename = WF_SUGGESTED_PATH
+  ? WF_SUGGESTED_PATH.split('/').pop()
+  : (WIREFRAME_DATA?.name || 'wireframe').replace(/\s+/g, '-').toLowerCase() + '.wireframe.json';
 let saveTimer = null;
 
 // ── Undo / Redo ──
@@ -1060,7 +1104,7 @@ function _processDragOver(e) {
     return;
   }
 
-  // 子ノード: 前後判定
+  // 葉ノード: 前後判定
   const parentNode = targetInfo.parent;
   const isVertical = (parentNode.direction || 'vertical') === 'vertical';
   let before;
@@ -1193,53 +1237,70 @@ function updateJSONPanel() {
   scheduleAutoSave();
 }
 
-// ── Connect & Auto-save ──
+// ── Connect & Save ──
 
 let isSaving = false;
+let autoSaveEnabled = false;
 
 function disconnectFile() {
   fileHandle = null;
+  autoSaveEnabled = false;
   if (saveTimer) clearTimeout(saveTimer);
+  document.getElementById('wf-save-btn').style.display = 'none';
+  document.getElementById('wf-autosave-btn').style.display = 'none';
+  document.getElementById('wf-edited-badge').style.display = 'none';
   updateSaveStatus('', 'Connect', '(Drop a JSON file)');
 }
 
-// JSONファイルを読み込んで描画する共通処理
-const MAX_DEPTH = 50;
-function checkDepth(obj, depth) {
-  if (depth > MAX_DEPTH) return false;
-  if (obj && obj.children && Array.isArray(obj.children)) {
-    return obj.children.every(c => checkDepth(c, depth + 1));
+// Save As: ファイルを選択して書き込み、そこに接続
+async function handleSaveAs() {
+  if (!('showSaveFilePicker' in window)) {
+    alert('This browser does not support the File System Access API.');
+    return;
   }
-  return true;
+  const suggestedName = fileHandle
+    ? fileHandle.name
+    : WF_SUGGESTED_PATH
+      ? WF_SUGGESTED_PATH.split('/').pop()
+      : (WIREFRAME_DATA?.name || 'wireframe').replace(/\s+/g, '-').toLowerCase() + '.wireframe.json';
+
+  // WF_SUGGESTED_PATH があれば startIn でディレクトリヒントを渡す
+  const pickerOpts = {
+    id: 'wf-editor',
+    suggestedName,
+    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+  };
+  if (WF_SUGGESTED_PATH && !fileHandle) {
+    // startIn は 'desktop'|'documents'|'downloads' などの well-known または FileSystemDirectoryHandle
+    // ここではディレクトリヒントを渡せないためidによるブラウザ記憶に依存
+    // 初回ドロップ時のディレクトリがidで記憶されるので2回目以降は自動的に同じ場所が開く
+  }
+  try {
+    const handle = await window.showSaveFilePicker(pickerOpts);
+    fileHandle = handle;
+    document.getElementById('wf-save-btn').style.display = '';
+    document.getElementById('wf-autosave-btn').style.display = 'flex';
+    updateSaveStatus('connected', fileHandle.name);
+    await writeToFile();
+    showToast('保存しました: ' + fileHandle.name);
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error(err);
+      updateSaveStatus('error', 'Error');
+    }
+  }
 }
 
-async function loadJsonFromHandle(handle) {
-  const file = await handle.getFile();
-  const text = await file.text();
-  let data;
-  try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return false; }
-  if (data.root && !checkDepth(data.root, 0)) {
-    updateSaveStatus('error', 'JSON too deeply nested'); return false;
+// Connect ボタンクリック: 未接続→ファイルを開く、接続済→上書き保存
+async function handleConnectClick() {
+  if (fileHandle) {
+    await writeToFile();
+    showToast('保存しました');
+    return;
   }
-  if (WIREFRAME_DATA) {
-    Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
-    Object.assign(WIREFRAME_DATA, data);
-  } else {
-    WIREFRAME_DATA = data;
-  }
-  undoStack.length = 0;
-  redoStack.length = 0;
-  fileHandle = handle;
-  updateSaveStatus('connected', handle.name);
-  init();
-  return true;
-}
-
-async function connectFile() {
-  // 接続中ならDisconnect
-  if (fileHandle) { disconnectFile(); return; }
+  // 未接続: ファイルを開くダイアログ
   if (!('showOpenFilePicker' in window)) {
-    alert('This browser does not support the File System Access API. Please drop a JSON file to connect.');
+    showToast('JSONファイルをドロップして接続してください');
     return;
   }
   try {
@@ -1247,13 +1308,44 @@ async function connectFile() {
       id: 'wf-editor',
       types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
     });
-    await loadJsonFromHandle(handle);
+    const file = await handle.getFile();
+    const text = await file.text();
+    let data;
+    try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
+    if (WIREFRAME_DATA) {
+      Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+      Object.assign(WIREFRAME_DATA, data);
+    } else {
+      WIREFRAME_DATA = data;
+    }
+    undoStack.length = 0;
+    redoStack.length = 0;
+    fileHandle = handle;
+    updateSaveStatus('connected', handle.name);
+    document.getElementById('wf-save-btn').style.display = '';
+    document.getElementById('wf-autosave-btn').style.display = 'flex';
+    init();
   } catch (err) {
     if (err.name !== 'AbortError') {
       console.error(err);
       updateSaveStatus('error', 'Error');
     }
   }
+}
+
+// Save: 接続中ファイルに今すぐ書き込む（⌘S用）
+async function handleManualSave() {
+  if (!fileHandle) { showToast('先にファイルを接続してください'); return; }
+  await writeToFile();
+  showToast('保存しました');
+}
+
+// Auto トグル
+function toggleAutoSave() {
+  autoSaveEnabled = !autoSaveEnabled;
+  document.getElementById('wf-autosave-btn').classList.toggle('active', autoSaveEnabled);
+  showToast('自動保存 ' + (autoSaveEnabled ? 'ON' : 'OFF'));
+  if (autoSaveEnabled && modified) scheduleAutoSave();
 }
 
 function updateSaveStatus(state, label, hint) {
@@ -1265,21 +1357,19 @@ function updateSaveStatus(state, label, hint) {
 async function writeToFile() {
   if (!fileHandle || isSaving) return;
   isSaving = true;
-  updateSaveStatus('saving', 'Saving...');
+  updateSaveStatus('saving', fileHandle.name, '');
   try {
     const json = JSON.stringify(WIREFRAME_DATA, null, 2) + '\n';
     const writable = await fileHandle.createWritable();
     await writable.write(json);
     await writable.close();
+    modified = false;
     updateSaveStatus('connected', fileHandle.name);
     document.getElementById('wf-edited-badge').style.display = 'none';
   } catch (err) {
     console.error(err);
     updateSaveStatus('error', 'Save failed');
-    if (err.name === 'NotAllowedError') {
-      fileHandle = null;
-      updateSaveStatus('', 'Connect', '(Drop a JSON file)');
-    }
+    if (err.name === 'NotAllowedError') disconnectFile();
   } finally {
     isSaving = false;
   }
@@ -1287,7 +1377,7 @@ async function writeToFile() {
 
 function scheduleAutoSave() {
   if (saveTimer) clearTimeout(saveTimer);
-  if (!fileHandle) return;
+  if (!fileHandle || !autoSaveEnabled) return;
   saveTimer = setTimeout(() => writeToFile(), 500);
 }
 
@@ -1324,7 +1414,37 @@ document.addEventListener('drop', async e => {
     if (typeof item.getAsFileSystemHandle === 'function') {
       const handle = await item.getAsFileSystemHandle();
       if (handle.kind === 'file' && handle.name.endsWith('.json')) {
-        await loadJsonFromHandle(handle);
+        // ファイル内容を読み込んで描画
+        const file = await handle.getFile();
+        const text = await file.text();
+        let data;
+        try { data = JSON.parse(text); } catch { updateSaveStatus('error', 'Invalid JSON'); return; }
+        // 再帰深度チェック（悪意あるJSONによるスタックオーバーフロー防止）
+        const MAX_DEPTH = 50;
+        function checkDepth(obj, depth) {
+          if (depth > MAX_DEPTH) return false;
+          if (obj && obj.children && Array.isArray(obj.children)) {
+            return obj.children.every(c => checkDepth(c, depth + 1));
+          }
+          return true;
+        }
+        if (data.root && !checkDepth(data.root, 0)) {
+          updateSaveStatus('error', 'JSON too deeply nested'); return;
+        }
+        if (WIREFRAME_DATA) {
+          Object.keys(WIREFRAME_DATA).forEach(k => delete WIREFRAME_DATA[k]);
+          Object.assign(WIREFRAME_DATA, data);
+        } else {
+          WIREFRAME_DATA = data;
+        }
+        // 新しいファイルなのでundo/redo履歴をクリア
+        undoStack.length = 0;
+        redoStack.length = 0;
+        fileHandle = handle;
+        updateSaveStatus('connected', handle.name);
+        document.getElementById('wf-save-btn').style.display = '';
+        document.getElementById('wf-autosave-btn').style.display = 'flex';
+        init();
         return;
       }
     }
@@ -1513,17 +1633,8 @@ function handleDuplicate() {
 
 function handleCut() {
   if (selectedPath === null) return;
-  const info = getNodeByPath(selectedPath);
-  if (!info) return;
-  // コピー
-  clipboardNode = JSON.parse(JSON.stringify(info.node));
-  // 削除
-  saveSnapshot();
-  info.parent.children.splice(info.index, 1);
-  markModified();
-  selectedPath = null;
-  render();
-  updateJSONPanel();
+  handleCopy();
+  handleDelete();
   showToast(`切り取り: ${clipboardNode.name}`);
 }
 
@@ -1571,10 +1682,9 @@ function handleKeyDown(e) {
   if (isMeta && e.key === 's') {
     e.preventDefault();
     if (fileHandle) {
-      writeToFile();
-      showToast('保存しました（自動保存も有効）');
+      handleManualSave();
     } else {
-      showToast('先にファイルを接続してください（Connectまたはドロップ）');
+      showToast('先にファイルを接続してください（Save As... またはドロップ）');
     }
     return;
   }
@@ -1759,7 +1869,7 @@ function renderPropsPanel() {
   // --- name ---
   addTextProp(content, 'name', node.name || '', v => applyProp('name', v || undefined), '要素名');
 
-  // --- type (子ノードのみ) ---
+  // --- type (葉ノードのみ) ---
   if (!isContainer) {
     const typeOptions = [
       ['', '(none)'], ['text', 'text'], ['button', 'button'], ['input', 'input'],
@@ -2095,7 +2205,7 @@ function renderEntityPanel() {
   if (v && v.entities && v.entities.length > 0) {
     entities = v.entities;
   } else if (v && v.entity) {
-    entities = [{ entity: v.entity }];
+    entities = [{ entity: v.entity, role: '' }];
   }
 
   if (entities.length === 0) {
@@ -2125,6 +2235,12 @@ function renderEntityPanel() {
     nameSpan.className = 'wf-entity-card-name';
     nameSpan.textContent = ent.entity;
     header.appendChild(nameSpan);
+    if (ent.role) {
+      const roleSpan = document.createElement('span');
+      roleSpan.className = 'wf-entity-card-role';
+      roleSpan.textContent = ent.role;
+      header.appendChild(roleSpan);
+    }
     card.appendChild(header);
 
     // view.entities[].attributesから全属性を表示（使用中はハイライト）
