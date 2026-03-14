@@ -60,8 +60,8 @@ project_root/
 │   │   ├── prd.md               #   プロダクト要求定義
 │   │   ├── conceptual-model.md  #   概念モデル（設計意図・人間用）
 │   │   ├── conceptual-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
-│   │   ├── conceptual-model.html #  CMエディタ（ブラウザで開く）
-│   │   ├── screens.html          #  Screensエディタ（ブラウザで開く）
+│   │   ├── model-editor.html     #  CMエディタ（ブラウザで開く）
+│   │   ├── screen-editor.html    #  Screensエディタ（ブラウザで開く）
 │   │   └── user-stories.md      #   ユーザーストーリー
 │   └── specs/                   # 設計ドキュメント（reqs/から導出）
 │       ├── CLAUDE.md            #   このディレクトリの説明

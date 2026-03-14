@@ -16,7 +16,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 ## Output
 
 - `docs/reqs/conceptual-model.json` — 統合JSON（screens/navigation 部分を更新）
-- `docs/reqs/screens.html` — HTMLエディタ（ブラウザで開く）
+- `docs/reqs/screen-editor.html` — HTMLエディタ（ブラウザで開く）
 
 ## JSON Schema
 
@@ -92,7 +92,7 @@ actor ごとに必要な画面を洗い出す。
 ### Step 4: ブラウザで開く
 
 ```bash
-open docs/reqs/screens.html
+open docs/reqs/screen-editor.html
 ```
 
 ### Step 5: 完了報告
@@ -100,7 +100,7 @@ open docs/reqs/screens.html
 ```
 Screens generated:
 - JSON:   docs/reqs/conceptual-model.json (screens/navigation updated)
-- Editor: docs/reqs/screens.html (opened)
+- Editor: docs/reqs/screen-editor.html (opened)
 
 conceptual-model.json をHTMLにドロップして接続してください。
 同じJSONファイルに entities/actors/screens 全てが含まれています。

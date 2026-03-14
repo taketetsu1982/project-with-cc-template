@@ -17,8 +17,8 @@ paths:
 ## Conceptual Model（統合JSON + HTMLエディタ）
 
 - `conceptual-model.json` は統合JSON（entities/actors/composites/screens/navigation）
-- CMエディタ（`conceptual-model.html`）で entities/actors/composites を編集
-- Screensエディタ（`screens.html`）で screens/navigation を編集
+- CMエディタ（`model-editor.html`）で entities/actors/composites を編集
+- Screensエディタ（`screen-editor.html`）で screens/navigation を編集
 - 両エディタは同じJSONを共有し、担当外フィールドをパススルーで保持する
 - ユーザーから設計指示があった場合、`conceptual-model.json` の変更が `ui-spec.md` と `db-schema.md` に影響しないか確認する
 - `conceptual-model.json` が更新されたら、`conceptual-model.md` も整合するよう更新する
