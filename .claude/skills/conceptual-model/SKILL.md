@@ -6,7 +6,7 @@ description: Generate and edit conceptual model JSON with HTML editor
 # /conceptual-model
 
 Conceptual ModelのJSONを生成し、ブラウザで操作できるHTMLエディタを起動する。
-entities / actors / composites を編集する（screens / navigation は /wireframe で編集する）。
+entities / actors / composites を編集する（screens / navigation は /screens で編集する）。
 
 ## Input
 
@@ -75,7 +75,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 }
 ```
 
-### screens（Screensエディタの担当。スキーマ詳細は /wireframe の SKILL.md を参照）
+### screens（Screensエディタの担当。スキーマ詳細は /screens の SKILL.md を参照）
 
 ```json
 {
@@ -116,26 +116,13 @@ entities・actors・compositesをJSONとして生成する。
 
 `docs/reqs/conceptual-model.json` にJSONを書き出す。
 
-### Step 3: HTMLエディタを生成
-
-`docs/reqs/conceptual-model.html` が存在しない場合のみテンプレートをコピーする：
-
-```bash
-python3 -c "
-import os, shutil
-html_path = 'docs/reqs/conceptual-model.html'
-if not os.path.exists(html_path):
-    shutil.copy('.claude/skills/conceptual-model/conceptual-model-template.html', html_path)
-"
-```
-
-### Step 4: ブラウザで開く
+### Step 3: ブラウザで開く
 
 ```bash
 open docs/reqs/conceptual-model.html
 ```
 
-### Step 5: 完了報告
+### Step 4: 完了報告
 
 ```
 Conceptual Model generated:
@@ -148,5 +135,5 @@ HTMLエディタで conceptual-model.json をドラッグ&ドロップ、
 1. Entity タブでエンティティ・関係を確認・編集
 2. Actor タブでロール別CRUD権限を確認・編集
 3. Composite タブでダッシュボード等の複合画面を定義
-4. 確定後、/wireframe を実行して画面定義を作成
+4. 確定後、/screens を実行して画面定義を作成
 ```

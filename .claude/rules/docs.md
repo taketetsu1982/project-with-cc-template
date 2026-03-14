@@ -26,6 +26,6 @@ paths:
 ## Screens（統合JSON内）
 
 - 画面定義は `conceptual-model.json` の `screens` / `navigation` で管理する
-- 画面を追加するときは `/wireframe` でScreensエディタを開いて編集する
+- 画面を追加するときは `/screens` でScreensエディタを開いて編集する
 - screens の objects.crud は actors の touches 権限の範囲内で設定する
 - screens が更新されたら、`ui-spec.md` への影響を確認する

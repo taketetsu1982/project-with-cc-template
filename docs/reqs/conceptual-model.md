@@ -56,7 +56,7 @@
 ## 画面定義
 
 画面定義は `conceptual-model.json` の `screens` / `navigation` で管理。
-`/wireframe` を実行してScreensエディタで編集する。
+`/screens` を実行してScreensエディタで編集する。
 
 ---
 
