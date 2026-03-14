@@ -314,11 +314,6 @@
     font-size: 16px;
   }
 
-  .wf-entity-card-role {
-    font-size: 13px;
-    color: var(--text-tertiary);
-  }
-
   .wf-entity-card-attrs {
     display: flex;
     flex-wrap: wrap;
@@ -2100,7 +2095,7 @@ function renderEntityPanel() {
   if (v && v.entities && v.entities.length > 0) {
     entities = v.entities;
   } else if (v && v.entity) {
-    entities = [{ entity: v.entity, role: '' }];
+    entities = [{ entity: v.entity }];
   }
 
   if (entities.length === 0) {
@@ -2130,12 +2125,6 @@ function renderEntityPanel() {
     nameSpan.className = 'wf-entity-card-name';
     nameSpan.textContent = ent.entity;
     header.appendChild(nameSpan);
-    if (ent.role) {
-      const roleSpan = document.createElement('span');
-      roleSpan.className = 'wf-entity-card-role';
-      roleSpan.textContent = ent.role;
-      header.appendChild(roleSpan);
-    }
     card.appendChild(header);
 
     // view.entities[].attributesから全属性を表示（使用中はハイライト）
