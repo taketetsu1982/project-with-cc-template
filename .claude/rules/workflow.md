@@ -13,31 +13,31 @@
 ### 1. PG / PRD / MRD → Conceptual Model
 - **トリガー**: PRD・MRDが固まり、概念モデルの作成・更新に入るとき
 - **アクション**: `/conceptual-model` を実行
-- **完了条件**: `conceptual-model.json` にエンティティ + ビュー定義が揃っている
+- **完了条件**: `conceptual-model.json` に entities + actors が揃っている
 
-### 2. Conceptual Model → Wireframe
-- **トリガー**: `conceptual-model.json` にビュー情報があり、ワイヤーフレームが必要なとき
-- **アクション**: `/wireframe` を各ビューに対して実行
-- **完了条件**: 各ビューの `{screen-name}.wireframe.json` が生成されている
+### 2. Conceptual Model → Screens
+- **トリガー**: `conceptual-model.json` に entities・actors が定義され、画面設計に入るとき
+- **アクション**: `/wireframe` を実行
+- **完了条件**: `conceptual-model.json` の screens + navigation が定義されている
 
-### 3. Wireframe 完了後 → 並列で進める
+### 3. Screens 完了後 → 並列で進める
 
-Wireframe完了後、以下の2トラックを並列で進める。
+Screens完了後、以下の2トラックを並列で進める。
 
 #### Track A: Specs（設計仕様群）を順次導出
 
 | 順序 | Spec | 導出元 | ファイル |
 |---|---|---|---|
-| 1 | DB Schema | conceptual-model.json | `docs/specs/db-schema.md` |
+| 1 | DB Schema | conceptual-model.json（entities） | `docs/specs/db-schema.md` |
 | 2 | API Spec | db-schema + conceptual-model + prd | `docs/specs/api-spec.md` |
-| 3 | Auth Spec | api-spec + prd（ロール定義） | `docs/specs/auth-spec.md` |
-| 4 | UI Spec | wireframe.json + api-spec + conceptual-model | `docs/specs/ui-spec.md` |
+| 3 | Auth Spec | api-spec + conceptual-model（actors） | `docs/specs/auth-spec.md` |
+| 4 | UI Spec | conceptual-model（screens）+ api-spec | `docs/specs/ui-spec.md` |
 | 5 | Analytics Spec | product-goals | `docs/specs/analytics-spec.md` |
 | 5 | Infra Spec | 上記specsの要件 | `docs/specs/infra-spec.md` |
 
 #### Track B: User Stories → Test Spec
 
-1. **User Stories**: ワイヤーフレームと概念モデルを参照して `docs/reqs/user-stories.md` を更新。各ストーリーに受け入れ条件とシナリオ（Gherkin）を定義
+1. **User Stories**: screens定義と概念モデルを参照して `docs/reqs/user-stories.md` を更新。各ストーリーに受け入れ条件とシナリオ（Gherkin）を定義
 2. **Test Spec**: ユーザーストーリーの受け入れ条件から `docs/specs/test-spec.md` を導出
 
 ### 4. Impl Plan
@@ -51,9 +51,9 @@ Wireframe完了後、以下の2トラックを並列で進める。
 
 #### 実装時の制約
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
-- `conceptual-model.md` にないエンティティをDBに追加しない。先にPRDに戻る
+- `conceptual-model.json` にないエンティティをDBに追加しない。先にPRDに戻る
 - APIを追加するときは `docs/specs/api-spec.md` の命名規則に従い、対応するPRD機能を明記する
-- 画面を追加するときは conceptual-modelとwireframe を先に追加/更新する
+- 画面を追加するときは conceptual-model.json の screens を先に追加/更新する
 - イベント計測を追加するときは `docs/specs/analytics-spec.md` のイベント命名規則に従う
 
 ## スキップのルール

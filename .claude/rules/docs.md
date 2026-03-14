@@ -14,14 +14,18 @@ paths:
 - 詳細は `.claude/rules/workflow.md` を参照する
 
 
-## Conceptual Model（JSON + HTMLエディタ）
+## Conceptual Model（統合JSON + HTMLエディタ）
 
-- `conceptual-model.json` はConceptual Model HTMLで更新する。直接編集も可だが、HTMLエディタを使うことを推奨
+- `conceptual-model.json` は統合JSON（entities/actors/composites/screens/navigation）
+- CMエディタ（`conceptual-model.html`）で entities/actors/composites を編集
+- Screensエディタ（`screens.html`）で screens/navigation を編集
+- 両エディタは同じJSONを共有し、担当外フィールドをパススルーで保持する
 - ユーザーから設計指示があった場合、`conceptual-model.json` の変更が `ui-spec.md` と `db-schema.md` に影響しないか確認する
 - `conceptual-model.json` が更新されたら、`conceptual-model.md` も整合するよう更新する
 
-## Wireframe（JSON + HTMLエディタ）
+## Screens（統合JSON内）
 
-- `wireframe.json` の `_entity`/`_attributes` は編集しない。変更は `conceptual-model.json` から
-- ビューの追加は Conceptual Model HTML の右ペインで行う（auto-saveで `conceptual-model.json` に保存される）
-- `wireframe.json` が更新されたら、`ui-spec.md` への影響を確認する
+- 画面定義は `conceptual-model.json` の `screens` / `navigation` で管理する
+- 画面を追加するときは `/wireframe` でScreensエディタを開いて編集する
+- screens の objects.crud は actors の touches 権限の範囲内で設定する
+- screens が更新されたら、`ui-spec.md` への影響を確認する
