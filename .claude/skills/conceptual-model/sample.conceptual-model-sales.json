@@ -1,0 +1,155 @@
+{
+  "entities": [
+    {
+      "id": "customer",
+      "name": "得意先",
+      "relations": [
+        { "id": "r1", "targetId": "contact",     "type": "has-many",    "label": "has" },
+        { "id": "r2", "targetId": "sales-order",  "type": "has-many",    "label": "places" },
+        { "id": "r3", "targetId": "quotation",    "type": "has-many",    "label": "receives" }
+      ]
+    },
+    {
+      "id": "contact",
+      "name": "担当者",
+      "relations": [
+        { "id": "r4", "targetId": "customer", "type": "belongs-to", "label": "belongs to" }
+      ]
+    },
+    {
+      "id": "quotation",
+      "name": "見積",
+      "relations": [
+        { "id": "r5", "targetId": "quotation-item", "type": "has-many",    "label": "has" },
+        { "id": "r6", "targetId": "sales-order",     "type": "has-one",     "label": "becomes" },
+        { "id": "r7", "targetId": "employee",        "type": "belongs-to",  "label": "by" }
+      ]
+    },
+    {
+      "id": "quotation-item",
+      "name": "見積明細",
+      "relations": [
+        { "id": "r8", "targetId": "product", "type": "belongs-to", "label": "ref" }
+      ]
+    },
+    {
+      "id": "sales-order",
+      "name": "受注",
+      "relations": [
+        { "id": "r9",  "targetId": "sales-order-item", "type": "has-many",   "label": "has" },
+        { "id": "r10", "targetId": "delivery",          "type": "has-many",   "label": "triggers" },
+        { "id": "r11", "targetId": "invoice",           "type": "has-one",    "label": "generates" },
+        { "id": "r12", "targetId": "employee",          "type": "belongs-to", "label": "by" }
+      ]
+    },
+    {
+      "id": "sales-order-item",
+      "name": "受注明細",
+      "relations": [
+        { "id": "r13", "targetId": "product", "type": "belongs-to", "label": "ref" }
+      ]
+    },
+    {
+      "id": "product",
+      "name": "商品",
+      "relations": [
+        { "id": "r14", "targetId": "product-category", "type": "belongs-to", "label": "in" }
+      ]
+    },
+    {
+      "id": "product-category",
+      "name": "商品カテゴリ",
+      "relations": [
+        { "id": "r15", "targetId": "product", "type": "has-many", "label": "contains" }
+      ]
+    },
+    {
+      "id": "delivery",
+      "name": "納品",
+      "relations": [
+        { "id": "r16", "targetId": "sales-order", "type": "belongs-to", "label": "for" }
+      ]
+    },
+    {
+      "id": "invoice",
+      "name": "請求",
+      "relations": [
+        { "id": "r17", "targetId": "payment", "type": "has-many", "label": "receives" }
+      ]
+    },
+    {
+      "id": "payment",
+      "name": "入金",
+      "relations": [
+        { "id": "r18", "targetId": "invoice", "type": "belongs-to", "label": "for" }
+      ]
+    },
+    {
+      "id": "employee",
+      "name": "担当社員",
+      "relations": [
+        { "id": "r19", "targetId": "sales-order", "type": "has-many", "label": "handles" }
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "id": "sales-rep",
+      "name": "営業担当",
+      "touches": [
+        { "entityId": "customer",          "scope": "all", "crud": ["C", "R", "U"] },
+        { "entityId": "contact",           "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "quotation",         "scope": "own", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "quotation-item",    "scope": "own", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "sales-order",       "scope": "own", "crud": ["C", "R", "U"] },
+        { "entityId": "sales-order-item",  "scope": "own", "crud": ["C", "R", "U"] },
+        { "entityId": "product",           "scope": "all", "crud": ["R"] },
+        { "entityId": "product-category",  "scope": "all", "crud": ["R"] },
+        { "entityId": "delivery",          "scope": "own", "crud": ["R"] },
+        { "entityId": "invoice",           "scope": "own", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "sales-manager",
+      "name": "営業マネージャー",
+      "touches": [
+        { "entityId": "customer",          "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "contact",           "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "quotation",         "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "quotation-item",    "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "sales-order",       "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "sales-order-item",  "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "product",           "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "product-category",  "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "delivery",          "scope": "all", "crud": ["R", "U"] },
+        { "entityId": "invoice",           "scope": "all", "crud": ["R"] },
+        { "entityId": "payment",           "scope": "all", "crud": ["R"] },
+        { "entityId": "employee",          "scope": "all", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "accounting",
+      "name": "経理担当",
+      "touches": [
+        { "entityId": "sales-order", "scope": "all", "crud": ["R"] },
+        { "entityId": "invoice",     "scope": "all", "crud": ["C", "R", "U"] },
+        { "entityId": "payment",     "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "customer",    "scope": "all", "crud": ["R"] }
+      ]
+    }
+  ],
+  "composites": [
+    {
+      "id": "sales-dashboard",
+      "name": "営業ダッシュボード",
+      "actorId": "sales-manager",
+      "uses": ["sales-order", "quotation", "customer", "employee", "invoice"]
+    },
+    {
+      "id": "customer-360",
+      "name": "得意先360°",
+      "actorId": "sales-rep",
+      "uses": ["customer", "contact", "quotation", "sales-order", "invoice"]
+    }
+  ]
+}
