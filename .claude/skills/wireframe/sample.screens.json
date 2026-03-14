@@ -1,0 +1,89 @@
+{
+  "screens": [
+    {
+      "id": "project-list",
+      "name": "Project一覧",
+      "actorId": "owner",
+      "x": 60, "y": 60,
+      "prompt": "",
+      "objects": [
+        { "id": "o1", "entityId": "project", "variant": "collection", "crud": ["C", "R", "D"] }
+      ]
+    },
+    {
+      "id": "project-dashboard",
+      "name": "Project Dashboard",
+      "actorId": "owner",
+      "x": 300, "y": 60,
+      "prompt": "MilestoneごとにTaskをグループ化して表示。進捗をプログレスバーで可視化。未アサインTaskを右サイドバーに表示。",
+      "objects": [
+        { "id": "o2", "entityId": "project",   "variant": "single",     "crud": ["R", "U"] },
+        { "id": "o3", "entityId": "milestone",  "variant": "collection", "crud": ["C", "R"] },
+        { "id": "o4", "entityId": "task",       "variant": "collection", "crud": ["C", "R"] },
+        { "id": "o5", "entityId": "member",     "variant": "collection", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "task-detail",
+      "name": "Task詳細",
+      "actorId": "owner",
+      "x": 300, "y": 280,
+      "prompt": "サブタスクをチェックリスト形式で表示。コメントはタイムライン形式。添付ファイル・期限・担当者はサイドバーに。",
+      "objects": [
+        { "id": "o6", "entityId": "task",    "variant": "single",     "crud": ["R", "U", "D"] },
+        { "id": "o7", "entityId": "comment", "variant": "collection", "crud": ["C", "R"] },
+        { "id": "o8", "entityId": "label",   "variant": "collection", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "member-list",
+      "name": "Member管理",
+      "actorId": "owner",
+      "x": 560, "y": 60,
+      "prompt": "",
+      "objects": [
+        { "id": "o9", "entityId": "member", "variant": "collection", "crud": ["C", "R", "U", "D"] }
+      ]
+    },
+    {
+      "id": "my-tasks",
+      "name": "My Tasks",
+      "actorId": "member-actor",
+      "x": 60, "y": 60,
+      "prompt": "自分にアサインされたTaskを期限順に表示。Projectごとにグループ化切り替え可能。",
+      "objects": [
+        { "id": "o10", "entityId": "task",    "variant": "collection", "crud": ["C", "R", "U"] },
+        { "id": "o11", "entityId": "project", "variant": "collection", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "member-task-detail",
+      "name": "Task詳細",
+      "actorId": "member-actor",
+      "x": 60, "y": 260,
+      "prompt": "サブタスクをチェックリスト形式で表示。コメントはタイムライン形式。",
+      "objects": [
+        { "id": "o12", "entityId": "task",    "variant": "single",     "crud": ["R", "U"] },
+        { "id": "o13", "entityId": "comment", "variant": "collection", "crud": ["C", "R", "U", "D"] }
+      ]
+    },
+    {
+      "id": "viewer-project",
+      "name": "Project閲覧",
+      "actorId": "viewer",
+      "x": 60, "y": 60,
+      "prompt": "",
+      "objects": [
+        { "id": "o14", "entityId": "project",   "variant": "single",     "crud": ["R"] },
+        { "id": "o15", "entityId": "milestone",  "variant": "collection", "crud": ["R"] },
+        { "id": "o16", "entityId": "task",       "variant": "collection", "crud": ["R"] }
+      ]
+    }
+  ],
+  "navigation": [
+    { "id": "n1", "from": "project-list",      "to": "project-dashboard",  "trigger": "Tap project" },
+    { "id": "n2", "from": "project-dashboard", "to": "task-detail",         "trigger": "Tap task" },
+    { "id": "n3", "from": "project-dashboard", "to": "member-list",         "trigger": "Manage members" },
+    { "id": "n4", "from": "my-tasks",          "to": "member-task-detail",  "trigger": "Tap task" }
+  ]
+}
