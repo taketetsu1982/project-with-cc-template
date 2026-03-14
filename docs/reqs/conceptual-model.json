@@ -1,174 +1,76 @@
 {
-  "name": "プロジェクト管理ツール",
-  "root": {
-    "name": "プロジェクト管理",
-    "direction": "horizontal",
-    "children": [
-      {
-        "name": "組織",
-        "direction": "vertical",
-        "children": [
-          {
-            "name": "ワークスペース",
-            "type": "entity",
-            "attributes": [
-              "名前: ワークスペースの表示名",
-              "スラッグ: URL用の一意識別子",
-              "プラン: 契約プラン（free / pro / enterprise）"
-            ]
-          },
-          {
-            "name": "メンバー",
-            "type": "entity",
-            "attributes": [
-              "表示名: ユーザーの表示名",
-              "メール: ログイン用メールアドレス",
-              "ロール: ワークスペース内の権限（owner / admin / member）",
-              "アバター: プロフィール画像URL"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "プロジェクト管理",
-        "direction": "vertical",
-        "children": [
-          {
-            "name": "プロジェクト",
-            "type": "entity",
-            "attributes": [
-              "名前: プロジェクトの表示名",
-              "説明: プロジェクトの概要",
-              "ステータス: 進行状態（active / archived）",
-              "オーナー: プロジェクト責任者（メンバー）"
-            ]
-          },
-          {
-            "name": "タスク",
-            "type": "entity",
-            "attributes": [
-              "タイトル: タスクの件名",
-              "説明: タスクの詳細",
-              "ステータス: 進行状態（todo / in_progress / done）",
-              "優先度: 重要度（low / medium / high / urgent）",
-              "担当者: 割り当てられたメンバー",
-              "期限: 完了期限日"
-            ]
-          },
-          {
-            "name": "ラベル",
-            "type": "entity",
-            "attributes": [
-              "名前: ラベルの表示名",
-              "色: 表示カラーコード"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "コミュニケーション",
-        "direction": "vertical",
-        "children": [
-          {
-            "name": "コメント",
-            "type": "entity",
-            "attributes": [
-              "本文: コメントの内容（Markdown）",
-              "投稿者: コメントしたメンバー",
-              "投稿日時: コメントの作成日時"
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "views": [
+  "entities": [
     {
-      "name": "プロジェクト一覧",
-      "context": "一覧",
-      "primaryType": "card",
-      "entities": [
-        {
-          "entity": "プロジェクト",
-          "role": "primary"
-        },
-        {
-          "entity": "メンバー",
-          "role": "related"
-        }
+      "id": "workspace",
+      "name": "ワークスペース",
+      "relations": [
+        { "id": "r1", "targetId": "project", "type": "has-many", "label": "contains" },
+        { "id": "r2", "targetId": "member", "type": "has-many", "label": "has" }
       ]
     },
     {
-      "name": "プロジェクト詳細",
-      "context": "詳細",
-      "primaryType": "card",
-      "entities": [
-        {
-          "entity": "プロジェクト",
-          "role": "primary"
-        },
-        {
-          "entity": "タスク",
-          "role": "related"
-        },
-        {
-          "entity": "メンバー",
-          "role": "related"
-        }
+      "id": "member",
+      "name": "メンバー",
+      "relations": [
+        { "id": "r3", "targetId": "task", "type": "has-many", "label": "assigned to" }
       ]
     },
     {
-      "name": "タスク一覧",
-      "context": "一覧",
-      "primaryType": "table",
-      "entities": [
-        {
-          "entity": "タスク",
-          "role": "primary"
-        },
-        {
-          "entity": "ラベル",
-          "role": "related"
-        },
-        {
-          "entity": "メンバー",
-          "role": "related"
-        }
+      "id": "project",
+      "name": "プロジェクト",
+      "relations": [
+        { "id": "r4", "targetId": "task", "type": "has-many", "label": "contains" },
+        { "id": "r5", "targetId": "member", "type": "has-many", "label": "assigned" }
       ]
     },
     {
-      "name": "タスク詳細",
-      "context": "詳細",
-      "primaryType": "card",
-      "entities": [
-        {
-          "entity": "タスク",
-          "role": "primary"
-        },
-        {
-          "entity": "コメント",
-          "role": "related"
-        },
-        {
-          "entity": "ラベル",
-          "role": "related"
-        }
+      "id": "task",
+      "name": "タスク",
+      "relations": [
+        { "id": "r6", "targetId": "comment", "type": "has-many", "label": "has" },
+        { "id": "r7", "targetId": "label", "type": "has-many", "label": "tagged" },
+        { "id": "r8", "targetId": "member", "type": "belongs-to", "label": "assigned to" }
       ]
     },
     {
-      "name": "メンバー管理",
-      "context": "一覧",
-      "primaryType": "table",
-      "entities": [
-        {
-          "entity": "メンバー",
-          "role": "primary"
-        },
-        {
-          "entity": "ワークスペース",
-          "role": "related"
-        }
+      "id": "label",
+      "name": "ラベル",
+      "relations": []
+    },
+    {
+      "id": "comment",
+      "name": "コメント",
+      "relations": [
+        { "id": "r9", "targetId": "member", "type": "belongs-to", "label": "by" }
       ]
     }
-  ]
+  ],
+  "actors": [
+    {
+      "id": "owner",
+      "name": "Owner",
+      "touches": [
+        { "entityId": "workspace", "scope": "own", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "project", "scope": "own", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "task", "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "member", "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "label", "scope": "all", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "comment", "scope": "all", "crud": ["C", "R", "U", "D"] }
+      ]
+    },
+    {
+      "id": "member-actor",
+      "name": "Member",
+      "touches": [
+        { "entityId": "project", "scope": "all", "crud": ["R"] },
+        { "entityId": "task", "scope": "all", "crud": ["C", "R", "U"] },
+        { "entityId": "comment", "scope": "own", "crud": ["C", "R", "U", "D"] },
+        { "entityId": "label", "scope": "all", "crud": ["R"] },
+        { "entityId": "member", "scope": "all", "crud": ["R"] }
+      ]
+    }
+  ],
+  "composites": [],
+  "screens": [],
+  "navigation": []
 }
