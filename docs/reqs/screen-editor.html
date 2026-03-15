@@ -385,8 +385,10 @@ const TABS=[{id:"map",label:"Map"},{id:"detail",label:"Screen"}];
 function App(){
   const[screens,setScreensRaw]=useState(EMPTY),[view,setView]=useState("map"),[scrId,setScrId]=useState(null);
   const histRef=useRef({stack:[EMPTY],idx:0});
+  const dirtyRef=useRef(false);
 
   const setScreens=useCallback(updater=>{
+    dirtyRef.current=true;
     setScreensRaw(prev=>{
       const next=typeof updater==='function'?updater(prev):updater;
       const h=histRef.current;
@@ -400,8 +402,8 @@ function App(){
     setScreensRaw(prev=>typeof updater==='function'?updater(prev):updater);
   },[]);
 
-  const undo=useCallback(()=>{const h=histRef.current;if(h.idx<=0)return;h.idx--;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Undo');},[]);
-  const redo=useCallback(()=>{const h=histRef.current;if(h.idx>=h.stack.length-1)return;h.idx++;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Redo');},[]);
+  const undo=useCallback(()=>{const h=histRef.current;if(h.idx<=0)return;h.idx--;dirtyRef.current=true;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Undo');},[]);
+  const redo=useCallback(()=>{const h=histRef.current;if(h.idx>=h.stack.length-1)return;h.idx++;dirtyRef.current=true;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Redo');},[]);
   // Map View からの選択状態参照用
   const selRef=useRef({scrId:null,navId:null,actorId:null});
   const clipRef=useRef(null);
@@ -455,8 +457,7 @@ function App(){
     return()=>{window.__scUndo=window.__scRedo=window.__scDelete=window.__scCopy=window.__scPaste=window.__scCut=null;};
   },[undo,redo,handleDelete,handleCopy,handlePaste,handleCut]);
 
-  const initialLoad=useRef(true);
-  useEffect(()=>{screensRef=screens;if(initialLoad.current){initialLoad.current=false;}else{markModified();}},[screens]);
+  useEffect(()=>{screensRef=screens;if(dirtyRef.current){dirtyRef.current=false;markModified();}},[screens]);
   useEffect(()=>{
     window.__scLoadData=d=>{
       const scData=ensureScreenPositions(splitData(d));
