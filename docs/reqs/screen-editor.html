@@ -130,7 +130,16 @@ const ENT_PALETTE=[
 const entPalette=id=>ENT_PALETTE[Math.max(0,CONCEPT.entities.findIndex(e=>e.id===id))%ENT_PALETTE.length];
 const entColor=id=>entPalette(id).fg;
 const entName=id=>CONCEPT.entities.find(e=>e.id===id)?.name||id;
+// スクリーンカードサイズ
 const SW=190,SH=76;
+// カード内部
+const SC_HEADER_H=36,SC_OBJ_START_Y=40,SC_OBJ_ROW_H=22,SC_OBJ_PAD_X=8;
+// ラベル計算
+const LABEL_CHAR_W=7,LABEL_MIN_W=24,LABEL_PAD=16;
+const labelWidth=text=>Math.max((text||"").length*LABEL_CHAR_W,LABEL_MIN_W)+LABEL_PAD;
+// グリッドレイアウト
+const SC_GRID_COLS=3,SC_GRID_GAP_X=280,SC_GRID_GAP_Y=220,SC_GRID_PAD_X=60,SC_GRID_PAD_Y=60;
+const SC_MIN_SPAN_FACTOR=160,SC_MIN_SPAN_MIN=200;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function uniqueName(base,names){if(!names.includes(base))return base;const m=base.match(/^(.+?)(\d+)$/);const stem=m?m[1]:base;let n=m?parseInt(m[2],10)+1:2;while(names.includes(stem+n))n++;return stem+n;}
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
@@ -138,7 +147,7 @@ const EMPTY={screens:[],transitions:[]};
 const ZOOM_MIN=0.25,ZOOM_MAX=3,MAX_HISTORY=80;
 function ensureScreenPositions(data){
   if(!data||!data.screens||!CONCEPT.actors)return data;
-  const cols=3,gapX=280,gapY=220,padX=60,padY=60;
+  const cols=SC_GRID_COLS,gapX=SC_GRID_GAP_X,gapY=SC_GRID_GAP_Y,padX=SC_GRID_PAD_X,padY=SC_GRID_PAD_Y;
   // Actorごとにスクリーンを自動配置
   CONCEPT.actors.forEach(actor=>{
     const actorScreens=data.screens.filter(s=>s.actorId===actor.id);
@@ -146,7 +155,7 @@ function ensureScreenPositions(data){
     if(actorScreens.length<2)return;
     const xs=actorScreens.map(s=>s.x),ys=actorScreens.map(s=>s.y);
     const rangeX=Math.max(...xs)-Math.min(...xs),rangeY=Math.max(...ys)-Math.min(...ys);
-    const minSpan=Math.max((actorScreens.length-1)*160,200);
+    const minSpan=Math.max((actorScreens.length-1)*SC_MIN_SPAN_FACTOR,SC_MIN_SPAN_MIN);
     if(rangeX+rangeY>=minSpan)return;
     // 再配置
     actorScreens.forEach((scr,i)=>{scr.x=padX+(i%cols)*gapX;scr.y=padY+Math.floor(i/cols)*gapY;});
@@ -222,11 +231,11 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
             <rect width="100%" height="100%" fill="url(#sdots)" data-bg="1" onMouseDown={onBgMD}/>
             <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
             {/* 1. スクリーンカード（最背面） */}
-            {visScr.map(scr=>{const isConn=conn===scr.id,isSel=selScrId===scr.id,cardH=SH+Math.max(0,scr.objects.length)*22;return(<g key={scr.id} transform={`translate(${scr.x},${scr.y})`} onMouseDown={e=>onBoxMD(e,scr.id)} onDoubleClick={e=>{e.stopPropagation();onSelectScreen(scr.id);}} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={SW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={SW} height={cardH} rx={14} fill="white"/><clipPath id={`clip-${scr.id}`}><rect width={SW} height={cardH} rx={14}/></clipPath><g clipPath={`url(#clip-${scr.id})`}><rect width={SW} height={36} fill="#FAFAFA"/><line x1={0} y1={36} x2={SW} y2={36} stroke="#E0E0E0" strokeWidth="1"/><text x={12} y={24} fontSize={14} fontWeight="500" fill="#1A1A1A" fontFamily="inherit">{scr.name}</text>{scr.objects.map((obj,oi)=>{const p=entPalette(obj.entityId);return(<g key={obj.id} transform={`translate(0,${40+oi*22})`}><rect x={8} width={SW-16} height={18} rx={9} fill={p.bg+"30"}/><circle cx={18} cy={9} r={4} fill={p.bg}/><text x={28} y={13} fontSize={11} fontWeight="500" fill={p.fg} fontFamily="inherit">{entName(obj.entityId)}</text><text x={SW-12} y={13} fontSize={10} fill="#9AA0A6" textAnchor="end" fontFamily="inherit">{obj.variant==="collection"?"collection":"single"}</text></g>);})}</g><rect width={SW} height={cardH} rx={14} fill="none" stroke={isConn?"#E37400":isSel?"#1A73E8":"#DADCE0"} strokeWidth={isConn||isSel?2.5:1}/></g>);})}
+            {visScr.map(scr=>{const isConn=conn===scr.id,isSel=selScrId===scr.id,cardH=SH+Math.max(0,scr.objects.length)*SC_OBJ_ROW_H;return(<g key={scr.id} transform={`translate(${scr.x},${scr.y})`} onMouseDown={e=>onBoxMD(e,scr.id)} onDoubleClick={e=>{e.stopPropagation();onSelectScreen(scr.id);}} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={SW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={SW} height={cardH} rx={14} fill="white"/><clipPath id={`clip-${scr.id}`}><rect width={SW} height={cardH} rx={14}/></clipPath><g clipPath={`url(#clip-${scr.id})`}><rect width={SW} height={SC_HEADER_H} fill="#FAFAFA"/><line x1={0} y1={SC_HEADER_H} x2={SW} y2={SC_HEADER_H} stroke="#E0E0E0" strokeWidth="1"/><text x={12} y={24} fontSize={14} fontWeight="500" fill="#1A1A1A" fontFamily="inherit">{scr.name}</text>{scr.objects.map((obj,oi)=>{const p=entPalette(obj.entityId);return(<g key={obj.id} transform={`translate(0,${SC_OBJ_START_Y+oi*SC_OBJ_ROW_H})`}><rect x={SC_OBJ_PAD_X} width={SW-SC_OBJ_PAD_X*2} height={18} rx={9} fill={p.bg+"30"}/><circle cx={18} cy={9} r={4} fill={p.bg}/><text x={28} y={13} fontSize={11} fontWeight="500" fill={p.fg} fontFamily="inherit">{entName(obj.entityId)}</text><text x={SW-12} y={13} fontSize={10} fill="#9AA0A6" textAnchor="end" fontFamily="inherit">{obj.variant==="collection"?"collection":"single"}</text></g>);})}</g><rect width={SW} height={cardH} rx={14} fill="none" stroke={isConn?"#E37400":isSel?"#1A73E8":"#DADCE0"} strokeWidth={isConn||isSel?2.5:1}/></g>);})}
             {/* 2. ナビ線 */}
-            {visNav.map(nav=>{const src=visScr.find(s=>s.id===nav.from),tgt=visScr.find(s=>s.id===nav.to);if(!src||!tgt)return null;const srcH=SH+Math.max(0,src.objects.length)*22,tgtH=SH+Math.max(0,tgt.objects.length)*22;const fp=edgePt(src.x,src.y,SW,srcH,tgt.x+SW/2,tgt.y+tgtH/2),tp=edgePt(tgt.x,tgt.y,SW,tgtH,src.x+SW/2,src.y+srcH/2),isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";return(<g key={`nl-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelScrId(null);}}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="transparent" strokeWidth={12} style={{cursor:"pointer"}}/><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={isSel?2:1.5} markerEnd={isSel?"url(#sarr-hi)":"url(#sarr)"} style={{cursor:"pointer"}}/></g>);})}
+            {visNav.map(nav=>{const src=visScr.find(s=>s.id===nav.from),tgt=visScr.find(s=>s.id===nav.to);if(!src||!tgt)return null;const srcH=SH+Math.max(0,src.objects.length)*SC_OBJ_ROW_H,tgtH=SH+Math.max(0,tgt.objects.length)*SC_OBJ_ROW_H;const fp=edgePt(src.x,src.y,SW,srcH,tgt.x+SW/2,tgt.y+tgtH/2),tp=edgePt(tgt.x,tgt.y,SW,tgtH,src.x+SW/2,src.y+srcH/2),isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";return(<g key={`nl-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelScrId(null);}}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="transparent" strokeWidth={12} style={{cursor:"pointer"}}/><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={isSel?2:1.5} markerEnd={isSel?"url(#sarr-hi)":"url(#sarr)"} style={{cursor:"pointer"}}/></g>);})}
             {/* 3. ナビラベル（最前面） */}
-            {visNav.map(nav=>{const src=visScr.find(s=>s.id===nav.from),tgt=visScr.find(s=>s.id===nav.to);if(!src||!tgt)return null;const srcH=SH+Math.max(0,src.objects.length)*22,tgtH=SH+Math.max(0,tgt.objects.length)*22;const fp=edgePt(src.x,src.y,SW,srcH,tgt.x+SW/2,tgt.y+tgtH/2),tp=edgePt(tgt.x,tgt.y,SW,tgtH,src.x+SW/2,src.y+srcH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2,isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";const lw=Math.max((nav.trigger||"").length*7,24)+16;return(<g key={`nb-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelScrId(null);}} style={{cursor:"pointer"}}><rect x={mx-lw/2} y={my-10} width={lw} height={19} rx={10} fill={isSel?"#1A73E8":"white"} stroke={col} strokeWidth="0.5"/><text x={mx} y={my+4} fontSize={11} fill={isSel?"white":"#5F6368"} textAnchor="middle" style={{pointerEvents:"none"}}>{nav.trigger}</text></g>);})}
+            {visNav.map(nav=>{const src=visScr.find(s=>s.id===nav.from),tgt=visScr.find(s=>s.id===nav.to);if(!src||!tgt)return null;const srcH=SH+Math.max(0,src.objects.length)*SC_OBJ_ROW_H,tgtH=SH+Math.max(0,tgt.objects.length)*SC_OBJ_ROW_H;const fp=edgePt(src.x,src.y,SW,srcH,tgt.x+SW/2,tgt.y+tgtH/2),tp=edgePt(tgt.x,tgt.y,SW,tgtH,src.x+SW/2,src.y+srcH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2,isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";const lw=labelWidth(nav.trigger);return(<g key={`nb-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelScrId(null);}} style={{cursor:"pointer"}}><rect x={mx-lw/2} y={my-10} width={lw} height={19} rx={10} fill={isSel?"#1A73E8":"white"} stroke={col} strokeWidth="0.5"/><text x={mx} y={my+4} fontSize={11} fill={isSel?"white":"#5F6368"} textAnchor="middle" style={{pointerEvents:"none"}}>{nav.trigger}</text></g>);})}
             </g>
           </svg>
           <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
