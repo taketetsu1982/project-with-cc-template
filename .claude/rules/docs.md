@@ -16,8 +16,8 @@ paths:
 
 ## Conceptual Model（統合JSON + HTMLエディタ）
 
-- `product-model.json` は統合JSON（entities/actors/composites/screens/transitions）
-- CMエディタ（`model-editor.html`）で entities/actors/composites を編集
+- `product-model.json` は統合JSON（entities/actors/screens/transitions）。screensはtype: screen|compositeで区別
+- CMエディタ（`model-editor.html`）で entities/actors を編集
 - Screensエディタ（`screen-editor.html`）で screens/transitions を編集
 - 両エディタは同じJSONを共有し、担当外フィールドをパススルーで保持する
 - ユーザーから設計指示があった場合、`product-model.json` の変更が `ui-spec.md` と `db-schema.md` に影響しないか確認する
