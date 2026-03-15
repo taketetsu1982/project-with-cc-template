@@ -416,7 +416,7 @@ function CompositeView({model,setModel}){
   return(
     <div style={{display:"flex",height:"100%"}}>
       <div style={{width:320,background:M3.surface,boxShadow:"var(--md-sys-elevation-1)",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"16px 16px 12px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
+        <div style={{padding:"16px 16px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",boxShadow:"var(--md-sys-elevation-1)"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
         <div style={{flex:1,overflowY:"auto"}}>
           {model.composites.length===0&&<div style={{padding:16,fontSize:14,color:M3.outline,lineHeight:"20px"}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
           {model.composites.map(comp=>{const isSel=selId===comp.id,actor=model.actors.find(a=>a.id===comp.actorId);return<div key={comp.id} onClick={()=>setSelId(comp.id)} style={{padding:"16px 16px",cursor:"pointer",borderBottom:`1px solid ${M3.surfaceCont}`,borderLeft:`3px solid ${isSel?"#7D5700":"transparent"}`,background:isSel?"#FFF0C7":"transparent"}}><div style={{fontSize:14,fontWeight:500,color:isSel?"#7D5700":M3.onSurface}}>{comp.name}</div><div style={{fontSize:12,color:M3.onSurfaceVar,marginTop:4}}>{actor?.name||"—"} · {comp.uses.length} entities</div></div>;})}
