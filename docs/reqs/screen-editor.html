@@ -169,7 +169,7 @@ function useInitialPan(items,iw,ih){
     const r=svgRef.current.getBoundingClientRect();
     if(!r.width)return;
     const c=calcCenterPan(items,iw,ih);
-    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2});
+    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2-40});
     inited.current=true;
   },[items]);
   return{svgRef,pan,setPan};
