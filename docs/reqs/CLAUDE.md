@@ -10,7 +10,7 @@
 | ファイル | 責務 | 主な読者 |
 |---|---|---|
 | product-goals.md | Product Goal一覧・確信度定義・スコープ・出口条件 | 全員 |
-| pg0.md (pg1.md ...) | Product Goalごとのスコープ・出口条件（WHEN） | 全員 |
+| pg1.md (pg2.md ...) | Product Goalごとのスコープ・出口条件（WHEN） | 全員 |
 | mrd.md | 市場構造・購入者・参入戦略（WHERE, WHO:Buyer, HOW MUCH） | PMMとPdM |
 | prd.md | 利用者・提供価値・機能定義・スコープ（WHY, WHO:User ,WHAT） | PdMとPMM・開発 |
 | conceptual-model.md | エンティティ・関係の設計意図（Model of WHAT） | 開発 |
@@ -19,7 +19,7 @@
 
 ## 編集ルール
 
-- pg0.md・prd.md・mrd.md は相互にブラッシュアップする。どこから着手してもよい
+- pg1.md・prd.md・mrd.md は相互にブラッシュアップする。どこから着手してもよい
 - WHO は Buyer（mrd.md）と User（prd.md）に分離して定義する
 - 3つがある程度固まってから conceptual-model.md に降ろす
 - 新しいエンティティを追加する前に conceptual-model.md を更新する

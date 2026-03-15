@@ -56,6 +56,17 @@ Screens完了後、以下の2トラックを並列で進める。
 - 画面を追加するときは product-model.json の screens を先に追加/更新する
 - イベント計測を追加するときは `docs/specs/analytics-spec.md` のイベント命名規則に従う
 
+## PG遷移（次のProduct Goalへ進む）
+
+- **トリガー**: 現在のPGの出口条件をすべて満たしたとき
+- **アクション**:
+  1. 現在の `pg{N}.md` のステータスを `Done` に更新する
+  2. `product-goals.md` のPG一覧で該当PGのステータスを `Done` に更新する
+  3. `docs/reqs/pg{N+1}.md` を作成する（`pg{N}.md` の構造をコピーし、内容はテンプレートに戻す）
+  4. `product-goals.md` のPG一覧に新しい行を追加する
+  5. `product-goals.md` のドキュメント確信度セクションに、HTMLコメント内のテンプレートをコピーして新PGの確信度テーブルを追加する
+  6. 新PGの企画（pg{N+1}.md → prd → mrd）からワークフローを再開する
+
 ## スキップのルール
 - ドキュメントを書く前に `docs/reqs/product-goals.md` の確信度を確認する
 - 確信度が「—」のセクションは記述しない。「仮説」のセクションは変わりうることを前提に書く

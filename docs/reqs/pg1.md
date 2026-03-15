@@ -1,4 +1,4 @@
-# PG0 — {名前} [{検証フェーズ}]
+# PG1 — {名前} [{検証フェーズ}]
 
 **ステータス:** {Not Started / In Progress / Done}
 
