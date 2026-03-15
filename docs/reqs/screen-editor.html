@@ -279,7 +279,7 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
         <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6",fontSize:14,fontFamily:"inherit",display:"flex",alignItems:"center",gap:4,padding:0}}>← Map</button>
         <div style={{width:1,height:20,background:M3.outlineVar}}/>
         <Input value={scr.name} onChange={e=>updScr({name:e.target.value})} style={{fontSize:16,fontWeight:500,border:"none",background:"transparent",padding:0,boxShadow:"none",width:"auto"}}/>
-        <span style={{fontSize:12,color:"#9AA0A6"}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</span>
+        <span style={{fontSize:14,fontWeight:500,color:M3.onSurface}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</span>
         <div style={{marginLeft:"auto"}}><Btn small ghost onClick={addObj}>+ Object</Btn></div>
       </div>
       <div style={{flex:1,display:"flex",overflow:"hidden"}}>
