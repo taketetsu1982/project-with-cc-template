@@ -78,13 +78,13 @@ let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,screensR
 
 function getFullJson(){
   if(!screensRef)return null;
-  return{...passthrough,screens:screensRef.screens,navigation:screensRef.navigation};
+  return{...passthrough,screens:screensRef.screens,transitions:screensRef.transitions};
 }
 function splitData(data){
-  const{screens,navigation,...rest}=data;
+  const{screens,transitions,...rest}=data;
   passthrough=rest;
   CONCEPT={entities:rest.entities||[],actors:rest.actors||[],composites:rest.composites||[]};
-  return{screens:screens||[],navigation:navigation||[]};
+  return{screens:screens||[],transitions:transitions||[]};
 }
 
 function updateStatus(s,l,h){const dot=document.getElementById('sc-dot');dot.className='sc-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('sc-label').textContent=l||'';document.getElementById('sc-hint').textContent=h||'';}
@@ -134,7 +134,7 @@ const SW=190,SH=76;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function uniqueName(base,names){if(!names.includes(base))return base;const m=base.match(/^(.+?)(\d+)$/);const stem=m?m[1]:base;let n=m?parseInt(m[2],10)+1:2;while(names.includes(stem+n))n++;return stem+n;}
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
-const EMPTY={screens:[],navigation:[]};
+const EMPTY={screens:[],transitions:[]};
 const ZOOM_MIN=0.25,ZOOM_MAX=3,MAX_HISTORY=80;
 function ensureScreenPositions(data){
   if(!data||!data.screens||!CONCEPT.actors)return data;
@@ -191,14 +191,14 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
   const[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const visScr=screens.screens.filter(s=>s.actorId===actorId);
-  const visNav=screens.navigation.filter(n=>visScr.find(s=>s.id===n.from)&&visScr.find(s=>s.id===n.to));
+  const visNav=screens.transitions.filter(n=>visScr.find(s=>s.id===n.from)&&visScr.find(s=>s.id===n.to));
   const selNav=visNav.find(n=>n.id===selNavId);
-  const updNav=u=>setScreens(m=>({...m,navigation:m.navigation.map(n=>n.id===u.id?u:n)}));
-  const delNav=id=>{setSelNavId(null);setScreens(m=>({...m,navigation:m.navigation.filter(n=>n.id!==id)}));};
+  const updNav=u=>setScreens(m=>({...m,transitions:m.transitions.map(n=>n.id===u.id?u:n)}));
+  const delNav=id=>{setSelNavId(null);setScreens(m=>({...m,transitions:m.transitions.filter(n=>n.id!==id)}));};
   const addScreen=()=>{const id=uid();const names=screens.screens.map(s=>s.name);setScreens(m=>({...m,screens:[...m.screens,{id,name:uniqueName("New Screen",names),actorId,x:120/zoom+pan.x,y:120/zoom+pan.y,prompt:"",objects:[]}]}));};
   const connOn=conn!==null,connHasSrc=conn!==null&&conn!=="";
   const onBgMD=e=>{if(connOn)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
-  const onBoxMD=(e,id)=>{e.stopPropagation();if(connOn){if(conn===""){setConn(id);return;}if(conn!==id){setScreens(m=>({...m,navigation:[...m.navigation,{id:uid(),from:conn,to:id,trigger:"Tap"}]}));setConn(null);}return;}setSelNavId(null);setSelScrId(id);const r=svgRef.current.getBoundingClientRect();const sc=visScr.find(s=>s.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-sc.x,y:(e.clientY-r.top)/zoom+pan.y-sc.y};setDrag(id);};
+  const onBoxMD=(e,id)=>{e.stopPropagation();if(connOn){if(conn===""){setConn(id);return;}if(conn!==id){setScreens(m=>({...m,transitions:[...m.transitions,{id:uid(),from:conn,to:id,trigger:"Tap"}]}));setConn(null);}return;}setSelNavId(null);setSelScrId(id);const r=svgRef.current.getBoundingClientRect();const sc=visScr.find(s=>s.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-sc.x,y:(e.clientY-r.top)/zoom+pan.y-sc.y};setDrag(id);};
   const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setScreensSilent(m=>({...m,screens:m.screens.map(s=>s.id===drag?{...s,x:(e.clientX-r.left)/zoom+pan.x-dOff.current.x,y:(e.clientY-r.top)/zoom+pan.y-dOff.current.y}:s)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setScreensSilent]);
   const onUp=()=>{if(drag)setScreens(m=>m);setDrag(null);setPanning(false);};
   const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
@@ -235,7 +235,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
             <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
         </div>
-        {(()=>{const scr=screens.screens.find(s=>s.id===selScrId);if(!scr)return null;const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selScrId?{...s,...patch}:s)}));const delScr=()=>{setSelScrId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selScrId),navigation:m.navigation.filter(n=>n.from!==selScrId&&n.to!==selScrId)}));};return(
+        {(()=>{const scr=screens.screens.find(s=>s.id===selScrId);if(!scr)return null;const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selScrId?{...s,...patch}:s)}));const delScr=()=>{setSelScrId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selScrId),transitions:m.transitions.filter(n=>n.from!==selScrId&&n.to!==selScrId)}));};return(
           <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
             <div style={{padding:"12px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,textTransform:"uppercase",letterSpacing:"0.5px"}}>Screen</span><button onClick={()=>setSelScrId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1}}>×</button></div>
             <div style={{flex:1,overflowY:"auto",padding:16}}>
@@ -348,7 +348,7 @@ function App(){
     ['sc-edited','sc-connect-btn','sc-auto-btn'].forEach(id=>{const el=document.getElementById(id);if(el)barRef.current.appendChild(el);});
   },[]);
 
-  const counts={screens:screens.screens.length,navigation:screens.navigation.length};
+  const counts={screens:screens.screens.length,transitions:screens.transitions.length};
   return(
     <div style={{height:"100vh",display:"flex",flexDirection:"column",background:M3.surface,fontFamily:"'Google Sans','Roboto','Noto Sans JP',system-ui,sans-serif",fontSize:14}}>
       <div style={{height:48,background:"#FFFFFF",borderBottom:"1px solid #DADCE0",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:16}}>
