@@ -245,7 +245,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
               <div style={{marginBottom:20}}><SLabel>Objects</SLabel>{scr.objects.length===0?<div style={{fontSize:13,color:"#BDC1C6"}}>No objects</div>:<div style={{display:"flex",flexDirection:"column",gap:6}}>{scr.objects.map(obj=>{const p=entPalette(obj.entityId);return<div key={obj.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:p.bg+"18",borderRadius:M3.shapeSm}}><div style={{width:8,height:8,borderRadius:"50%",background:p.bg,flexShrink:0}}/><span style={{fontSize:13,fontWeight:500,color:p.fg}}>{entName(obj.entityId)}</span><span style={{fontSize:11,color:"#9AA0A6",marginLeft:"auto"}}>{obj.variant==="collection"?"list":"form"}</span></div>;})}</div>}</div>
               <Btn accent onClick={()=>onSelectScreen(scr.id)}>Open Screen</Btn>
             </div>
-            <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16}}><Btn danger onClick={delScr}>Delete screen</Btn></div>
+            <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={delScr}>Delete screen</Btn></div>
           </div>);})()}
         {(()=>{if(!selNav||selScrId)return null;const fromScr=visScr.find(s=>s.id===selNav.from),toScr=visScr.find(s=>s.id===selNav.to);return(
           <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
