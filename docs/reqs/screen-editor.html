@@ -306,7 +306,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
         });
         if(warnings.length===0)return null;
         return<div style={{position:"absolute",bottom:16,left:16,zIndex:20,display:"flex",flexDirection:"column",gap:8}}>
-          {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
+          {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:560}}>
             <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
             <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: {w.msg}</span>
           </div>)}
@@ -379,7 +379,7 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
           <div style={{marginBottom:16}}><SLabel>Object Prompt</SLabel><textarea value={selObj.prompt||""} onChange={e=>updObj({...selObj,prompt:e.target.value})} placeholder="このObjectの実装についての補足" style={{width:"100%",boxSizing:"border-box",border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:"white",fontFamily:"inherit",fontSize:14,color:selObj.prompt?"#1A1A1A":"#C4C7C5",lineHeight:1.6,padding:"8px 16px",resize:"vertical",minHeight:80,outline:"none"}} onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";e.target.style.color="#1A1A1A";}} onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";if(!e.target.value)e.target.style.color="#C4C7C5";}}/></div>
         </div><div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={e=>{e.stopPropagation();delObj(selObj.id);}}>Delete object</Btn></div></div>)}
       </div>
-      {emptyCrudObjs.length>0&&<div style={{position:"absolute",bottom:16,left:16,zIndex:20,background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
+      {emptyCrudObjs.length>0&&<div style={{position:"absolute",bottom:16,left:16,zIndex:20,background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:560}}>
         <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
         <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</strong>: 『{scr.name}』の「{emptyCrudObjs.map(o=>entName(o.entityId)).join("」「")}」のCRUDが設定されていません</span>
       </div>}
