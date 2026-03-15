@@ -1,4 +1,226 @@
 {
+  "screens": [
+    {
+      "id": "project-list",
+      "name": "プロジェクト一覧",
+      "actorId": "owner",
+      "x": -173,
+      "y": -7,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o1",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "project-detail",
+      "name": "プロジェクト詳細",
+      "actorId": "owner",
+      "x": -26,
+      "y": 259,
+      "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
+      "objects": [
+        {
+          "id": "o2",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "U",
+            "R"
+          ],
+          "area": "top"
+        },
+        {
+          "id": "o3",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o4",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ],
+          "area": "right"
+        },
+        {
+          "id": "i6d03v",
+          "entityId": "workspace",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ],
+          "area": "main"
+        }
+      ]
+    },
+    {
+      "id": "task-detail",
+      "name": "タスク詳細",
+      "actorId": "owner",
+      "x": 41,
+      "y": 536,
+      "prompt": "タスクの編集フォームとコメントスレッド。ラベル選択はタグピッカー。",
+      "objects": [
+        {
+          "id": "o5",
+          "entityId": "task",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o6",
+          "entityId": "comment",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        },
+        {
+          "id": "o7",
+          "entityId": "label",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "member-task-list",
+      "name": "マイタスク",
+      "actorId": "member-actor",
+      "x": 60,
+      "y": 60,
+      "prompt": "自分にアサインされたタスクを期限順に表示。",
+      "objects": [
+        {
+          "id": "o8",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "9kxq6u",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "member-task-detail",
+      "name": "タスク詳細",
+      "actorId": "member-actor",
+      "x": 60,
+      "y": 280,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "o9",
+          "entityId": "task",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o10",
+          "entityId": "comment",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ],
+          "area": "right"
+        }
+      ]
+    },
+    {
+      "id": "f3x8qy",
+      "name": "New Screen",
+      "actorId": "owner",
+      "x": -471.5,
+      "y": 35.5,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "3k96p9",
+          "entityId": "workspace",
+          "variant": "single",
+          "crud": [
+            "R"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1mjjl5",
+      "name": "New Screen2",
+      "actorId": "member-actor",
+      "x": -272.75,
+      "y": 74.5,
+      "prompt": "",
+      "objects": []
+    }
+  ],
+  "transitions": [
+    {
+      "id": "n1",
+      "from": "project-list",
+      "to": "project-detail",
+      "trigger": "Tap row"
+    },
+    {
+      "id": "n2",
+      "from": "project-detail",
+      "to": "task-detail",
+      "trigger": "Tap task"
+    },
+    {
+      "id": "n3",
+      "from": "member-task-list",
+      "to": "member-task-detail",
+      "trigger": "Tap row"
+    },
+    {
+      "id": "oscbrq",
+      "from": "f3x8qy",
+      "to": "project-list",
+      "trigger": "Tap"
+    }
+  ],
   "entities": [
     {
       "id": "workspace",
@@ -327,232 +549,7 @@
         "project",
         "task",
         "member"
-      ],
-      "prompt": "KPI（月次進捗・タスク完了率）をカード形式で上部に表示。プロジェクト別タスク数をグラフで中段に。",
-      "x": 60,
-      "y": -120
-    }
-  ],
-  "screens": [
-    {
-      "id": "project-list",
-      "name": "プロジェクト一覧",
-      "actorId": "owner",
-      "x": -173,
-      "y": -7,
-      "prompt": "",
-      "objects": [
-        {
-          "id": "o1",
-          "entityId": "project",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "D"
-          ]
-        }
       ]
-    },
-    {
-      "id": "project-detail",
-      "name": "プロジェクト詳細",
-      "actorId": "owner",
-      "x": -26,
-      "y": 259,
-      "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
-      "objects": [
-        {
-          "id": "o2",
-          "entityId": "project",
-          "variant": "collection",
-          "crud": [
-            "U",
-            "R"
-          ],
-          "area": "top"
-        },
-        {
-          "id": "o3",
-          "entityId": "task",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
-          ]
-        },
-        {
-          "id": "o4",
-          "entityId": "member",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "D"
-          ],
-          "area": "right"
-        },
-        {
-          "id": "i6d03v",
-          "entityId": "workspace",
-          "variant": "collection",
-          "crud": [
-            "R"
-          ],
-          "area": "main"
-        }
-      ]
-    },
-    {
-      "id": "task-detail",
-      "name": "タスク詳細",
-      "actorId": "owner",
-      "x": 41,
-      "y": 536,
-      "prompt": "タスクの編集フォームとコメントスレッド。ラベル選択はタグピッカー。",
-      "objects": [
-        {
-          "id": "o5",
-          "entityId": "task",
-          "variant": "single",
-          "crud": [
-            "R",
-            "U",
-            "D"
-          ]
-        },
-        {
-          "id": "o6",
-          "entityId": "comment",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "D"
-          ]
-        },
-        {
-          "id": "o7",
-          "entityId": "label",
-          "variant": "collection",
-          "crud": [
-            "R"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "member-task-list",
-      "name": "マイタスク",
-      "actorId": "member-actor",
-      "x": 60,
-      "y": 60,
-      "prompt": "自分にアサインされたタスクを期限順に表示。",
-      "objects": [
-        {
-          "id": "o8",
-          "entityId": "task",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "U"
-          ]
-        },
-        {
-          "id": "9kxq6u",
-          "entityId": "member",
-          "variant": "collection",
-          "crud": [
-            "R"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "member-task-detail",
-      "name": "タスク詳細",
-      "actorId": "member-actor",
-      "x": 60,
-      "y": 280,
-      "prompt": "",
-      "objects": [
-        {
-          "id": "o9",
-          "entityId": "task",
-          "variant": "single",
-          "crud": [
-            "R",
-            "U"
-          ]
-        },
-        {
-          "id": "o10",
-          "entityId": "comment",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "D"
-          ],
-          "area": "right"
-        }
-      ]
-    },
-    {
-      "id": "f3x8qy",
-      "name": "New Screen",
-      "actorId": "owner",
-      "x": -471.5,
-      "y": 35.5,
-      "prompt": "",
-      "objects": [
-        {
-          "id": "3k96p9",
-          "entityId": "workspace",
-          "variant": "single",
-          "crud": [
-            "R"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "1mjjl5",
-      "name": "New Screen2",
-      "actorId": "member-actor",
-      "x": -272.75,
-      "y": 74.5,
-      "prompt": "",
-      "objects": []
-    }
-  ],
-  "transitions": [
-    {
-      "id": "n1",
-      "from": "project-list",
-      "to": "project-detail",
-      "trigger": "Tap row"
-    },
-    {
-      "id": "n2",
-      "from": "project-detail",
-      "to": "task-detail",
-      "trigger": "Tap task"
-    },
-    {
-      "id": "n3",
-      "from": "member-task-list",
-      "to": "member-task-detail",
-      "trigger": "Tap row"
-    },
-    {
-      "id": "oscbrq",
-      "from": "f3x8qy",
-      "to": "project-list",
-      "trigger": "Tap"
     }
   ]
 }
