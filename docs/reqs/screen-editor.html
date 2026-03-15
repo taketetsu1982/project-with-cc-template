@@ -224,7 +224,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
   const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
 
   useEffect(()=>{if(CONCEPT.actors.length>0&&!CONCEPT.actors.find(a=>a.id===actorId))setActorId(CONCEPT.actors[0].id);},[screens]);
-  useEffect(()=>{onSelChange?.(selScrId,selNavId);},[selScrId,selNavId]);
+  useEffect(()=>{onSelChange?.(selScrId,selNavId,actorId);},[selScrId,selNavId,actorId]);
 
   return(
     <div style={{display:"flex",flexDirection:"column",height:"100%",position:"relative"}}>
@@ -395,9 +395,9 @@ function App(){
   const undo=useCallback(()=>{const h=histRef.current;if(h.idx<=0)return;h.idx--;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Undo');},[]);
   const redo=useCallback(()=>{const h=histRef.current;if(h.idx>=h.stack.length-1)return;h.idx++;setScreensRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));showToast('Redo');},[]);
   // Map View からの選択状態参照用
-  const selRef=useRef({scrId:null,navId:null});
+  const selRef=useRef({scrId:null,navId:null,actorId:null});
   const clipRef=useRef(null);
-  const setSelRef=(scrId,navId)=>{selRef.current={scrId,navId};};
+  const setSelRef=(scrId,navId,actorId)=>{selRef.current={scrId,navId,actorId};};
 
   const handleDelete=useCallback(()=>{
     const{scrId}=selRef.current;
@@ -424,7 +424,8 @@ function App(){
     const src=clipRef.current.data;
     const names=screens.screens.map(s=>s.name);
     const newId=uid();
-    const newScr={...JSON.parse(JSON.stringify(src)),id:newId,name:uniqueName(src.name,names),x:(src.x||80)+40,y:(src.y||80)+40,objects:src.objects.map(o=>({...o,id:uid()}))};
+    const pasteActorId=selRef.current.actorId||src.actorId;
+    const newScr={...JSON.parse(JSON.stringify(src)),id:newId,name:uniqueName(src.name,names),actorId:pasteActorId,x:(src.x||80)+40,y:(src.y||80)+40,objects:src.objects.map(o=>({...o,id:uid()}))};
     setScreens(m=>({...m,screens:[...m.screens,newScr]}));
     showToast('Pasted: '+newScr.name);
     return true;
