@@ -296,11 +296,13 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
             const names=missing.map(eid=>CONCEPT.entities.find(e=>e.id===eid)?.name||eid);
             warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});
           }
-          const emptyCrud=actorScreens.flatMap(s=>s.objects.filter(o=>o.crud.length===0));
-          if(emptyCrud.length>0){
-            const names=emptyCrud.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
-            warnings.push({actor:actor.name,msg:`「${[...new Set(names)].join("」「")}」のCRUDが設定されていません`});
-          }
+          actorScreens.forEach(s=>{
+            const empty=s.objects.filter(o=>o.crud.length===0);
+            if(empty.length>0){
+              const names=empty.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
+              warnings.push({actor:actor.name,msg:`${s.name} の「${names.join("」「")}」のCRUDが設定されていません`});
+            }
+          });
         });
         if(warnings.length===0)return null;
         return<div style={{position:"absolute",bottom:16,left:16,zIndex:20,display:"flex",flexDirection:"column",gap:8}}>
@@ -379,7 +381,7 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
       </div>
       {emptyCrudObjs.length>0&&<div style={{position:"absolute",bottom:16,left:16,zIndex:20,background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
         <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
-        <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</strong>: 「{emptyCrudObjs.map(o=>entName(o.entityId)).join("」「")}」のCRUDが設定されていません</span>
+        <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</strong>: {scr.name} の「{emptyCrudObjs.map(o=>entName(o.entityId)).join("」「")}」のCRUDが設定されていません</span>
       </div>}
     </div>
   );
