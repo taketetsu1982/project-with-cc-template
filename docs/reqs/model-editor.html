@@ -3,43 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Conceptual Model Editor</title>
+<title>Model Editor</title>
 <style>
+  :root{
+    --md-sys-color-primary:#0B57D0;
+    --md-sys-color-on-primary:#FFFFFF;
+    --md-sys-color-primary-container:#D3E3FD;
+    --md-sys-color-on-primary-container:#041E49;
+    --md-sys-color-secondary:#5F6368;
+    --md-sys-color-on-secondary:#FFFFFF;
+    --md-sys-color-secondary-container:#F1F3F4;
+    --md-sys-color-tertiary:#7D5260;
+    --md-sys-color-error:#B3261E;
+    --md-sys-color-error-container:#F9DEDC;
+    --md-sys-color-on-error-container:#410E0B;
+    --md-sys-color-surface:#FFFFFF;
+    --md-sys-color-surface-dim:#E8EAED;
+    --md-sys-color-surface-container-lowest:#FFFFFF;
+    --md-sys-color-surface-container-low:#FAFAFA;
+    --md-sys-color-surface-container:#F5F5F5;
+    --md-sys-color-surface-container-high:#F0F0F0;
+    --md-sys-color-surface-container-highest:#E8EAED;
+    --md-sys-color-on-surface:#1A1A1A;
+    --md-sys-color-on-surface-variant:#5F6368;
+    --md-sys-color-outline:#9AA0A6;
+    --md-sys-color-outline-variant:#E0E0E0;
+    --md-sys-color-inverse-surface:#303030;
+    --md-sys-color-inverse-on-surface:#F2F2F2;
+    /* Elevation — softer shadows */
+    --md-sys-elevation-1:0px 1px 3px rgba(0,0,0,.08),0px 1px 2px rgba(0,0,0,.06);
+    --md-sys-elevation-2:0px 2px 6px rgba(0,0,0,.1),0px 1px 3px rgba(0,0,0,.06);
+    /* Shape */
+    --md-sys-shape-xs:6px;
+    --md-sys-shape-sm:10px;
+    --md-sys-shape-md:14px;
+    --md-sys-shape-lg:18px;
+    --md-sys-shape-xl:24px;
+    --md-sys-shape-full:9999px;
+  }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body,#root{height:100%;overflow:hidden}
-  .file-drop-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(79,70,229,.08);border:3px dashed #4f46e5;align-items:center;justify-content:center}
+  html,body,#root{height:100%;overflow:hidden;font-size:14px}
+  body{font-family:'Google Sans','Roboto','Noto Sans JP',system-ui,sans-serif;color:var(--md-sys-color-on-surface);background:var(--md-sys-color-surface)}
+  .file-drop-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,87,208,.08);border:3px dashed var(--md-sys-color-primary);align-items:center;justify-content:center}
   .file-drop-overlay.active{display:flex}
-  .drop-msg{font:600 18px system-ui;color:#4f46e5;background:white;padding:18px 36px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12)}
-  #cm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#18181b;color:white;padding:8px 20px;border-radius:8px;font:12px system-ui;opacity:0;transition:opacity .2s;z-index:10000;pointer-events:none}
+  .drop-msg{font-size:16px;font-weight:500;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-lowest);padding:20px 40px;border-radius:var(--md-sys-shape-lg);box-shadow:var(--md-sys-elevation-2)}
+  #cm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--md-sys-color-inverse-surface);color:var(--md-sys-color-inverse-on-surface);padding:10px 24px;border-radius:var(--md-sys-shape-xs);font-size:14px;font-weight:400;line-height:20px;opacity:0;transition:opacity .2s;z-index:10000;pointer-events:none;box-shadow:var(--md-sys-elevation-2)}
   #cm-toast.show{opacity:1}
-  #cm-toolbar{height:36px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;padding:0 12px;gap:8;flex-shrink:0;font:12px system-ui}
-  .cm-tb-btn{background:#f4f4f5;border:1px solid #e4e4e7;border-radius:5px;padding:3px 10px;font:600 11px system-ui;color:#3f3f46;cursor:pointer}
-  .cm-tb-btn:hover{background:#e4e4e7}
-  .cm-connect-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid #e4e4e7;border-radius:5px;padding:3px 10px;font:600 11px system-ui;color:#3f3f46;cursor:pointer}
-  .cm-connect-btn:hover{background:#f4f4f5}
-  .cm-dot{width:7px;height:7px;border-radius:50%;background:#d4d4d8}
-  .cm-dot.connected{background:#4caf50}.cm-dot.saving{background:#ff9800}.cm-dot.error{background:#f44336}
-  .cm-hint{font-weight:400;color:#a1a1aa;font-size:10px}
-  #cm-edited{display:none;font-size:10px;color:#d97706;font-weight:600}
-  .cm-auto-switch{display:none;align-items:center;gap:5px;font-size:11px;color:#71717a;cursor:pointer;user-select:none}
-  .cm-auto-switch .cm-switch-track{position:relative;width:30px;height:16px;background:#d4d4d8;border-radius:999px;transition:background .2s}
-  .cm-auto-switch.active .cm-switch-track{background:#4f46e5}
-  .cm-auto-switch .cm-switch-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
-  .cm-auto-switch.active .cm-switch-thumb{left:16px}
+  #cm-toolbar{display:none}
+  .cm-connect-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--md-sys-shape-full);padding:6px 16px;font-size:14px;font-weight:500;line-height:20px;color:var(--md-sys-color-on-surface-variant);cursor:pointer;transition:background .15s}
+  .cm-connect-btn:hover{background:var(--md-sys-color-surface-container)}
+  .cm-dot{width:8px;height:8px;border-radius:50%;background:var(--md-sys-color-outline)}
+  .cm-dot.connected{background:#386A20}.cm-dot.saving{background:#7D5700}.cm-dot.error{background:var(--md-sys-color-error)}
+  .cm-hint{font-weight:400;color:var(--md-sys-color-outline);font-size:12px;line-height:16px}
+  #cm-edited{display:none;font-size:12px;font-weight:500;line-height:16px;color:#7D5700;letter-spacing:0.1px}
+  .cm-auto-switch{display:none;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--md-sys-color-on-surface-variant);cursor:pointer;user-select:none}
+  .cm-auto-switch .cm-switch-track{position:relative;width:32px;height:18px;background:var(--md-sys-color-outline);border-radius:var(--md-sys-shape-full);transition:background .2s}
+  .cm-auto-switch.active .cm-switch-track{background:#0B57D0}
+  .cm-auto-switch .cm-switch-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;background:var(--md-sys-color-surface-container-lowest);border-radius:50%;transition:left .2s}
+  .cm-auto-switch.active .cm-switch-thumb{left:17px}
 </style>
 </head>
 <body>
 <div class="file-drop-overlay" id="cm-drop-overlay"><span class="drop-msg">Drop JSON file to connect</span></div>
 <div id="cm-toast"></div>
 <div id="cm-toolbar">
-  <label class="cm-auto-switch" id="cm-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="cm-switch-track"><span class="cm-switch-thumb"></span></span></label>
+  <div style="flex:1"></div>
+  <span id="cm-edited">Edited</span>
   <button class="cm-connect-btn" id="cm-connect-btn" onclick="handleConnect()">
     <span class="cm-dot" id="cm-dot"></span>
     <span id="cm-label">Connect</span>
     <span class="cm-hint" id="cm-hint">(Drop a JSON file)</span>
   </button>
-  <span id="cm-edited">Edited</span>
-  <button class="cm-tb-btn" id="cm-saveas-btn" style="display:none" onclick="handleSaveAs()">Save to...</button>
+  <label class="cm-auto-switch" id="cm-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="cm-switch-track"><span class="cm-switch-thumb"></span></span></label>
 </div>
 <div id="root"></div>
 
@@ -48,81 +83,156 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <script>
-// パススルーフィールド: CMエディタが編集しないフィールドを保持
 let passthrough={};
 let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,modelRef=null;
 
 function getFullJson(){
   if(!modelRef)return null;
-  // CMフィールド + パススルーフィールドをマージ
   return{...passthrough,entities:modelRef.entities,actors:modelRef.actors,composites:modelRef.composites};
 }
 
-function updateStatus(s,l,h){document.getElementById('cm-dot').className='cm-dot '+(s||'');document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
+function updateStatus(s,l,h){const dot=document.getElementById('cm-dot');dot.className='cm-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
 function showToast(m){const t=document.getElementById('cm-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000);}
 function markModified(){document.getElementById('cm-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
 async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('cm-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
-function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};if(saveTimer)clearTimeout(saveTimer);document.getElementById('cm-saveas-btn').style.display='none';document.getElementById('cm-auto-btn').style.display='none';document.getElementById('cm-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
-function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('cm-saveas-btn').style.display='';document.getElementById('cm-auto-btn').style.display='flex';}
+function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};if(saveTimer)clearTimeout(saveTimer);document.getElementById('cm-auto-btn').style.display='none';document.getElementById('cm-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
+function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('cm-auto-btn').style.display='flex';if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('cm-auto-btn').classList.add('active');}}
 
 function splitData(data){
-  // CMフィールドとパススルーフィールドに分離
   const{entities,actors,composites,...rest}=data;
-  passthrough=rest; // screens, navigation, その他
+  passthrough=rest;
   return{entities:entities||[],actors:actors||[],composites:composites||[]};
 }
 
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-async function handleSaveAs(){const full=getFullJson();if(!full)return;try{const h=await window.showSaveFilePicker({id:'cm-editor',suggestedName:fileHandle?fileHandle.name:'product-model.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});onFileConnected(h);await writeFile();showToast('保存しました: '+h.name);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
+function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('cm-dot').className='cm-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 let dragC=0;const ov=document.getElementById('cm-drop-overlay');
 document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
 document.addEventListener('dragleave',e=>{if(e.dataTransfer.types.includes('Files')){dragC--;if(dragC<=0){dragC=0;ov.classList.remove('active');}}});
 document.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();});
 document.addEventListener('drop',async e=>{dragC=0;ov.classList.remove('active');if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();for(const i of[...e.dataTransfer.items]){if(i.kind!=='file'||typeof i.getAsFileSystemHandle!=='function')continue;const h=await i.getAsFileSystemHandle();if(h.kind==='file'&&h.name.endsWith('.json')){const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);return;}}updateStatus('error','Drop not supported');});
-document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='s'){e.preventDefault();if(fileHandle)writeFile().then(()=>showToast('保存しました'));}});
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey;
+  const inField=e.target.closest('input,textarea,select,[contenteditable]');
+  if(mod&&e.key==='s'){e.preventDefault();if(fileHandle)writeFile().then(()=>showToast('保存しました'));return;}
+  if(inField)return;
+  if(mod&&e.key==='z'&&!e.shiftKey){e.preventDefault();window.__cmUndo?.();}
+  if(mod&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();window.__cmRedo?.();}
+  if(mod&&e.key==='c'){if(window.__cmCopy?.()){e.preventDefault();}}
+  if(mod&&e.key==='v'){if(window.__cmPaste?.()){e.preventDefault();}}
+  if(mod&&e.key==='x'){if(window.__cmCut?.()){e.preventDefault();}}
+  if(e.key==='Delete'||e.key==='Backspace'){if(window.__cmDelete?.()){e.preventDefault();}}
+});
 </script>
 
 <script type="text/babel">
 const{useState,useRef,useCallback,useEffect}=React;
-const CRUD_OPS=["C","R","U","D"],CRUD_COLOR={C:"#16a34a",R:"#2563eb",U:"#d97706",D:"#dc2626"},CRUD_BG={C:"#f0fdf4",R:"#eff6ff",U:"#fffbeb",D:"#fef2f2"},SCOPE_OPTS=["all","own"],REL_TYPES=["has-many","has-one","belongs-to","many-to-many"],ENT_COLORS=["#4f46e5","#7c3aed","#db2777","#b45309","#047857","#0369a1","#c2410c","#0891b2"],EW=120,EH=42;
+// M3 トークン参照用
+const M3={
+  primary:"var(--md-sys-color-primary)",onPrimary:"var(--md-sys-color-on-primary)",primaryContainer:"var(--md-sys-color-primary-container)",onPrimaryContainer:"var(--md-sys-color-on-primary-container)",
+  surface:"var(--md-sys-color-surface)",surfaceDim:"var(--md-sys-color-surface-dim)",surfaceContLow:"var(--md-sys-color-surface-container-low)",surfaceCont:"var(--md-sys-color-surface-container)",surfaceContHigh:"var(--md-sys-color-surface-container-high)",surfaceContHighest:"var(--md-sys-color-surface-container-highest)",
+  onSurface:"var(--md-sys-color-on-surface)",onSurfaceVar:"var(--md-sys-color-on-surface-variant)",
+  outline:"var(--md-sys-color-outline)",outlineVar:"var(--md-sys-color-outline-variant)",
+  error:"var(--md-sys-color-error)",errorContainer:"var(--md-sys-color-error-container)",onErrorContainer:"var(--md-sys-color-on-error-container)",
+  shapeXs:"var(--md-sys-shape-xs)",shapeSm:"var(--md-sys-shape-sm)",shapeMd:"var(--md-sys-shape-md)",shapeLg:"var(--md-sys-shape-lg)",shapeFull:"var(--md-sys-shape-full)",
+  elev1:"var(--md-sys-elevation-1)",elev2:"var(--md-sys-elevation-2)",
+};
+const CRUD_OPS=["C","R","U","D"],CRUD_COLOR={C:"#1E8E3E",R:"#1A73E8",U:"#E37400",D:"#D93025"},CRUD_BG={C:"#E6F4EA",R:"#E8F0FE",U:"#FEF7E0",D:"#FCE8E6"},SCOPE_OPTS=["all","own"],REL_TYPES=["has-many","has-one","belongs-to","many-to-many"];
+// パステルカラー: 背景色, テキスト色のペア
+const ENT_PALETTE=[
+  {bg:"#AECBFA",fg:"#174EA6"}, // blue
+  {bg:"#FDD663",fg:"#7A6200"}, // yellow
+  {bg:"#A8DAB5",fg:"#137333"}, // green
+  {bg:"#F6AEA9",fg:"#A50E0E"}, // pink/red
+  {bg:"#D7AEFB",fg:"#7627BB"}, // purple
+  {bg:"#FDCFE8",fg:"#9C166B"}, // magenta
+  {bg:"#A1E4F2",fg:"#0D652D"}, // teal
+  {bg:"#FBC8A4",fg:"#8B4513"}, // orange
+];
+const entPalette=(ents,id)=>ENT_PALETTE[Math.max(0,ents.findIndex(e=>e.id===id))%ENT_PALETTE.length];
+const entColor=(ents,id)=>entPalette(ents,id).fg;
+const EW=140,EH=50;
 const uid=()=>Math.random().toString(36).slice(2,8);
-const entColor=(ents,id)=>ENT_COLORS[Math.max(0,ents.findIndex(e=>e.id===id))%ENT_COLORS.length];
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={entities:[],actors:[],composites:[]};
-function ensurePositions(data){if(!data||!data.entities)return data;const cols=4,gapX=180,gapY=100,padX=80,padY=60;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
+function uniqueName(base,existingNames){
+  if(!existingNames.includes(base))return base;
+  const m=base.match(/^(.+?)(\d+)$/);
+  const stem=m?m[1]:base;
+  let n=m?parseInt(m[2],10)+1:2;
+  while(existingNames.includes(stem+n))n++;
+  return stem+n;
+}
+function ensurePositions(data){if(!data||!data.entities)return data;const cols=4,gapX=200,gapY=110,padX=80,padY=60;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
 
-function Input({style,...p}){return<input{...p}style={{border:"1px solid #e4e4e7",borderRadius:5,background:"#fff",color:"#18181b",fontSize:12,padding:"5px 9px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#4f46e5";e.target.style.boxShadow="0 0 0 3px #e0e7ff"}}onBlur={e=>{e.target.style.borderColor="#e4e4e7";e.target.style.boxShadow="none"}}/>;}
-function Sel({style,children,...p}){return<select{...p}style={{border:"1px solid #e4e4e7",borderRadius:5,background:"#fff",color:"#52525b",fontSize:12,padding:"5px 8px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
-function Btn({children,onClick,accent,small,danger,ghost}){return<button onClick={onClick}style={{background:danger?"#fef2f2":accent?"#4f46e5":ghost?"transparent":"#f4f4f5",border:`1px solid ${danger?"#fca5a5":accent?"#4f46e5":ghost?"#e4e4e7":"#e4e4e7"}`,color:danger?"#dc2626":accent?"#fff":ghost?"#71717a":"#3f3f46",borderRadius:6,padding:small?"3px 9px":"6px 14px",fontSize:small?11:12,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",lineHeight:1.4}}>{children}</button>;}
-const SLabel=({children})=><div style={{fontSize:10,fontWeight:700,color:"#a1a1aa",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{children}</div>;
+// M3 コンポーネント
+function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"10px 14px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
+function Sel({style,children,...p}){return<select{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"10px 14px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
+function Btn({children,onClick,accent,small,danger,ghost}){
+  const bg=danger?M3.errorContainer:accent?"#1A73E8":ghost?"transparent":M3.surfaceCont;
+  const fg=danger?M3.onErrorContainer:accent?M3.onPrimary:ghost?"#1A73E8":M3.onSurface;
+  const bd=ghost?`1px solid ${M3.outlineVar}`:"none";
+  return<button onClick={onClick}style={{background:bg,border:bd,color:fg,borderRadius:M3.shapeFull,padding:small?"7px 18px":"10px 24px",fontSize:14,fontWeight:500,lineHeight:"20px",letterSpacing:"0.1px",cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",transition:"box-shadow .15s, background .15s"}}onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}}onMouseLeave={e=>{e.target.style.boxShadow="none";}}>{children}</button>;
+}
+const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
-function EntityView({model,setModel}){
-  const[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
+const ZOOM_MIN=0.25,ZOOM_MAX=3;
+function EntityView({model,setModel,setModelSilent,selId,setSelId}){
+  const[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
   const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const[zoom,setZoom]=useState(1);
   const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const ents=model.entities,selEnt=ents.find(e=>e.id===selId);
-  const onBoxMD=(e,id)=>{e.stopPropagation();if(conn!==null){if(conn===""){setConn(id);return;}if(conn!==id){const nr={id:uid(),targetId:id,type:"has-many",label:""};setModel(m=>({...m,entities:m.entities.map(en=>en.id===conn?{...en,relations:[...en.relations,nr]}:en)}));setConn(null);}return;}setSelId(id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:e.clientX-r.left+pan.x-en.x,y:e.clientY-r.top+pan.y-en.y};setDrag(id);};
+  const onBoxMD=(e,id)=>{e.stopPropagation();if(conn!==null){if(conn===""){setConn(id);return;}if(conn!==id){const nr={id:uid(),targetId:id,type:"has-many",label:""};setModel(m=>({...m,entities:m.entities.map(en=>en.id===conn?{...en,relations:[...en.relations,nr]}:en)}));setConn(null);}return;}setSelId(id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-en.x,y:(e.clientY-r.top)/zoom+pan.y-en.y};setDrag(id);};
   const onBgMD=e=>{if(conn!==null)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
-  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModel(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,e.clientX-r.left+pan.x-dOff.current.x),y:Math.max(0,e.clientY-r.top+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x),y:panStart.current.py-(e.clientY-panStart.current.y)});}},[drag,panning,pan]);
-  const onUp=()=>{setDrag(null);setPanning(false);};
-  const onWheel=useCallback(e=>{e.preventDefault();setPan(p=>({x:p.x+e.deltaX,y:p.y+e.deltaY}));},[]);
+  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,(e.clientX-r.left)/zoom+pan.x-dOff.current.x),y:Math.max(0,(e.clientY-r.top)/zoom+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
+  const onUp=()=>{if(drag)setModel(m=>m);setDrag(null);setPanning(false);};
+  const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
   const upd=u=>setModel(m=>({...m,entities:m.entities.map(e=>e.id===u.id?u:e)}));
-  const addEnt=()=>{const id=uid();setModel(m=>({...m,entities:[...m.entities,{id,name:"NewEntity",x:120+pan.x,y:120+pan.y,relations:[]}]}));setSelId(id);};
+  const addEnt=()=>{const id=uid();setModel(m=>{const names=m.entities.map(e=>e.name);return{...m,entities:[...m.entities,{id,name:uniqueName("NewEntity",names),x:120/zoom+pan.x,y:120/zoom+pan.y,relations:[]}]};});setSelId(id);};
   const connOn=conn!==null,connHasSrc=conn!==null&&conn!=="";
   return(
     <div style={{display:"flex",height:"100%"}}>
       <div style={{flex:1,position:"relative",overflow:"hidden"}}>
         <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":panning?"grabbing":connOn?"crosshair":"grab",display:"block"}} onMouseMove={onMM} onMouseUp={onUp} onMouseLeave={onUp} onWheel={onWheel} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg')){if(!connOn)setSelId(null);}}}>
-          <defs><pattern id="dotpat" width="24" height="24" patternUnits="userSpaceOnUse" x={-pan.x%24} y={-pan.y%24}><circle cx="1" cy="1" r="1" fill="#e4e4e7"/></pattern><marker id="marr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker><marker id="marr-hi" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f46e5"/></marker></defs>
+          <defs>
+            <pattern id="dotpat" width={24/zoom} height={24/zoom} patternUnits="userSpaceOnUse" x={(-pan.x*zoom)%(24)} y={(-pan.y*zoom)%(24)}><circle cx={1/zoom} cy={1/zoom} r={1/zoom} fill="#E0E0E0"/></pattern>
+            {/* has-many: crow's foot（三叉） */}
+            <marker id="m-hm" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><line x1="11" y1="6" x2="3" y2="1" stroke="#9AA0A6" strokeWidth="1.5"/><line x1="11" y1="6" x2="3" y2="6" stroke="#9AA0A6" strokeWidth="1.5"/><line x1="11" y1="6" x2="3" y2="11" stroke="#9AA0A6" strokeWidth="1.5"/></marker>
+            <marker id="m-hm-hi" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><line x1="11" y1="6" x2="3" y2="1" stroke="#1A73E8" strokeWidth="1.5"/><line x1="11" y1="6" x2="3" y2="6" stroke="#1A73E8" strokeWidth="1.5"/><line x1="11" y1="6" x2="3" y2="11" stroke="#1A73E8" strokeWidth="1.5"/></marker>
+            {/* has-one: バー（|） */}
+            <marker id="m-ho" markerWidth="6" markerHeight="12" refX="5" refY="6" orient="auto"><line x1="5" y1="1" x2="5" y2="11" stroke="#9AA0A6" strokeWidth="2"/></marker>
+            <marker id="m-ho-hi" markerWidth="6" markerHeight="12" refX="5" refY="6" orient="auto"><line x1="5" y1="1" x2="5" y2="11" stroke="#1A73E8" strokeWidth="2"/></marker>
+            {/* belongs-to: 矢印（▶） */}
+            <marker id="m-bt" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#9AA0A6"/></marker>
+            <marker id="m-bt-hi" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#1A73E8"/></marker>
+            {/* many-to-many: ダイヤモンド（◆） */}
+            <marker id="m-mm" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#9AA0A6"/></marker>
+            <marker id="m-mm-hi" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#1A73E8"/></marker>
+            <marker id="m-mm-s" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#9AA0A6"/></marker>
+            <marker id="m-mm-s-hi" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#1A73E8"/></marker>
+          </defs>
           <rect width="100%" height="100%" fill="url(#dotpat)" data-bg="1" onMouseDown={onBgMD}/>
-          <g transform={`translate(${-pan.x},${-pan.y})`}>
-          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<g key={`${ent.id}-${ri}`}><path d={`M${lx},${ty} C${lx+38},${ty-14} ${lx+38},${ty+28} ${lx},${ty+20}`} fill="none" stroke="#cbd5e1" strokeWidth="1.5" markerEnd="url(#marr)"/>{rel.label&&<text x={lx+42} y={ty+6} fontSize={9} fill="#94a3b8">{rel.label}</text>}</g>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2,hi=selId===ent.id||selId===tgt.id,col=hi?"#4f46e5":"#94a3b8";return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray="5 3" markerEnd={hi?"url(#marr-hi)":"url(#marr)"}/>{rel.label&&<><rect x={mx-22} y={my-8} width={44} height={15} rx={3} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={9} fill={col} textAnchor="middle">{rel.label}</text></>}</g>;}))}
-          {ents.map(ent=>{const c=entColor(ents,ent.id),isSel=selId===ent.id,isCS=conn===ent.id;return<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:connOn?"pointer":"grab"}}><rect x={2} y={3} width={EW} height={EH} rx={8} fill="rgba(0,0,0,0.05)"/><rect width={EW} height={EH} rx={8} fill="white" stroke={isCS?"#f59e0b":isSel?c:"#e4e4e7"} strokeWidth={isSel||isCS?2:1}/><rect width={EW} height={EH} rx={8} fill={c} opacity="0.08"/><rect x={0} y={0} width={4} height={EH} rx={2} fill={c}/><text x={16} y={EH/2+5} fontSize={13} fontWeight="700" fill={c} fontFamily="inherit">{ent.name}</text></g>;})}
+          <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
+          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6",hs=hi?"-hi":"";
+            // タイプ別スタイル
+            const rtype=rel.type||"has-many";
+            const dash=rtype==="belongs-to"?"6 4":rtype==="many-to-many"?"3 3":"none";
+            const endMk=rtype==="has-many"?`url(#m-hm${hs})`:rtype==="has-one"?`url(#m-ho${hs})`:rtype==="belongs-to"?`url(#m-bt${hs})`:`url(#m-mm${hs})`;
+            const startMk=rtype==="many-to-many"?`url(#m-mm-s${hs})`:"";
+            if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<g key={`${ent.id}-${ri}`}><path d={`M${lx},${ty} C${lx+38},${ty-14} ${lx+38},${ty+28} ${lx},${ty+20}`} fill="none" stroke={col} strokeWidth="1.5" strokeDasharray={dash} markerEnd={endMk}/>{rel.label&&<text x={lx+42} y={ty+6} fontSize={11} fill={col}>{rel.label}</text>}</g>;}
+            const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;
+            return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray={dash} markerEnd={endMk} markerStart={startMk}/>{rel.label&&<><rect x={mx-24} y={my-9} width={48} height={17} rx={4} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill={col} textAnchor="middle">{rel.label}</text></>}</g>;}))}
+          {ents.map(ent=>{const p=entPalette(ents,ent.id),isSel=selId===ent.id,isCS=conn===ent.id;return<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={EW} height={EH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={EH} rx={14} fill={p.bg} stroke={isSel||isCS?p.fg:"transparent"} strokeWidth={isSel||isCS?2.5:0}/><text x={EW/2} y={EH/2+5} fontSize={14} fontWeight="600" fill={p.fg} fontFamily="inherit" textAnchor="middle">{ent.name}</text></g>;})}
           </g>
         </svg>
         <div style={{position:"absolute",top:16,left:16,display:"flex",gap:8,alignItems:"center"}}><Btn small onClick={addEnt}>+ Entity</Btn><Btn small ghost={!connOn} accent={connOn} onClick={()=>setConn(connOn?null:"")}>{connOn?(connHasSrc?"→ select target":"← select source"):"↗ Connect"}</Btn>{connOn&&<Btn small ghost onClick={()=>setConn(null)}>✕</Btn>}</div>
+        <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
+          <button onClick={()=>setZoom(z=>Math.max(ZOOM_MIN,z*0.8))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
+          <button onClick={()=>setZoom(1)} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
+          <button onClick={()=>setZoom(z=>Math.min(ZOOM_MAX,z*1.25))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
+        </div>
       </div>
       {selEnt&&<EntityPanel key={selEnt.id} entity={selEnt} entities={ents} onUpdate={upd} onDelete={()=>{setSelId(null);setModel(m=>({...m,entities:m.entities.filter(e=>e.id!==selEnt.id)}));}} onClose={()=>setSelId(null)}/>}
     </div>
@@ -135,62 +245,109 @@ function EntityPanel({entity,entities,onUpdate,onDelete,onClose}){
   const updRel=(id,k,v)=>upd({relations:entity.relations.map(r=>r.id===id?{...r,[k]:v}:r)});
   const delRel=id=>upd({relations:entity.relations.filter(r=>r.id!==id)});
   return(
-    <div style={{width:280,borderLeft:"1px solid #e4e4e7",background:"#fafafa",display:"flex",flexDirection:"column",flexShrink:0}}>
-      <div style={{padding:"11px 16px",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"center",justifyContent:"space-between",background:"white"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:11,fontWeight:700,color:"#71717a",letterSpacing:"0.08em",textTransform:"uppercase"}}>Entity</span></div><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#d4d4d8",lineHeight:1,padding:"0 2px"}}>×</button></div>
+    <div style={{width:300,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
+      <div style={{padding:"12px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase"}}>Entity</span><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1,padding:"0 2px"}}>×</button></div>
       <div style={{flex:1,overflowY:"auto",padding:16}}>
-        <div style={{marginBottom:18}}><SLabel>Name</SLabel><Input value={entity.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:14,fontWeight:600}}/></div>
+        <div style={{marginBottom:20}}><SLabel>Name</SLabel><Input value={entity.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:16,fontWeight:500}}/></div>
         <div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><SLabel>Relations</SLabel>{entities.length>1&&<Btn small ghost onClick={addRel}>+ Add</Btn>}</div>
-          {entity.relations.map(r=>(<div key={r.id} style={{background:"white",border:"1px solid #e4e4e7",borderRadius:6,padding:"7px 8px",marginBottom:4}}><div style={{display:"flex",gap:4,marginBottom:4,alignItems:"center"}}><Sel value={r.targetId} onChange={e=>updRel(r.id,"targetId",e.target.value)} style={{flex:1}}>{entities.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</Sel><button onClick={()=>delRel(r.id)} style={{background:"none",border:"none",color:"#d4d4d8",cursor:"pointer",fontSize:15,lineHeight:1,padding:"0 1px"}}>×</button></div><div style={{display:"flex",gap:4}}><Sel value={r.type} onChange={e=>updRel(r.id,"type",e.target.value)} style={{flex:1,fontSize:11}}>{REL_TYPES.map(t=><option key={t}>{t}</option>)}</Sel><Input value={r.label} placeholder="label" onChange={e=>updRel(r.id,"label",e.target.value)} style={{flex:1,fontSize:11}}/></div></div>))}
-          {entity.relations.length===0&&<div style={{fontSize:11,color:"#d4d4d8",padding:"4px 0"}}>No relations — use ↗ Connect on canvas or + Add</div>}
+          {entity.relations.map(r=>(<div key={r.id} style={{background:M3.surface,border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,padding:"10px 12px",marginBottom:8}}><div style={{display:"flex",gap:6,marginBottom:8}}><Sel value={r.targetId} onChange={e=>updRel(r.id,"targetId",e.target.value)} style={{flex:1}}>{entities.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</Sel></div><div style={{display:"flex",gap:6,marginBottom:8}}><Sel value={r.type} onChange={e=>updRel(r.id,"type",e.target.value)} style={{flex:1,fontSize:13}}>{REL_TYPES.map(t=><option key={t}>{t}</option>)}</Sel><Input value={r.label} placeholder="label" onChange={e=>updRel(r.id,"label",e.target.value)} style={{flex:1,fontSize:13}}/></div><div style={{display:"flex",justifyContent:"flex-end"}}><button onClick={()=>delRel(r.id)} style={{background:"none",border:"none",color:"#D93025",cursor:"pointer",fontSize:12,fontWeight:500,padding:"2px 0",fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.textDecoration="underline";}} onMouseLeave={e=>{e.target.style.textDecoration="none";}}>Remove</button></div></div>))}
+          {entity.relations.length===0&&<div style={{fontSize:14,color:M3.outline,padding:"4px 0"}}>No relations — use ↗ Connect on canvas or + Add</div>}
         </div>
       </div>
-      <div style={{borderTop:"1px solid #f4f4f5",padding:16}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
+      <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
     </div>
   );
 }
 
-function ActorView({model,setModel}){
-  const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null),[editingName,setEditingName]=useState(false);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0});
+function ActorEditModal({actors,onSave,onClose}){
+  const[list,setList]=useState(()=>actors.map(a=>({...a})));
+  const[dragIdx,setDragIdx]=useState(null);
+  const[confirmDel,setConfirmDel]=useState(null);
+  const add=()=>{setList(l=>[...l,{id:uid(),name:"New Actor",touches:[]}]);};
+  const upd=(i,name)=>setList(l=>l.map((a,j)=>j===i?{...a,name}:a));
+  const del=i=>setList(l=>l.filter((_,j)=>j!==i));
+  const move=(from,to)=>{if(to<0||to>=list.length)return;setList(l=>{const n=[...l];const[item]=n.splice(from,1);n.splice(to,0,item);return n;});};
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.32)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}} onClick={onClose}><div style={{background:"var(--md-sys-color-surface)",borderRadius:"var(--md-sys-shape-lg)",boxShadow:"var(--md-sys-elevation-2)",width:400,maxHeight:"70vh",display:"flex",flexDirection:"column",fontFamily:"inherit"}} onClick={e=>e.stopPropagation()}>
+    <div style={{padding:"20px 24px 12px",borderBottom:"1px solid var(--md-sys-color-outline-variant)"}}><span style={{fontSize:16,fontWeight:500,lineHeight:"24px",color:"var(--md-sys-color-on-surface)"}}>Actors</span></div>
+    <div style={{flex:1,overflowY:"auto",padding:"8px 24px"}}>
+      {list.map((a,i)=>(<div key={a.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:"1px solid var(--md-sys-color-surface-container)"}} draggable onDragStart={()=>setDragIdx(i)} onDragOver={e=>{e.preventDefault();}} onDrop={()=>{if(dragIdx!==null&&dragIdx!==i)move(dragIdx,i);setDragIdx(null);}} onDragEnd={()=>setDragIdx(null)}>
+        <span style={{cursor:"grab",color:"var(--md-sys-color-outline)",fontSize:16,userSelect:"none",flexShrink:0,width:20,textAlign:"center"}} title="Drag to reorder">⠿</span>
+        <input value={a.name} onChange={e=>upd(i,e.target.value)} style={{flex:1,border:"1px solid var(--md-sys-color-outline)",borderRadius:"var(--md-sys-shape-xs)",background:"var(--md-sys-color-surface)",color:"var(--md-sys-color-on-surface)",fontSize:14,fontWeight:400,padding:"8px 12px",outline:"none",fontFamily:"inherit"}} onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.borderWidth="2px";e.target.style.padding="7px 11px";}} onBlur={e=>{e.target.style.borderColor="";e.target.style.borderWidth="1px";e.target.style.padding="8px 12px";}}/>
+        <button onClick={()=>setConfirmDel(i)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--md-sys-color-outline)",fontSize:18,lineHeight:1,padding:"4px",borderRadius:"50%",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}} onMouseEnter={e=>{e.currentTarget.style.background="var(--md-sys-color-error-container)";e.currentTarget.style.color="var(--md-sys-color-error)";}} onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.color="var(--md-sys-color-outline)";}}>×</button>
+      </div>))}
+      {list.length===0&&<div style={{padding:"24px 0",textAlign:"center",color:"var(--md-sys-color-outline)",fontSize:14}}>No actors</div>}
+    </div>
+    <div style={{padding:"12px 24px 20px",borderTop:"1px solid var(--md-sys-color-outline-variant)",display:"flex",alignItems:"center"}}>
+      <Btn ghost small onClick={add}>+ Add</Btn>
+      <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+        <Btn ghost onClick={onClose}>Cancel</Btn>
+        <Btn accent onClick={()=>onSave(list)}>Save</Btn>
+      </div>
+    </div>
+    {confirmDel!==null&&(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.32)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={()=>setConfirmDel(null)}><div style={{background:"var(--md-sys-color-surface)",borderRadius:"var(--md-sys-shape-lg)",boxShadow:"var(--md-sys-elevation-2)",width:340,padding:"24px 24px 16px",fontFamily:"inherit"}} onClick={e=>e.stopPropagation()}><div style={{fontSize:14,lineHeight:"20px",color:"var(--md-sys-color-on-surface)",marginBottom:24}}>「{list[confirmDel]?.name||""}」を削除しますか？</div><div style={{display:"flex",justifyContent:"flex-end",gap:8}}><Btn ghost onClick={()=>setConfirmDel(null)}>いいえ</Btn><Btn danger onClick={()=>{del(confirmDel);setConfirmDel(null);}}>はい</Btn></div></div></div>)}
+  </div></div>);
+}
+
+function ActorView({model,setModel,setModelSilent}){
+  const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null);
+  const[showEdit,setShowEdit]=useState(false);
+  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const[zoom,setZoom]=useState(1);
+  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const actor=model.actors.find(a=>a.id===actorId),ents=model.entities,selEnt=ents.find(e=>e.id===selEntId),touch=actor?actor.touches.find(t=>t.entityId===selEntId):null;
   const updActor=u=>setModel(m=>({...m,actors:m.actors.map(a=>a.id===u.id?u:a)}));
-  const addActor=()=>{const id=uid();setModel(m=>({...m,actors:[...m.actors,{id,name:"New Actor",touches:[]}]}));setActorId(id);setSelEntId(null);};
-  const delActor=()=>{const r=model.actors.filter(a=>a.id!==actorId);setActorId(r[0]?.id||null);setSelEntId(null);setModel(m=>({...m,actors:r}));};
-  const onBoxMD=(e,id)=>{e.stopPropagation();setSelEntId(prev=>prev===id?null:id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:e.clientX-r.left-en.x,y:e.clientY-r.top-en.y};setDrag(id);};
-  const onMM=useCallback(e=>{if(!drag)return;const r=svgRef.current.getBoundingClientRect();setModel(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,e.clientX-r.left-dOff.current.x),y:Math.max(0,e.clientY-r.top-dOff.current.y)}:en)}));},[drag]);
+  const handleEditSave=(newList)=>{
+    // touches を保持しつつ名前・順序を反映
+    const merged=newList.map(n=>{const old=model.actors.find(a=>a.id===n.id);return old?{...old,name:n.name}:{...n};});
+    setModel(m=>({...m,actors:merged}));
+    // 選択中のactorが削除されていたら先頭に切替
+    if(!newList.find(a=>a.id===actorId)){setActorId(newList[0]?.id||null);setSelEntId(null);}
+    setShowEdit(false);
+  };
+  const onBgMD=e=>{setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
+  const onBoxMD=(e,id)=>{e.stopPropagation();setSelEntId(prev=>prev===id?null:id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-en.x,y:(e.clientY-r.top)/zoom+pan.y-en.y};setDrag(id);};
+  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,(e.clientX-r.left)/zoom+pan.x-dOff.current.x),y:Math.max(0,(e.clientY-r.top)/zoom+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
+  const onUp=()=>{if(drag)setModel(m=>m);setDrag(null);setPanning(false);};
+  const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
   const addTouch=eid=>{if(!actor)return;updActor({...actor,touches:[...actor.touches,{entityId:eid,scope:"all",crud:["R"]}]});setSelEntId(eid);};
   const removeTouch=eid=>{if(!actor)return;updActor({...actor,touches:actor.touches.filter(t=>t.entityId!==eid)});setSelEntId(null);};
   const updTouch=(eid,k,v)=>{if(!actor)return;updActor({...actor,touches:actor.touches.map(t=>t.entityId===eid?{...t,[k]:v}:t)});};
   const toggleCrud=(eid,op)=>{if(!actor)return;const t=actor.touches.find(t=>t.entityId===eid);if(!t)return;const crud=t.crud.includes(op)?t.crud.filter(c=>c!==op):[...t.crud,op];updActor({...actor,touches:actor.touches.map(tt=>tt.entityId===eid?{...tt,crud}:tt)});};
-  if(!actor)return(<div style={{display:"flex",height:"100%",flexDirection:"column"}}><div style={{padding:16,borderBottom:"1px solid #e4e4e7",background:"white",display:"flex",gap:8}}><Btn small onClick={addActor}>+ Add Actor</Btn></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#d4d4d8",fontSize:13}}>No actors yet</div></div>);
+  if(!actor)return(<div style={{display:"flex",height:"100%",flexDirection:"column"}}><div style={{background:M3.surface,borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",flexShrink:0,minHeight:48,paddingLeft:12}}><div style={{marginLeft:"auto",display:"flex",alignItems:"center",paddingRight:12,gap:8}}><Btn small ghost onClick={()=>setShowEdit(true)}>Edit</Btn></div></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:M3.outline,fontSize:14}}>No actors yet</div>{showEdit&&<ActorEditModal actors={model.actors} onSave={handleEditSave} onClose={()=>setShowEdit(false)}/>}</div>);
   return(
     <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
-      <div style={{background:"white",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:12,minHeight:42}}>
-        {model.actors.map(a=>(<button key={a.id} onClick={()=>{setActorId(a.id);setSelEntId(null);}} style={{padding:"0 16px",border:"none",background:"transparent",cursor:"pointer",color:actorId===a.id?"#18181b":"#a1a1aa",fontSize:12,fontWeight:actorId===a.id?700:400,borderBottom:`2px solid ${actorId===a.id?"#4f46e5":"transparent"}`,borderTop:"2px solid transparent",fontFamily:"inherit",whiteSpace:"nowrap"}}>{a.name}</button>))}
-        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",paddingRight:12,gap:6}}><Btn small ghost onClick={addActor}>+ Add</Btn></div>
+      <div style={{background:M3.surface,borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:12,minHeight:48}}>
+        {model.actors.map(a=>{const isAct=actorId===a.id;return<button key={a.id} onClick={()=>{setActorId(a.id);setSelEntId(null);}} style={{padding:"0 20px",border:"none",background:"transparent",cursor:"pointer",color:isAct?"#1A73E8":"#9AA0A6",fontSize:14,fontWeight:isAct?500:400,lineHeight:"20px",borderBottom:`3px solid ${isAct?"#1A73E8":"transparent"}`,borderTop:"3px solid transparent",fontFamily:"inherit",whiteSpace:"nowrap",letterSpacing:"0.1px"}}>{a.name}</button>;})}
+        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",paddingRight:12,gap:8}}>
+          <Btn small ghost onClick={()=>setShowEdit(true)}>Edit</Btn>
+        </div>
       </div>
       <div style={{flex:1,display:"flex",overflow:"hidden"}}>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
-          <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":"default",display:"block"}} onMouseMove={onMM} onMouseUp={()=>setDrag(null)} onMouseLeave={()=>setDrag(null)} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg'))setSelEntId(null);}}>
-            <defs><pattern id="dotpat2" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#e4e4e7"/></pattern><marker id="marr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker></defs>
-            <rect width="100%" height="100%" fill="url(#dotpat2)" data-bg="1"/>
-            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>{rel.label&&<><rect x={mx-22} y={my-8} width={44} height={15} rx={3} fill="white" stroke="#94a3b8" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={9} fill="#94a3b8" textAnchor="middle">{rel.label}</text></>}</g>;}))}
-            {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,c=entColor(ents,ent.id),isSel=selEntId===ent.id,boxC=touched?c:"#d4d4d8",fillOp=touched?0.08:0.03,textC=touched?(isSel?"#18181b":"#52525b"):"#b4b4b4";return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={2} y={3} width={EW} height={EH+(touched?20:0)} rx={8} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={EH+(touched?20:0)} rx={8} fill="white" stroke={isSel?boxC:"#e4e4e7"} strokeWidth={isSel?2:1}/><rect width={EW} height={EH+(touched?20:0)} rx={8} fill={boxC} opacity={fillOp}/><rect x={0} y={0} width={4} height={EH+(touched?20:0)} rx={2} fill={boxC}/><text x={16} y={EH/2+5} fontSize={13} fontWeight={touched?"700":"400"} fill={textC} fontFamily="inherit">{ent.name}</text>{touched&&t.crud.map((op,oi)=>(<g key={op} transform={`translate(${14+oi*26},${EH+2})`}><rect width={22} height={14} rx={3} fill={CRUD_BG[op]}/><text x={11} y={11} fontSize={9} fontWeight="800" fill={CRUD_COLOR[op]} textAnchor="middle">{op}</text></g>))}{touched&&t.scope==="own"&&(<text x={EW-8} y={EH+13} fontSize={9} fill="#a1a1aa" textAnchor="end" fontFamily="inherit">own</text>)}{!touched&&(<text x={EW/2} y={EH/2+5} fontSize={10} fill="#d4d4d8" textAnchor="middle" fontFamily="inherit" dx={12}>＋</text>)}</g>);})}
+          <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":panning?"grabbing":"grab",display:"block"}} onMouseMove={onMM} onMouseUp={onUp} onMouseLeave={onUp} onWheel={onWheel} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg'))setSelEntId(null);}}>
+            <defs><pattern id="dotpat2" width={24/zoom} height={24/zoom} patternUnits="userSpaceOnUse" x={(-pan.x*zoom)%24} y={(-pan.y*zoom)%24}><circle cx={1/zoom} cy={1/zoom} r={1/zoom} fill="#E0E0E0"/></pattern><marker id="marr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9AA0A6"/></marker></defs>
+            <rect width="100%" height="100%" fill="url(#dotpat2)" data-bg="1" onMouseDown={onBgMD}/>
+            <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
+            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#9AA0A6" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>{rel.label&&<><rect x={mx-24} y={my-9} width={48} height={17} rx={4} fill="white" stroke="#9AA0A6" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill="#9AA0A6" textAnchor="middle">{rel.label}</text></>}</g>;}))}
+            {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,p=entPalette(ents,ent.id),isSel=selEntId===ent.id,crudW=28,crudGap=4,totalCrudW=crudW*4+crudGap*3,crudX=(EW-totalCrudW)/2,cardH=EH+26;return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={1} y={2} width={EW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={cardH} rx={14} fill={touched?p.bg:"#F5F5F5"} stroke={isSel?p.fg:"transparent"} strokeWidth={isSel?2.5:0} opacity={touched?1:0.6}/><text x={EW/2} y={EH/2+3} fontSize={14} fontWeight={touched?"600":"400"} fill={touched?p.fg:"#BDC1C6"} fontFamily="inherit" textAnchor="middle">{ent.name}</text>{CRUD_OPS.map((op,oi)=>{const on=touched&&t&&t.crud.includes(op);return<g key={op} transform={`translate(${crudX+oi*(crudW+crudGap)},${EH+4})`}><rect width={crudW} height={18} rx={9} fill={on?CRUD_BG[op]:"#F0F0F0"}/><text x={crudW/2} y={13} fontSize={11} fontWeight="600" fill={on?CRUD_COLOR[op]:"#DADCE0"} textAnchor="middle">{op}</text></g>;})}</g>);})}
+            </g>
           </svg>
-          <div style={{position:"absolute",bottom:16,left:16,display:"flex",alignItems:"center",gap:8}}>
-            {editingName?(<Input value={actor.name} onChange={e=>updActor({...actor,name:e.target.value})} onBlur={()=>setEditingName(false)} autoFocus style={{fontSize:13,fontWeight:600,width:160}}/>):(<button onClick={()=>setEditingName(true)} style={{background:"white",border:"1px solid #e4e4e7",borderRadius:6,padding:"5px 12px",fontSize:13,fontWeight:600,color:"#3f3f46",cursor:"pointer",fontFamily:"inherit"}}>✎ {actor.name}</button>)}
-            <Btn small danger onClick={delActor}>Delete actor</Btn>
+          <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
+            <button onClick={()=>setZoom(z=>Math.max(ZOOM_MIN,z*0.8))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
+            <button onClick={()=>setZoom(1)} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
+            <button onClick={()=>setZoom(z=>Math.min(ZOOM_MAX,z*1.25))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
         </div>
         {selEnt&&(
-          <div style={{width:260,borderLeft:"1px solid #e4e4e7",background:"#fafafa",display:"flex",flexDirection:"column",flexShrink:0}}>
-            <div style={{padding:"11px 16px",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"center",justifyContent:"space-between",background:"white"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:entColor(ents,selEnt.id)}}/><span style={{fontSize:12,fontWeight:700,color:"#18181b"}}>{selEnt.name}</span></div><button onClick={()=>setSelEntId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#d4d4d8",lineHeight:1,padding:"0 2px"}}>×</button></div>
+          <div style={{width:280,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:entColor(ents,selEnt.id)}}/><span style={{fontSize:14,fontWeight:500,color:M3.onSurface}}>{selEnt.name}</span></div><button onClick={()=>setSelEntId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1,padding:"0 2px"}}>×</button></div>
             <div style={{padding:16,flex:1,display:"flex",flexDirection:"column"}}>
-              {touch?(<><div style={{flex:1}}><div style={{marginBottom:16}}><SLabel>Scope</SLabel><div style={{display:"flex",gap:6}}>{SCOPE_OPTS.map(sc=>(<button key={sc} onClick={()=>updTouch(selEnt.id,"scope",sc)} style={{flex:1,padding:"6px 0",fontSize:12,fontWeight:700,borderRadius:6,cursor:"pointer",border:`1px solid ${touch.scope===sc?"#4f46e5":"#e4e4e7"}`,background:touch.scope===sc?"#eef2ff":"white",color:touch.scope===sc?"#4338ca":"#a1a1aa"}}>{sc}</button>))}</div></div><div><SLabel>CRUD</SLabel><div style={{display:"flex",gap:6}}>{CRUD_OPS.map(op=>{const on=touch.crud.includes(op);return<button key={op} onClick={()=>toggleCrud(selEnt.id,op)} style={{flex:1,padding:"10px 0",fontSize:13,fontWeight:800,borderRadius:6,cursor:"pointer",border:"none",background:on?CRUD_BG[op]:"#f4f4f5",color:on?CRUD_COLOR[op]:"#d4d4d8"}}>{op}</button>;})}</div></div></div><div style={{borderTop:"1px solid #f4f4f5",paddingTop:14,marginTop:14}}><Btn danger onClick={()=>removeTouch(selEnt.id)}>Remove access</Btn></div></>):(<div style={{textAlign:"center",paddingTop:24}}><div style={{fontSize:12,color:"#a1a1aa",marginBottom:16,lineHeight:1.6}}>{actor.name} has no access<br/>to {selEnt.name}</div><Btn accent onClick={()=>addTouch(selEnt.id)}>+ Grant access</Btn></div>)}
+              {touch?(<><div style={{flex:1}}><div style={{marginBottom:16}}><SLabel>Scope</SLabel><div style={{display:"flex",gap:8}}>{SCOPE_OPTS.map(sc=>(<button key={sc} onClick={()=>updTouch(selEnt.id,"scope",sc)} style={{flex:1,padding:"8px 0",fontSize:14,fontWeight:500,borderRadius:M3.shapeFull,cursor:"pointer",border:touch.scope===sc?"none":`1px solid ${M3.outline}`,background:touch.scope===sc?"#D3E3FD":M3.surface,color:touch.scope===sc?"#041E49":"#9AA0A6",letterSpacing:"0.1px"}}>{sc}</button>))}</div></div><div><SLabel>CRUD</SLabel><div style={{display:"flex",gap:8}}>{CRUD_OPS.map(op=>{const on=touch.crud.includes(op);return<button key={op} onClick={()=>toggleCrud(selEnt.id,op)} style={{flex:1,padding:"10px 0",fontSize:14,fontWeight:700,borderRadius:M3.shapeSm,cursor:"pointer",border:"none",background:on?CRUD_BG[op]:M3.surfaceContHigh,color:on?CRUD_COLOR[op]:"#DADCE0",letterSpacing:"0.1px"}}>{op}</button>;})}</div></div></div><div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16}}><Btn danger onClick={()=>removeTouch(selEnt.id)}>Remove access</Btn></div></>):(<div style={{textAlign:"center",paddingTop:24}}><div style={{fontSize:14,color:M3.onSurfaceVar,marginBottom:16,lineHeight:"20px"}}>{actor.name} has no access<br/>to {selEnt.name}</div><Btn accent onClick={()=>addTouch(selEnt.id)}>+ Grant access</Btn></div>)}
             </div>
           </div>
         )}
       </div>
+      {showEdit&&<ActorEditModal actors={model.actors} onSave={handleEditSave} onClose={()=>setShowEdit(false)}/>}
     </div>
   );
 }
@@ -202,14 +359,14 @@ function CompositeView({model,setModel}){
   const upd=u=>setModel(m=>({...m,composites:m.composites.map(c=>c.id===u.id?u:c)}));
   return(
     <div style={{display:"flex",height:"100%"}}>
-      <div style={{width:220,borderRight:"1px solid #e4e4e7",background:"white",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"14px 16px 10px",borderBottom:"1px solid #f4f4f5",display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
+      <div style={{width:240,borderRight:`1px solid ${M3.outlineVar}`,background:M3.surface,display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"16px 16px 12px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
         <div style={{flex:1,overflowY:"auto"}}>
-          {model.composites.length===0&&<div style={{padding:16,fontSize:12,color:"#d4d4d8",lineHeight:1.6}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
-          {model.composites.map(comp=>{const isSel=selId===comp.id,actor=model.actors.find(a=>a.id===comp.actorId);return<div key={comp.id} onClick={()=>setSelId(comp.id)} style={{padding:"10px 16px",cursor:"pointer",borderBottom:"1px solid #fafafa",borderLeft:`3px solid ${isSel?"#f59e0b":"transparent"}`,background:isSel?"#fffbeb":"transparent"}}><div style={{fontSize:13,fontWeight:600,color:isSel?"#b45309":"#3f3f46"}}>{comp.name}</div><div style={{fontSize:11,color:"#a1a1aa",marginTop:2}}>{actor?.name||"—"} · {comp.uses.length} entities</div></div>;})}
+          {model.composites.length===0&&<div style={{padding:16,fontSize:14,color:M3.outline,lineHeight:"20px"}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
+          {model.composites.map(comp=>{const isSel=selId===comp.id,actor=model.actors.find(a=>a.id===comp.actorId);return<div key={comp.id} onClick={()=>setSelId(comp.id)} style={{padding:"12px 16px",cursor:"pointer",borderBottom:`1px solid ${M3.surfaceCont}`,borderLeft:`3px solid ${isSel?"#7D5700":"transparent"}`,background:isSel?"#FFF0C7":"transparent"}}><div style={{fontSize:14,fontWeight:500,color:isSel?"#7D5700":M3.onSurface}}>{comp.name}</div><div style={{fontSize:12,color:M3.onSurfaceVar,marginTop:4}}>{actor?.name||"—"} · {comp.uses.length} entities</div></div>;})}
         </div>
       </div>
-      {sel_?(<CompositePanel key={sel_.id} comp={sel_} model={model} onUpdate={upd} onDelete={()=>{setSelId(model.composites.find(c=>c.id!==sel_.id)?.id||null);setModel(m=>({...m,composites:m.composites.filter(c=>c.id!==sel_.id)}));}}/>):(<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#d4d4d8",fontSize:13}}>Select a composite</div>)}
+      {sel_?(<CompositePanel key={sel_.id} comp={sel_} model={model} onUpdate={upd} onDelete={()=>{setSelId(model.composites.find(c=>c.id!==sel_.id)?.id||null);setModel(m=>({...m,composites:m.composites.filter(c=>c.id!==sel_.id)}));}}/>):(<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:M3.outline,fontSize:14}}>Select a composite</div>)}
     </div>
   );
 }
@@ -217,50 +374,155 @@ function CompositeView({model,setModel}){
 function CompositePanel({comp,model,onUpdate,onDelete}){
   const upd=p=>onUpdate({...comp,...p}),toggle=eid=>{const uses=comp.uses.includes(eid)?comp.uses.filter(u=>u!==eid):[...comp.uses,eid];upd({uses});};
   return(
-    <div style={{flex:1,overflowY:"auto",padding:24,background:"#fafafa"}}>
-      <div style={{marginBottom:24}}><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:18,fontWeight:700,border:"none",background:"transparent",padding:0,width:"auto",boxShadow:"none"}}/></div>
+    <div style={{flex:1,overflowY:"auto",padding:24,background:M3.surfaceContLow}}>
+      <div style={{marginBottom:24}}><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:22,fontWeight:400,lineHeight:"28px",border:"none",background:"transparent",padding:0,width:"auto"}}/></div>
       <div style={{marginBottom:20}}><SLabel>Actor</SLabel><Sel value={comp.actorId} onChange={e=>upd({actorId:e.target.value})} style={{width:"100%"}}><option value="">— select —</option>{model.actors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</Sel></div>
-      <div><SLabel>Entities in this screen</SLabel><div style={{display:"flex",flexDirection:"column",gap:5}}>
-        {model.entities.map(ent=>{const c=entColor(model.entities,ent.id),used=comp.uses.includes(ent.id);return<div key={ent.id} onClick={()=>toggle(ent.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:used?c+"0f":"white",border:`1px solid ${used?c+"60":"#e4e4e7"}`,borderRadius:7,cursor:"pointer",transition:"all .1s"}}><div style={{width:16,height:16,borderRadius:4,border:`2px solid ${used?c:"#e4e4e7"}`,background:used?c:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{used&&<span style={{color:"white",fontSize:10,fontWeight:900,lineHeight:1}}>✓</span>}</div><div style={{display:"flex",alignItems:"center",gap:7}}><div style={{width:7,height:7,borderRadius:"50%",background:c}}/><span style={{fontSize:13,fontWeight:600,color:used?"#18181b":"#71717a"}}>{ent.name}</span></div></div>;})}
+      <div><SLabel>Entities in this screen</SLabel><div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {model.entities.map(ent=>{const c=entColor(model.entities,ent.id),used=comp.uses.includes(ent.id);return<div key={ent.id} onClick={()=>toggle(ent.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",background:used?c+"0f":M3.surface,border:`1px solid ${used?c+"60":"#DADCE0"}`,borderRadius:M3.shapeSm,cursor:"pointer",transition:"all .1s"}}><div style={{width:18,height:18,borderRadius:M3.shapeXs,border:`2px solid ${used?c:"#DADCE0"}`,background:used?c:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{used&&<span style={{color:"white",fontSize:12,fontWeight:700,lineHeight:1}}>✓</span>}</div><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:14,fontWeight:500,color:used?M3.onSurface:"#9AA0A6"}}>{ent.name}</span></div></div>;})}
       </div></div>
-      {comp.uses.length>0&&(<div style={{marginTop:20,padding:14,background:"white",border:"1px solid #fde68a",borderRadius:8}}><div style={{fontSize:10,fontWeight:700,color:"#a1a1aa",marginBottom:8,letterSpacing:"0.08em",textTransform:"uppercase"}}>Preview</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{comp.uses.map(eid=>{const ent=model.entities.find(e=>e.id===eid),c=entColor(model.entities,eid);return ent?<span key={eid} style={{padding:"3px 10px",background:c+"12",border:`1px solid ${c}40`,borderRadius:99,fontSize:11,color:c,fontWeight:600}}>{ent.name}</span>:null;})}</div></div>)}
-      <div style={{borderTop:"1px solid #f4f4f5",paddingTop:14,marginTop:14}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
+      {comp.uses.length>0&&(<div style={{marginTop:20,padding:16,background:M3.surface,border:"1px solid #FFF0C7",borderRadius:M3.shapeMd,boxShadow:"var(--md-sys-elevation-1)"}}><div style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,marginBottom:8,letterSpacing:"0.5px",textTransform:"uppercase"}}>Preview</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{comp.uses.map(eid=>{const ent=model.entities.find(e=>e.id===eid),c=entColor(model.entities,eid);return ent?<span key={eid} style={{padding:"4px 12px",background:c+"14",border:`1px solid ${c}40`,borderRadius:M3.shapeFull,fontSize:12,color:c,fontWeight:500,letterSpacing:"0.1px"}}>{ent.name}</span>:null;})}</div></div>)}
+      <div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
     </div>
   );
 }
 
-function JsonModal({onClose}){
-  const json=JSON.stringify(getFullJson(),null,2),[copied,setCopied]=useState(false);
-  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.35)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}} onClick={onClose}><div style={{background:"white",borderRadius:12,boxShadow:"0 24px 64px rgba(0,0,0,.18)",width:620,maxHeight:"78vh",display:"flex",flexDirection:"column",overflow:"hidden"}} onClick={e=>e.stopPropagation()}><div style={{padding:"13px 18px",borderBottom:"1px solid #f4f4f5",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:11,fontWeight:700,color:"#a1a1aa",letterSpacing:"0.1em",textTransform:"uppercase"}}>Full JSON (including screens)</span><div style={{display:"flex",gap:8}}><Btn small onClick={()=>{navigator.clipboard?.writeText(json);setCopied(true);setTimeout(()=>setCopied(false),1500);}}>{copied?"✓ Copied":"Copy"}</Btn><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#a1a1aa",lineHeight:1}}>×</button></div></div><textarea readOnly value={json} style={{flex:1,fontFamily:"'JetBrains Mono','Fira Code',monospace",fontSize:11,lineHeight:1.6,background:"#fafafa",border:"none",color:"#52525b",padding:18,resize:"none",outline:"none",overflowY:"auto"}}/></div></div>);
-}
-
 const TABS=[{id:"entity",label:"Entity"},{id:"actor",label:"Actor"},{id:"composite",label:"Composite"}];
 
+const CIRCLED=["⓪","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"];
+const circled=n=>n<CIRCLED.length?CIRCLED[n]:String(n);
+
+const MAX_HISTORY=80;
+
 function App(){
-  const[model,setModel]=useState(EMPTY),[tab,setTab]=useState("entity"),[showJson,setShowJson]=useState(false);
-  useEffect(()=>{modelRef=model;markModified();},[model]);
+  const[model,setModelRaw]=useState(EMPTY),[tab,setTab]=useState("entity");
+  const[entSelId,setEntSelId]=useState(null);
+  const histRef=useRef({stack:[EMPTY],idx:0});
+  const clipRef=useRef(null);
+
+  // setModel: 履歴に積む（通常操作用）
+  const setModel=useCallback(updater=>{
+    setModelRaw(prev=>{
+      const next=typeof updater==='function'?updater(prev):updater;
+      const h=histRef.current;
+      h.stack=h.stack.slice(0,h.idx+1);
+      h.stack.push(JSON.parse(JSON.stringify(next)));
+      if(h.stack.length>MAX_HISTORY){h.stack.shift();}else{h.idx++;}
+      return next;
+    });
+  },[]);
+  // setModelSilent: 履歴に積まない（ドラッグ中の移動用）
+  const setModelSilent=useCallback(updater=>{
+    setModelRaw(prev=>typeof updater==='function'?updater(prev):updater);
+  },[]);
+
+  // Undo
+  const undo=useCallback(()=>{
+    const h=histRef.current;
+    if(h.idx<=0)return;
+    h.idx--;
+    setModelRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));
+    showToast('Undo');
+  },[]);
+
+  // Redo
+  const redo=useCallback(()=>{
+    const h=histRef.current;
+    if(h.idx>=h.stack.length-1)return;
+    h.idx++;
+    setModelRaw(JSON.parse(JSON.stringify(h.stack[h.idx])));
+    showToast('Redo');
+  },[]);
+
+  // Copy: エンティティ選択時のみ動作
+  const handleCopy=useCallback(()=>{
+    if(tab!=='entity'||!entSelId)return false;
+    const ent=histRef.current.stack[histRef.current.idx]?.entities?.find(e=>e.id===entSelId);
+    if(!ent)return false;
+    clipRef.current={type:'entity',data:JSON.parse(JSON.stringify(ent))};
+    showToast('Copied: '+ent.name);
+    return true;
+  },[tab,entSelId]);
+
+  // Paste
+  const handlePaste=useCallback(()=>{
+    if(!clipRef.current||clipRef.current.type!=='entity')return false;
+    const src=clipRef.current.data;
+    const newId=uid();
+    setModel(m=>{const names=m.entities.map(e=>e.name);const newEnt={...JSON.parse(JSON.stringify(src)),id:newId,name:uniqueName(src.name,names),x:(src.x||80)+40,y:(src.y||80)+40,relations:src.relations.map(r=>({...r,id:uid()}))};return{...m,entities:[...m.entities,newEnt]};});
+    setEntSelId(newId);
+    showToast('Pasted: '+newEnt.name);
+    return true;
+  },[setModel]);
+
+  // Cut
+  const handleCut=useCallback(()=>{
+    if(tab!=='entity'||!entSelId)return false;
+    const ent=histRef.current.stack[histRef.current.idx]?.entities?.find(e=>e.id===entSelId);
+    if(!ent)return false;
+    clipRef.current={type:'entity',data:JSON.parse(JSON.stringify(ent))};
+    setModel(m=>({...m,entities:m.entities.filter(e=>e.id!==entSelId)}));
+    setEntSelId(null);
+    showToast('Cut: '+ent.name);
+    return true;
+  },[tab,entSelId,setModel]);
+
+  // Delete: エンティティ選択時のみ
+  const handleDelete=useCallback(()=>{
+    if(tab!=='entity'||!entSelId)return false;
+    const ent=model.entities.find(e=>e.id===entSelId);
+    if(!ent)return false;
+    setModel(m=>({...m,entities:m.entities.filter(e=>e.id!==entSelId)}));
+    setEntSelId(null);
+    showToast('Deleted: '+ent.name);
+    return true;
+  },[tab,entSelId,model,setModel]);
+
+  // グローバル関数を公開
+  useEffect(()=>{
+    window.__cmUndo=undo;
+    window.__cmRedo=redo;
+    window.__cmCopy=handleCopy;
+    window.__cmPaste=handlePaste;
+    window.__cmCut=handleCut;
+    window.__cmDelete=handleDelete;
+    return()=>{window.__cmUndo=window.__cmRedo=window.__cmCopy=window.__cmPaste=window.__cmCut=window.__cmDelete=null;};
+  },[undo,redo,handleCopy,handlePaste,handleCut,handleDelete]);
+
+  const initialLoad=useRef(true);
+  useEffect(()=>{modelRef=model;if(initialLoad.current){initialLoad.current=false;}else{markModified();}},[model]);
   useEffect(()=>{
     window.__cmLoadData=d=>{
       const cmData=splitData(d);
-      setModel(ensurePositions(cmData));
+      const loaded=ensurePositions(cmData);
+      setModelRaw(loaded);
+      histRef.current={stack:[JSON.parse(JSON.stringify(loaded))],idx:0};
       setTab("entity");
+      setEntSelId(null);
     };
     return()=>{window.__cmLoadData=null;};
   },[]);
-  const stats=`${model.entities.length}E · ${model.actors.length}A · ${model.composites.length}C`;
+
+  const counts={entity:model.entities.length,actor:model.actors.length,composite:model.composites.length};
+  const barRef=useRef(null);
+  useEffect(()=>{
+    if(!barRef.current)return;
+    const tb=document.getElementById('cm-toolbar');
+    if(!tb)return;
+    const right=barRef.current;
+    ['cm-edited','cm-connect-btn','cm-auto-btn'].forEach(id=>{const el=document.getElementById(id);if(el)right.appendChild(el);});
+  },[]);
   return(
-    <div style={{height:"calc(100vh - 36px)",display:"flex",flexDirection:"column",background:"#fafafa",fontFamily:"'DM Sans','Outfit',system-ui,sans-serif"}}>
-      <div style={{height:46,background:"white",borderBottom:"1px solid #e4e4e7",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:18}}>
-        <div style={{display:"flex",alignItems:"center",marginRight:24,gap:6}}><div style={{width:14,height:14,borderRadius:3,background:"#4f46e5"}}/><span style={{fontSize:12,fontWeight:700,color:"#18181b",letterSpacing:"0.02em"}}>conceptmodel</span></div>
-        {TABS.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"0 18px",border:"none",background:"transparent",cursor:"pointer",color:tab===t.id?"#18181b":"#a1a1aa",fontSize:13,fontWeight:tab===t.id?600:400,borderBottom:`2px solid ${tab===t.id?"#4f46e5":"transparent"}`,borderTop:"2px solid transparent",fontFamily:"inherit",transition:"color .1s"}}>{t.label}</button>))}
-        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:14,paddingRight:18}}><span style={{fontSize:11,color:"#d4d4d8",letterSpacing:"0.06em"}}>{stats}</span><button onClick={()=>setShowJson(v=>!v)} style={{fontSize:11,padding:"4px 11px",borderRadius:5,cursor:"pointer",border:`1px solid ${showJson?"#4f46e5":"#e4e4e7"}`,background:showJson?"#eef2ff":"transparent",color:showJson?"#4338ca":"#a1a1aa",fontFamily:"inherit"}}>{"{ }"}</button></div>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",background:M3.surface,fontFamily:"'Google Sans','Roboto','Noto Sans JP',system-ui,sans-serif",fontSize:14}}>
+      <div style={{height:48,background:"#FFFFFF",borderBottom:"1px solid #DADCE0",display:"flex",alignItems:"stretch",flexShrink:0,paddingLeft:16}}>
+        <div style={{display:"flex",alignItems:"center",marginRight:24,gap:8}}><div style={{width:14,height:14,borderRadius:M3.shapeXs,background:"#1A73E8"}}/><span style={{fontSize:16,fontWeight:500,lineHeight:"24px",color:M3.onSurface}}>Model Editor</span></div>
+        {TABS.map(t=>{const isAct=tab===t.id,cnt=counts[t.id];return(<button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"0 16px",border:"none",background:"transparent",cursor:"pointer",color:isAct?"#1A73E8":"#9AA0A6",fontSize:14,fontWeight:500,lineHeight:"20px",letterSpacing:"0.1px",borderBottom:`3px solid ${isAct?"#1A73E8":"transparent"}`,borderTop:"3px solid transparent",fontFamily:"inherit",transition:"color .15s",position:"relative"}}>{t.label}{cnt>0&&<span style={{marginLeft:6,display:"inline-flex",alignItems:"center",justifyContent:"center",minWidth:20,height:20,padding:"0 6px",borderRadius:"var(--md-sys-shape-full)",background:isAct?"#D3E3FD":"#E8EAED",color:isAct?"#041E49":"#5F6368",fontSize:11,fontWeight:600,lineHeight:1}}>{cnt}</span>}</button>);})}
+        <div ref={barRef} style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:12,paddingRight:16,fontSize:14,fontFamily:"inherit"}}/>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
-        {tab==="entity"&&<EntityView model={model} setModel={setModel}/>}
-        {tab==="actor"&&<ActorView model={model} setModel={setModel}/>}
+        {tab==="entity"&&<EntityView model={model} setModel={setModel} setModelSilent={setModelSilent} selId={entSelId} setSelId={setEntSelId}/>}
+        {tab==="actor"&&<ActorView model={model} setModel={setModel} setModelSilent={setModelSilent}/>}
         {tab==="composite"&&<CompositeView model={model} setModel={setModel}/>}
       </div>
-      {showJson&&<JsonModal onClose={()=>setShowJson(false)}/>}
     </div>
   );
 }
