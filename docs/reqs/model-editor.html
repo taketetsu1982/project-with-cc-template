@@ -81,6 +81,8 @@
 </div>
 <div id="root"></div>
 
+<script src="./lib/shared.js"></script>
+<script src="./lib/model-logic.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -141,51 +143,22 @@ const M3={
   shapeXs:"var(--md-sys-shape-xs)",shapeSm:"var(--md-sys-shape-sm)",shapeMd:"var(--md-sys-shape-md)",shapeLg:"var(--md-sys-shape-lg)",shapeFull:"var(--md-sys-shape-full)",
   elev1:"var(--md-sys-elevation-1)",elev2:"var(--md-sys-elevation-2)",
 };
-const CRUD_OPS=["C","R","U","D"],CRUD_COLOR={C:"#1E8E3E",R:"#1A73E8",U:"#E37400",D:"#D93025"},CRUD_BG={C:"#E6F4EA",R:"#E8F0FE",U:"#FEF7E0",D:"#FCE8E6"},REL_TYPES=["has-many","has-one","belongs-to","many-to-many"];
-// パステルカラー: 背景色, テキスト色のペア
-const ENT_PALETTE=[
-  {bg:"#AECBFA",fg:"#174EA6"}, // blue
-  {bg:"#FDD663",fg:"#7A6200"}, // yellow
-  {bg:"#A8DAB5",fg:"#137333"}, // green
-  {bg:"#F6AEA9",fg:"#A50E0E"}, // pink/red
-  {bg:"#D7AEFB",fg:"#7627BB"}, // purple
-  {bg:"#FDCFE8",fg:"#9C166B"}, // magenta
-  {bg:"#A1E4F2",fg:"#0D652D"}, // teal
-  {bg:"#FBC8A4",fg:"#8B4513"}, // orange
-];
-const entPalette=(ents,id)=>ENT_PALETTE[Math.max(0,ents.findIndex(e=>e.id===id))%ENT_PALETTE.length];
-const entColor=(ents,id)=>entPalette(ents,id).fg;
+// lib から取得
+const{CRUD_OPS,CRUD_COLOR,CRUD_BG,ENT_PALETTE,ZOOM_MIN,ZOOM_MAX,MAX_HISTORY,uid,uniqueName,edgePt,calcCenterPan,labelWidth}=window.__editorLib;
+const{ensurePositions:_ensurePositions,CIRCLED,circled}=window.__editorLib;
+const entPalette=(ents,id)=>window.__editorLib.entPalette(ents,id);
+const entColor=(ents,id)=>window.__editorLib.entColor(ents,id);
+const REL_TYPES=["has-many","has-one","belongs-to","many-to-many"];
 // ノードサイズ
 const EW=200,EH=72;
 // Actorカード
 const CRUD_W=28,CRUD_GAP=4,CRUD_ROW_H=26,ACTOR_CARD_H=EH+CRUD_ROW_H;
-// ラベル計算
-const LABEL_CHAR_W=7,LABEL_MIN_W=24,LABEL_PAD=16;
-const labelWidth=text=>Math.max((text||"").length*LABEL_CHAR_W,LABEL_MIN_W)+LABEL_PAD;
 // 自己参照カーブ
 const SELF_REF_X=6,SELF_REF_Y=14,SELF_REF_CP=38;
 // グリッドレイアウト
 const GRID_COLS=3,GRID_GAP_X=360,GRID_GAP_Y=240,GRID_PAD_X=80,GRID_PAD_Y=80;
-const uid=()=>Math.random().toString(36).slice(2,8);
-function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={entities:[],actors:[]};
-// ノード群の中心を返す（キャンバス中央に合わせるために使用）
-function calcCenterPan(items,w,h){
-  if(!items||items.length===0)return{x:0,y:0};
-  const xs=items.map(i=>i.x||0),ys=items.map(i=>i.y||0);
-  const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
-  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-  return{cx,cy};
-}
-function uniqueName(base,existingNames){
-  if(!existingNames.includes(base))return base;
-  const m=base.match(/^(.+?)(\d+)$/);
-  const stem=m?m[1]:base;
-  let n=m?parseInt(m[2],10)+1:2;
-  while(existingNames.includes(stem+n))n++;
-  return stem+n;
-}
-function ensurePositions(data){if(!data||!data.entities)return data;const cols=GRID_COLS,gapX=GRID_GAP_X,gapY=GRID_GAP_Y,padX=GRID_PAD_X,padY=GRID_PAD_Y;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
+function ensurePositions(data){return _ensurePositions(data,{cols:GRID_COLS,gapX:GRID_GAP_X,gapY:GRID_GAP_Y,padX:GRID_PAD_X,padY:GRID_PAD_Y});}
 
 // M3 コンポーネント
 function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"8px 16px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
@@ -198,7 +171,6 @@ function Btn({children,onClick,accent,small,danger,ghost}){
 }
 const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
-const ZOOM_MIN=0.25,ZOOM_MAX=3;
 // データロード時にインクリメントされるカウンター
 let loadGeneration=0;
 function useInitialPan(items,iw,ih){
@@ -410,11 +382,6 @@ function ActorView({model,setModel,setModelSilent}){
 
 
 const TABS=[{id:"entity",label:"Entity"},{id:"actor",label:"Actor"}];
-
-const CIRCLED=["⓪","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"];
-const circled=n=>n<CIRCLED.length?CIRCLED[n]:String(n);
-
-const MAX_HISTORY=80;
 
 function App(){
   const[model,setModelRaw]=useState(EMPTY),[tab,setTab]=useState("entity");

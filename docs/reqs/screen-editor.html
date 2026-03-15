@@ -70,6 +70,8 @@
 </div>
 <div id="root"></div>
 
+<script src="./lib/shared.js"></script>
+<script src="./lib/screen-logic.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -128,55 +130,23 @@ const M3={
   error:"var(--md-sys-color-error)",errorContainer:"var(--md-sys-color-error-container)",onErrorContainer:"var(--md-sys-color-on-error-container)",
   shapeSm:"var(--md-sys-shape-sm)",shapeMd:"var(--md-sys-shape-md)",shapeLg:"var(--md-sys-shape-lg)",shapeFull:"var(--md-sys-shape-full)",
 };
-const CRUD_OPS=["C","R","U","D"],CRUD_COLOR={C:"#1E8E3E",R:"#1A73E8",U:"#E37400",D:"#D93025"},CRUD_BG={C:"#E6F4EA",R:"#E8F0FE",U:"#FEF7E0",D:"#FCE8E6"},VARIANTS=["collection","single"];
+// lib から取得
+const{CRUD_OPS,CRUD_COLOR,CRUD_BG,ENT_PALETTE,ZOOM_MIN,ZOOM_MAX,MAX_HISTORY,uid,uniqueName,edgePt,calcCenterPan,labelWidth}=window.__editorLib;
+const _ensureScreenPositions=window.__editorLib.ensureScreenPositions;
+const entPalette=id=>window.__editorLib.entPalette(CONCEPT.entities,id);
+const entColor=id=>window.__editorLib.entColor(CONCEPT.entities,id);
+const entName=id=>window.__editorLib.entName(CONCEPT.entities,id);
+const VARIANTS=["collection","single"];
 const AREAS=["top","left","right","main","bottom"];
 const AREA_LABELS={top:"Top",left:"Left",right:"Right",bottom:"Bottom",main:"Main"};
-const ENT_PALETTE=[
-  {bg:"#AECBFA",fg:"#174EA6"},{bg:"#FDD663",fg:"#7A6200"},{bg:"#A8DAB5",fg:"#137333"},{bg:"#F6AEA9",fg:"#A50E0E"},
-  {bg:"#D7AEFB",fg:"#7627BB"},{bg:"#FDCFE8",fg:"#9C166B"},{bg:"#A1E4F2",fg:"#0D652D"},{bg:"#FBC8A4",fg:"#8B4513"},
-];
-const entPalette=id=>ENT_PALETTE[Math.max(0,CONCEPT.entities.findIndex(e=>e.id===id))%ENT_PALETTE.length];
-const entColor=id=>entPalette(id).fg;
-const entName=id=>CONCEPT.entities.find(e=>e.id===id)?.name||id;
 // スクリーンカードサイズ
 const SW=240,SH=76;
 // カード内部
 const SC_HEADER_H=36,SC_OBJ_START_Y=40,SC_OBJ_ROW_H=22,SC_OBJ_PAD_X=8;
-// ラベル計算
-const LABEL_CHAR_W=7,LABEL_MIN_W=24,LABEL_PAD=16;
-const labelWidth=text=>Math.max((text||"").length*LABEL_CHAR_W,LABEL_MIN_W)+LABEL_PAD;
 // グリッドレイアウト
 const SC_GRID_COLS=3,SC_GRID_GAP_X=280,SC_GRID_GAP_Y=220,SC_GRID_PAD_X=60,SC_GRID_PAD_Y=60;
 const SC_MIN_SPAN_FACTOR=160,SC_MIN_SPAN_MIN=200;
-const uid=()=>Math.random().toString(36).slice(2,8);
-function uniqueName(base,names){if(!names.includes(base))return base;const m=base.match(/^(.+?)(\d+)$/);const stem=m?m[1]:base;let n=m?parseInt(m[2],10)+1:2;while(names.includes(stem+n))n++;return stem+n;}
-function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={screens:[],transitions:[]};
-const ZOOM_MIN=0.25,ZOOM_MAX=3,MAX_HISTORY=80;
-function ensureScreenPositions(data){
-  if(!data||!data.screens||!CONCEPT.actors)return data;
-  const cols=SC_GRID_COLS,gapX=SC_GRID_GAP_X,gapY=SC_GRID_GAP_Y,padX=SC_GRID_PAD_X,padY=SC_GRID_PAD_Y;
-  // Actorごとにスクリーンを自動配置
-  CONCEPT.actors.forEach(actor=>{
-    const actorScreens=data.screens.filter(s=>s.actorId===actor.id);
-    // すべてのスクリーンが狭い範囲に密集しているか判定
-    if(actorScreens.length<2)return;
-    const xs=actorScreens.map(s=>s.x),ys=actorScreens.map(s=>s.y);
-    const rangeX=Math.max(...xs)-Math.min(...xs),rangeY=Math.max(...ys)-Math.min(...ys);
-    const minSpan=Math.max((actorScreens.length-1)*SC_MIN_SPAN_FACTOR,SC_MIN_SPAN_MIN);
-    if(rangeX+rangeY>=minSpan)return;
-    // 再配置
-    actorScreens.forEach((scr,i)=>{scr.x=padX+(i%cols)*gapX;scr.y=padY+Math.floor(i/cols)*gapY;});
-  });
-  return data;
-}
-
-function calcCenterPan(items,w,h){
-  if(!items||items.length===0)return{cx:0,cy:0};
-  const xs=items.map(i=>i.x||0),ys=items.map(i=>i.y||0);
-  const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
-  return{cx:(minX+maxX)/2,cy:(minY+maxY)/2};
-}
 let loadGeneration=0;
 function useInitialPan(items,iw,ih){
   const svgRef=useRef();
@@ -471,7 +441,7 @@ function App(){
   useEffect(()=>{screensRef=screens;if(dirtyRef.current){dirtyRef.current=false;markModified();}},[screens]);
   useEffect(()=>{
     window.__scLoadData=d=>{
-      const scData=ensureScreenPositions(splitData(d));
+      const scData=_ensureScreenPositions(splitData(d),CONCEPT.actors,{cols:SC_GRID_COLS,gapX:SC_GRID_GAP_X,gapY:SC_GRID_GAP_Y,padX:SC_GRID_PAD_X,padY:SC_GRID_PAD_Y,minSpanFactor:SC_MIN_SPAN_FACTOR,minSpanMin:SC_MIN_SPAN_MIN});
       loadGeneration++;
       setScreensRaw(scData);
       histRef.current={stack:[JSON.parse(JSON.stringify(scData))],idx:0};
