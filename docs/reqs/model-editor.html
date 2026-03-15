@@ -174,7 +174,6 @@ function calcCenterPan(items,w,h){
   const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
   return{cx,cy};
 }
-let initialCenter=null;
 function uniqueName(base,existingNames){
   if(!existingNames.includes(base))return base;
   const m=base.match(/^(.+?)(\d+)$/);
@@ -197,24 +196,30 @@ function Btn({children,onClick,accent,small,danger,ghost}){
 const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
 const ZOOM_MIN=0.25,ZOOM_MAX=3;
+// データロード時にインクリメントされるカウンター
+let loadGeneration=0;
 function useInitialPan(items,iw,ih){
   const svgRef=useRef();
   const[pan,setPan]=useState({x:0,y:0});
-  const inited=useRef(false);
+  const lastGen=useRef(-1);
   useEffect(()=>{
-    if(inited.current||!items||items.length===0||!svgRef.current)return;
-    const r=svgRef.current.getBoundingClientRect();
-    if(!r.width)return;
-    const c=calcCenterPan(items,iw,ih);
-    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
-    inited.current=true;
-  },[items]);
-  return{svgRef,pan,setPan,resetInit:()=>{inited.current=false;}};
+    if(lastGen.current===loadGeneration||!items||items.length===0||!svgRef.current)return;
+    // レイアウト確定後に計算
+    requestAnimationFrame(()=>{
+      if(!svgRef.current)return;
+      const r=svgRef.current.getBoundingClientRect();
+      if(!r.width||!r.height)return;
+      const c=calcCenterPan(items,iw,ih);
+      setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
+      lastGen.current=loadGeneration;
+    });
+  },[items,iw,ih]);
+  return{svgRef,pan,setPan};
 }
 
 function EntityView({model,setModel,setModelSilent,selId,setSelId}){
   const[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
-  const{svgRef,pan,setPan,resetInit}=useInitialPan(model.entities,EW,EH);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH);
   const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
@@ -529,7 +534,7 @@ function App(){
     window.__cmLoadData=d=>{
       const cmData=splitData(d);
       const loaded=ensurePositions(cmData);
-      initialCenter=calcCenterPan(loaded.entities,EW,EH);
+      loadGeneration++;
       setModelRaw(loaded);
       histRef.current={stack:[JSON.parse(JSON.stringify(loaded))],idx:0};
       setTab("entity");
