@@ -62,6 +62,7 @@ project_root/
 │   │   ├── product-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
 │   │   ├── model-editor.html     #  CMエディタ（ブラウザで開く）
 │   │   ├── screen-editor.html    #  Screensエディタ（ブラウザで開く）
+│   │   ├── sample.product-model.json # サンプルJSON（全フィールド網羅）
 │   │   └── user-stories.md      #   ユーザーストーリー
 │   └── specs/                   # 設計ドキュメント（reqs/から導出）
 │       ├── CLAUDE.md            #   このディレクトリの説明
