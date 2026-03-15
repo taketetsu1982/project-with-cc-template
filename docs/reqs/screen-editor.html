@@ -44,8 +44,8 @@
   #sc-toolbar{display:none}
   .sc-connect-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--md-sys-shape-full);padding:6px 16px;font-size:14px;font-weight:500;line-height:20px;color:var(--md-sys-color-on-surface-variant);cursor:pointer;transition:background .15s}
   .sc-connect-btn:hover{background:var(--md-sys-color-surface-container)}
-  .sc-dot{width:8px;height:8px;border-radius:50%;background:var(--md-sys-color-outline)}
-  .sc-dot.connected{background:#1E8E3E}.sc-dot.saving{background:#E37400}.sc-dot.error{background:var(--md-sys-color-error)}
+  .sc-dot{width:8px;height:8px;border-radius:50%;background:#DADCE0}
+  .sc-dot.connected{background:#34A853}.sc-dot.saving{background:#E37400}.sc-dot.error{background:var(--md-sys-color-error)}
   .sc-hint{font-weight:400;color:var(--md-sys-color-outline);font-size:12px}
   #sc-edited{display:none;font-size:12px;font-weight:500;color:#E37400}
   .sc-auto-switch{display:none;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--md-sys-color-on-surface-variant);cursor:pointer;user-select:none}
@@ -96,7 +96,7 @@ function markModified(){document.getElementById('sc-edited').style.display='inli
 function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
 async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('sc-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
 function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[],composites:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
-function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('sc-auto-btn').style.display='flex';if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('sc-auto-btn').classList.add('active');}}
+function onFileConnected(h){fileHandle=h;if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('sc-auto-btn').classList.add('active');}document.getElementById('sc-auto-btn').style.display='flex';updateStatus('connected',h.name);}
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'sc-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__scLoadData)window.__scLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
 function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('sc-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('sc-dot').className='sc-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 let dragC=0;const ov=document.getElementById('sc-drop-overlay');
@@ -209,7 +209,6 @@ const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,letterSpacing
 function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange}){
   const[actorId,setActorId]=useState(CONCEPT.actors[0]?.id||null),[selNavId,setSelNavId]=useState(null),[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
   const selScr=selId?screens.screens.find(s=>s.id===selId):null;
-  const selType=selScr?(selScr.type||"screen"):null;
   const{svgRef,pan,setPan}=useInitialPan(screens.screens,SW,SH);
   const[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0}),didDrag=useRef(false);
@@ -243,7 +242,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
             <rect width="100%" height="100%" fill="url(#sdots)" data-bg="1" onMouseDown={onBgMD}/>
             <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
             {/* 1. スクリーンカード（最背面） */}
-            {visScr.map(scr=>{const isComp=scr.type==="composite",isConn=conn===scr.id,isSel=selId===scr.id,objs=scr.objects||[],cardH=SH+Math.max(0,objs.length)*SC_OBJ_ROW_H;return(<g key={scr.id} transform={`translate(${scr.x},${scr.y})`} onMouseDown={e=>onBoxMD(e,scr.id)} onDoubleClick={e=>{e.stopPropagation();if(!isComp)onSelectScreen(scr.id);}} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={SW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={SW} height={cardH} rx={14} fill="white"/><clipPath id={`clip-${scr.id}`}><rect width={SW} height={cardH} rx={14}/></clipPath><g clipPath={`url(#clip-${scr.id})`}><rect width={SW} height={SC_HEADER_H} fill={isComp?"#E8EAED":"#FAFAFA"}/><line x1={0} y1={SC_HEADER_H} x2={SW} y2={SC_HEADER_H} stroke="#E0E0E0" strokeWidth="1"/><foreignObject x={0} y={0} width={SW} height={SC_HEADER_H}><div style={{display:"flex",alignItems:"center",gap:4,padding:"0 12px",height:SC_HEADER_H,boxSizing:"border-box"}}><span className="msi" style={{fontSize:18,color:"#5F6368"}}>{isComp?"dashboard":"crop_square"}</span><span style={{fontSize:14,fontWeight:500,color:"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{scr.name}</span></div></foreignObject>{objs.map((obj,oi)=>{const p=entPalette(obj.entityId);return(<g key={obj.id||oi} transform={`translate(0,${SC_OBJ_START_Y+oi*SC_OBJ_ROW_H})`}><rect x={SC_OBJ_PAD_X} width={SW-SC_OBJ_PAD_X*2} height={18} rx={9} fill={p.bg+"30"}/><circle cx={18} cy={9} r={4} fill={p.bg}/><text x={28} y={13} fontSize={11} fontWeight="500" fill={p.fg} fontFamily="inherit">{entName(obj.entityId)}</text></g>);})}</g><rect width={SW} height={cardH} rx={14} fill="none" stroke={isConn?"#E37400":isSel?"#1A73E8":"#DADCE0"} strokeWidth={isConn||isSel?2.5:1}/></g>);})}
+            {visScr.map(scr=>{const isComp=scr.type==="composite",isConn=conn===scr.id,isSel=selId===scr.id,objs=scr.objects||[],cardH=SH+Math.max(0,objs.length)*SC_OBJ_ROW_H;return(<g key={scr.id} transform={`translate(${scr.x},${scr.y})`} onMouseDown={e=>onBoxMD(e,scr.id)} onDoubleClick={e=>{e.stopPropagation();onSelectScreen(scr.id);}} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={SW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={SW} height={cardH} rx={14} fill="white"/><clipPath id={`clip-${scr.id}`}><rect width={SW} height={cardH} rx={14}/></clipPath><g clipPath={`url(#clip-${scr.id})`}><rect width={SW} height={SC_HEADER_H} fill={isComp?"#E8EAED":"#FAFAFA"}/><line x1={0} y1={SC_HEADER_H} x2={SW} y2={SC_HEADER_H} stroke="#E0E0E0" strokeWidth="1"/><foreignObject x={0} y={0} width={SW} height={SC_HEADER_H}><div style={{display:"flex",alignItems:"center",gap:4,padding:"0 12px",height:SC_HEADER_H,boxSizing:"border-box"}}><span className="msi" style={{fontSize:18,color:"#5F6368"}}>{isComp?"dashboard":"crop_square"}</span><span style={{fontSize:14,fontWeight:500,color:"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{scr.name}</span></div></foreignObject>{objs.map((obj,oi)=>{const p=entPalette(obj.entityId);return(<g key={obj.id||oi} transform={`translate(0,${SC_OBJ_START_Y+oi*SC_OBJ_ROW_H})`}><rect x={SC_OBJ_PAD_X} width={SW-SC_OBJ_PAD_X*2} height={18} rx={9} fill={p.bg+"30"}/><circle cx={18} cy={9} r={4} fill={p.bg}/><text x={28} y={13} fontSize={11} fontWeight="500" fill={p.fg} fontFamily="inherit">{entName(obj.entityId)}</text></g>);})}</g><rect width={SW} height={cardH} rx={14} fill="none" stroke={isConn?"#E37400":isSel?"#1A73E8":"#DADCE0"} strokeWidth={isConn||isSel?2.5:1}/></g>);})}
             {/* 2. ナビ線 */}
             {visNav.map(nav=>{const src=findNode(nav.from),tgt=findNode(nav.to);if(!src||!tgt)return null;const fp=edgePt(src.x,src.y,SW,src.h,tgt.x+SW/2,tgt.y+tgt.h/2),tp=edgePt(tgt.x,tgt.y,SW,tgt.h,src.x+SW/2,src.y+src.h/2),isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";return(<g key={`nl-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelId(null);}}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="transparent" strokeWidth={12} style={{cursor:"pointer"}}/><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={isSel?2:1.5} markerEnd={isSel?"url(#sarr-hi)":"url(#sarr)"} style={{cursor:"pointer"}}/></g>);})}
             {/* 3. ナビラベル（最前面） */}
@@ -262,7 +261,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
             <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
         </div>
-        {(()=>{if(!selScr)return null;const scr=selScr;const isComp=selType==="composite";const upd=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selId?{...s,...patch}:s)}));const del=()=>{setSelId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selId),transitions:m.transitions.filter(n=>n.from!==selId&&n.to!==selId)}));};const objs=scr.objects||[];return(
+        {(()=>{if(!selScr)return null;const scr=selScr;const upd=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selId?{...s,...patch}:s)}));const del=()=>{setSelId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selId),transitions:m.transitions.filter(n=>n.from!==selId&&n.to!==selId)}));};const objs=scr.objects||[];return(
           <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
             <div style={{padding:"16px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,textTransform:"uppercase",letterSpacing:"0.5px"}}>Screen</span><button onClick={()=>setSelId(null)} style={{background:"none",border:"none",cursor:"pointer",color:M3.onSurfaceVar}}><span className="msi" style={{fontSize:20}}>close</span></button></div>
             <div style={{flex:1,overflowY:"auto",padding:16}}>
@@ -270,7 +269,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
               <div style={{marginBottom:24}}><SLabel>Type</SLabel><div style={{display:"flex",gap:8}}>{[{v:"screen",label:"Screen",icon:"crop_square"},{v:"composite",label:"Composite",icon:"dashboard"}].map(t=>(<button key={t.v} onClick={()=>upd({type:t.v})} style={{flex:1,padding:"8px 0",fontSize:14,fontWeight:500,borderRadius:M3.shapeFull,cursor:"pointer",border:(scr.type||"screen")===t.v?"none":`1px solid ${M3.outlineVar}`,background:(scr.type||"screen")===t.v?"#D3E3FD":"white",color:(scr.type||"screen")===t.v?"#041E49":"#9AA0A6",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>{t.icon&&<span className="msi" style={{fontSize:16}}>{t.icon}</span>}{t.label}</button>))}</div></div>
               <div style={{marginBottom:24}}><SLabel>Screen Prompt</SLabel><textarea value={scr.prompt||""} onChange={e=>upd({prompt:e.target.value})} placeholder="この画面の実装についてCCへの補足を書く" style={{width:"100%",boxSizing:"border-box",border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:"white",fontFamily:"inherit",fontSize:14,color:scr.prompt?"#1A1A1A":"#BDC1C6",lineHeight:1.6,padding:"16px 16px",resize:"vertical",minHeight:120,outline:"none"}} onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";e.target.style.color="#1A1A1A";}} onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";if(!e.target.value)e.target.style.color="#BDC1C6";}}/></div>
               <div style={{marginBottom:24}}><SLabel>Objects</SLabel>{objs.length===0?<div style={{fontSize:13,color:"#C4C7C5"}}>No objects</div>:<div style={{display:"flex",flexDirection:"column",gap:6}}>{objs.map(obj=>{const p=entPalette(obj.entityId);return<div key={obj.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 8px",background:p.bg+"18",borderRadius:M3.shapeSm}}><div style={{width:8,height:8,borderRadius:"50%",background:p.bg,flexShrink:0}}/><span style={{fontSize:13,fontWeight:500,color:p.fg}}>{entName(obj.entityId)}</span><span style={{fontSize:11,color:M3.onSurface,marginLeft:"auto"}}>{obj.variant}</span><div style={{display:"flex",gap:4,marginLeft:8}}>{CRUD_OPS.map(op=>(<span key={op} style={{fontSize:12,fontWeight:700,padding:"4px 8px",borderRadius:6,background:obj.crud.includes(op)?CRUD_BG[op]:"#F5F5F5",color:obj.crud.includes(op)?CRUD_COLOR[op]:"#DADCE0"}}>{op}</span>))}</div></div>;})}</div>}</div>
-              {!isComp&&<div style={{display:"flex",justifyContent:"flex-end"}}><button onClick={()=>onSelectScreen(scr.id)} style={{background:"#D3E3FD",border:"none",color:"#041E49",borderRadius:"var(--md-sys-shape-full)",padding:"8px 24px",fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",transition:"box-shadow .15s"}} onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}} onMouseLeave={e=>{e.target.style.boxShadow="none";}}>Open Screen</button></div>}
+              <div style={{display:"flex",justifyContent:"flex-end"}}><button onClick={()=>onSelectScreen(scr.id)} style={{background:"#D3E3FD",border:"none",color:"#041E49",borderRadius:"var(--md-sys-shape-full)",padding:"8px 24px",fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",transition:"box-shadow .15s"}} onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}} onMouseLeave={e=>{e.target.style.boxShadow="none";}}>Open Screen</button></div>
             </div>
             <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={del}>Delete screen</Btn></div>
           </div>);})()}
@@ -295,14 +294,21 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
           const missing=touchedIds.filter(eid=>!usedIds.has(eid));
           if(missing.length>0){
             const names=missing.map(eid=>CONCEPT.entities.find(e=>e.id===eid)?.name||eid);
-            warnings.push({actor:actor.name,entities:names});
+            warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});
           }
+          actorScreens.forEach(s=>{
+            const empty=s.objects.filter(o=>o.crud.length===0);
+            if(empty.length>0){
+              const names=empty.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
+              warnings.push({actor:actor.name,msg:`『${s.name}』の「${names.join("」「")}」のCRUDが設定されていません`});
+            }
+          });
         });
         if(warnings.length===0)return null;
         return<div style={{position:"absolute",bottom:16,left:16,zIndex:20,display:"flex",flexDirection:"column",gap:8}}>
-          {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
+          {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:560}}>
             <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
-            <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: 「{w.entities.join("」「")}」が画面に含まれていません</span>
+            <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: {w.msg}</span>
           </div>)}
         </div>;
       })()}
@@ -333,14 +339,15 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
       <div style={{padding:"16px 16px"}}>{obj.variant==="collection"?<CollWF obj={obj} color={p.fg}/>:<SingleWF obj={obj} color={p.fg}/>}</div>
     </div>);};
   const renderZone=(area,objs,style)=>(
-    <div style={{...style,minHeight:objs.length>0?undefined:48,border:objs.length===0?`2px dashed ${M3.outlineVar}`:"none",borderRadius:M3.shapeSm,display:"flex",flexDirection:area==="left"||area==="right"?"column":"row",gap:16,padding:objs.length===0?8:0,position:"relative"}}>
+    <div style={{...style,minHeight:objs.length>0?undefined:48,border:objs.length===0?`2px dashed ${M3.outlineVar}`:"none",borderRadius:M3.shapeSm,display:"flex",flexDirection:"column",gap:16,padding:objs.length===0?8:0,position:"relative"}}>
       {objs.length===0&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",width:"100%",fontSize:12,color:"#C4C7C5"}}>{AREA_LABELS[area]}</div>}
       {objs.map(o=>renderObj(o))}
     </div>
   );
   const hasLeft=byArea.left.length>0,hasRight=byArea.right.length>0;
+  const emptyCrudObjs=scr.objects.filter(o=>o.crud.length===0);
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100%",position:"relative"}}>
       <div style={{background:"white",display:"flex",alignItems:"center",padding:"0 8px",height:56,flexShrink:0,boxShadow:"var(--md-sys-elevation-1)",position:"relative",zIndex:1}}>
         <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:M3.onSurface,width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"50%",padding:0}} onMouseEnter={e=>{e.currentTarget.style.background="#F5F5F5";}} onMouseLeave={e=>{e.currentTarget.style.background="none";}}><span className="msi" style={{fontSize:24}}>arrow_back</span></button>
         <div style={{marginLeft:16}}>
@@ -356,9 +363,9 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               {(byArea.top.length>0)&&renderZone("top",byArea.top,{})}
               <div style={{display:"flex",gap:16}}>
-                {hasLeft&&renderZone("left",byArea.left,{width:400,flexShrink:0})}
+                {hasLeft&&renderZone("left",byArea.left,{width:360,flexShrink:0})}
                 {renderZone("main",byArea.main,{flex:1})}
-                {hasRight&&renderZone("right",byArea.right,{width:400,flexShrink:0})}
+                {hasRight&&renderZone("right",byArea.right,{width:360,flexShrink:0})}
               </div>
               {(byArea.bottom.length>0)&&renderZone("bottom",byArea.bottom,{})}
             </div>
@@ -372,6 +379,10 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
           <div style={{marginBottom:16}}><SLabel>Object Prompt</SLabel><textarea value={selObj.prompt||""} onChange={e=>updObj({...selObj,prompt:e.target.value})} placeholder="このObjectの実装についての補足" style={{width:"100%",boxSizing:"border-box",border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:"white",fontFamily:"inherit",fontSize:14,color:selObj.prompt?"#1A1A1A":"#C4C7C5",lineHeight:1.6,padding:"8px 16px",resize:"vertical",minHeight:80,outline:"none"}} onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";e.target.style.color="#1A1A1A";}} onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";if(!e.target.value)e.target.style.color="#C4C7C5";}}/></div>
         </div><div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={e=>{e.stopPropagation();delObj(selObj.id);}}>Delete object</Btn></div></div>)}
       </div>
+      {emptyCrudObjs.length>0&&<div style={{position:"absolute",bottom:16,left:16,zIndex:20,background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:560}}>
+        <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
+        <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{CONCEPT.actors.find(a=>a.id===scr.actorId)?.name}</strong>: 『{scr.name}』の「{emptyCrudObjs.map(o=>entName(o.entityId)).join("」「")}」のCRUDが設定されていません</span>
+      </div>}
     </div>
   );
 }
