@@ -345,17 +345,18 @@
       "name": "プロジェクト詳細",
       "actorId": "owner",
       "x": -26,
-      "y": 259,
+      "y": 258,
       "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
         {
           "id": "o2",
           "entityId": "project",
-          "variant": "single",
+          "variant": "collection",
           "crud": [
-            "R",
-            "U"
-          ]
+            "U",
+            "R"
+          ],
+          "area": "top"
         },
         {
           "id": "o3",
@@ -376,7 +377,17 @@
             "C",
             "R",
             "D"
-          ]
+          ],
+          "area": "right"
+        },
+        {
+          "id": "i6d03v",
+          "entityId": "workspace",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ],
+          "area": "main"
         }
       ]
     },
@@ -435,6 +446,14 @@
             "R",
             "U"
           ]
+        },
+        {
+          "id": "9kxq6u",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
         }
       ]
     },
@@ -463,6 +482,25 @@
             "C",
             "R",
             "D"
+          ],
+          "area": "right"
+        }
+      ]
+    },
+    {
+      "id": "f3x8qy",
+      "name": "New Screen",
+      "actorId": "owner",
+      "x": -471.5,
+      "y": 35.5,
+      "prompt": "",
+      "objects": [
+        {
+          "id": "3k96p9",
+          "entityId": "workspace",
+          "variant": "single",
+          "crud": [
+            "R"
           ]
         }
       ]
@@ -486,6 +524,12 @@
       "from": "member-task-list",
       "to": "member-task-detail",
       "trigger": "Tap row"
+    },
+    {
+      "id": "oscbrq",
+      "from": "f3x8qy",
+      "to": "project-list",
+      "trigger": "Tap"
     }
   ]
 }
