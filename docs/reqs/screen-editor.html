@@ -78,7 +78,7 @@
 
 <script>
 let passthrough={};
-let CONCEPT={entities:[],actors:[],composites:[]};
+let CONCEPT={entities:[],actors:[]};
 let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,screensRef=null;
 
 function getFullJson(){
@@ -97,7 +97,7 @@ function showToast(m){const t=document.getElementById('sc-toast');t.textContent=
 function markModified(){document.getElementById('sc-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
 async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('sc-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
-function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[],composites:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
+function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
 function onFileConnected(h){fileHandle=h;if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('sc-auto-btn').classList.add('active');}document.getElementById('sc-auto-btn').style.display='flex';updateStatus('connected',h.name);}
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'sc-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__scLoadData)window.__scLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
 function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('sc-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('sc-dot').className='sc-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}

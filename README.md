@@ -95,7 +95,7 @@ project_root/
 
 順序：`pg1 ⇔ prd ⇔ mrd → conceptual-model → screens`
 
-pg1・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/screens` で画面定義（screens/transitions）を生成する。いずれも同じ `product-model.json` に格納され、HTMLエディタで微調整も可能。
+pg1・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors）を生成、続けて `/screens` で画面定義（screens/transitions）を生成する。いずれも同じ `product-model.json` に格納され、HTMLエディタで微調整も可能。
 
 **conceptual-model 以降は、Claude Code が生成し人が確認・調整するスタイルに変わる。**
 
