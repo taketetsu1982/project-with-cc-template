@@ -80,6 +80,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
   "name": "画面名",
   "actorId": "対象アクターid",
   "uses": ["entityId1", "entityId2"],
+  "prompt": "実装補足指示",
   "x": 60, "y": 60
 }
 ```
