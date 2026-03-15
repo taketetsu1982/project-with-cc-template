@@ -4,45 +4,102 @@
       "id": "workspace",
       "name": "ワークスペース",
       "relations": [
-        { "id": "r1", "targetId": "project", "type": "has-many", "label": "contains" },
-        { "id": "r2", "targetId": "member", "type": "has-many", "label": "has" }
-      ]
+        {
+          "id": "r1",
+          "targetId": "project",
+          "type": "has-many",
+          "label": "contains"
+        },
+        {
+          "id": "r2",
+          "targetId": "member",
+          "type": "has-many",
+          "label": "has"
+        }
+      ],
+      "x": 80,
+      "y": 80
     },
     {
       "id": "member",
       "name": "メンバー",
       "relations": [
-        { "id": "r3", "targetId": "task", "type": "has-many", "label": "assigned to" }
-      ]
+        {
+          "id": "r3",
+          "targetId": "task",
+          "type": "has-many",
+          "label": "assigned to"
+        }
+      ],
+      "x": 400,
+      "y": 80
     },
     {
       "id": "project",
       "name": "プロジェクト",
       "relations": [
-        { "id": "r4", "targetId": "task", "type": "has-many", "label": "contains" },
-        { "id": "r5", "targetId": "member", "type": "has-many", "label": "assigned" }
-      ]
+        {
+          "id": "r4",
+          "targetId": "task",
+          "type": "has-many",
+          "label": "contains"
+        },
+        {
+          "id": "r5",
+          "targetId": "member",
+          "type": "has-many",
+          "label": "assigned"
+        }
+      ],
+      "x": 720,
+      "y": 80
     },
     {
       "id": "task",
       "name": "タスク",
       "relations": [
-        { "id": "r6", "targetId": "comment", "type": "has-many", "label": "has" },
-        { "id": "r7", "targetId": "label", "type": "has-many", "label": "tagged" },
-        { "id": "r8", "targetId": "member", "type": "belongs-to", "label": "assigned to" }
-      ]
+        {
+          "id": "r6",
+          "targetId": "comment",
+          "type": "has-many",
+          "label": "has"
+        },
+        {
+          "id": "r7",
+          "targetId": "label",
+          "type": "has-many",
+          "label": "tagged"
+        },
+        {
+          "id": "r8",
+          "targetId": "member",
+          "type": "belongs-to",
+          "label": "assigned to"
+        }
+      ],
+      "x": 80,
+      "y": 280
     },
     {
       "id": "label",
       "name": "ラベル",
-      "relations": []
+      "relations": [],
+      "x": 400,
+      "y": 280
     },
     {
       "id": "comment",
       "name": "コメント",
       "relations": [
-        { "id": "r9", "targetId": "member", "type": "belongs-to", "label": "by" }
-      ]
+        {
+          "id": "r9",
+          "targetId": "member",
+          "type": "belongs-to",
+          "label": "by"
+        }
+      ],
+      "x": 720,
+      "y": 280
     }
   ],
   "actors": [
@@ -50,23 +107,112 @@
       "id": "owner",
       "name": "Owner",
       "touches": [
-        { "entityId": "workspace", "scope": "own", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "project", "scope": "own", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "task", "scope": "all", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "member", "scope": "all", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "label", "scope": "all", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "comment", "scope": "all", "crud": ["C", "R", "U", "D"] }
+        {
+          "entityId": "workspace",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "project",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "task",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "member",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "label",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "comment",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        }
       ]
     },
     {
       "id": "member-actor",
       "name": "Member",
       "touches": [
-        { "entityId": "project", "scope": "all", "crud": ["R"] },
-        { "entityId": "task", "scope": "all", "crud": ["C", "R", "U"] },
-        { "entityId": "comment", "scope": "own", "crud": ["C", "R", "U", "D"] },
-        { "entityId": "label", "scope": "all", "crud": ["R"] },
-        { "entityId": "member", "scope": "all", "crud": ["R"] }
+        {
+          "entityId": "project",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "task",
+          "scope": "all",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "entityId": "comment",
+          "scope": "own",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "entityId": "label",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "entityId": "member",
+          "scope": "all",
+          "crud": [
+            "R"
+          ]
+        }
       ]
     }
   ],
