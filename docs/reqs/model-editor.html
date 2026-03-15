@@ -152,7 +152,7 @@ const ENT_PALETTE=[
 ];
 const entPalette=(ents,id)=>ENT_PALETTE[Math.max(0,ents.findIndex(e=>e.id===id))%ENT_PALETTE.length];
 const entColor=(ents,id)=>entPalette(ents,id).fg;
-const EW=140,EH=50;
+const EW=140,EH=50,CRUD_ROW_H=26,ACTOR_CARD_H=EH+CRUD_ROW_H;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={entities:[],actors:[],composites:[]};
@@ -312,7 +312,7 @@ function ActorEditModal({actors,onSave,onClose}){
 function ActorView({model,setModel,setModelSilent}){
   const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null);
   const[showEdit,setShowEdit]=useState(false);
-  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH+26);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,ACTOR_CARD_H);
   const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
@@ -351,11 +351,11 @@ function ActorView({model,setModel,setModelSilent}){
             <rect width="100%" height="100%" fill="url(#dotpat2)" data-bg="1" onMouseDown={onBgMD}/>
             <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
             {/* 1. ノード（最背面） */}
-            {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,p=entPalette(ents,ent.id),isSel=selEntId===ent.id,crudW=28,crudGap=4,totalCrudW=crudW*4+crudGap*3,crudX=(EW-totalCrudW)/2,cardH=EH+26;return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={1} y={2} width={EW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={cardH} rx={14} fill={touched?p.bg:"#F5F5F5"} stroke={isSel?p.fg:"transparent"} strokeWidth={isSel?2.5:0} opacity={touched?1:0.6}/><text x={EW/2} y={EH/2+3} fontSize={14} fontWeight={touched?"600":"400"} fill={touched?p.fg:"#BDC1C6"} fontFamily="inherit" textAnchor="middle">{ent.name}</text>{CRUD_OPS.map((op,oi)=>{const on=touched&&t&&t.crud.includes(op);return<g key={op} transform={`translate(${crudX+oi*(crudW+crudGap)},${EH+4})`}><rect width={crudW} height={18} rx={9} fill={on?CRUD_BG[op]:"#F0F0F0"}/><text x={crudW/2} y={13} fontSize={11} fontWeight="600" fill={on?CRUD_COLOR[op]:"#DADCE0"} textAnchor="middle">{op}</text></g>;})}</g>);})}
+            {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,p=entPalette(ents,ent.id),isSel=selEntId===ent.id,crudW=28,crudGap=4,totalCrudW=crudW*4+crudGap*3,crudX=(EW-totalCrudW)/2,cardH=ACTOR_CARD_H;return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={1} y={2} width={EW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={cardH} rx={14} fill={touched?p.bg:"#F5F5F5"} stroke={isSel?p.fg:"transparent"} strokeWidth={isSel?2.5:0} opacity={touched?1:0.6}/><text x={EW/2} y={EH/2+3} fontSize={14} fontWeight={touched?"600":"400"} fill={touched?p.fg:"#BDC1C6"} fontFamily="inherit" textAnchor="middle">{ent.name}</text>{CRUD_OPS.map((op,oi)=>{const on=touched&&t&&t.crud.includes(op);return<g key={op} transform={`translate(${crudX+oi*(crudW+crudGap)},${EH+4})`}><rect width={crudW} height={18} rx={9} fill={on?CRUD_BG[op]:"#F0F0F0"}/><text x={crudW/2} y={13} fontSize={11} fontWeight="600" fill={on?CRUD_COLOR[op]:"#DADCE0"} textAnchor="middle">{op}</text></g>;})}</g>);})}
             {/* 2. リレーション線 */}
-            {(()=>{const AH=EH+26;return ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,AH,tgt.x+EW/2,tgt.y+AH/2),tp=edgePt(tgt.x,tgt.y,EW,AH,ent.x+EW/2,ent.y+AH/2);return<line key={`al-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#9AA0A6" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>;}));})()}
+            {(()=>{const AH=ACTOR_CARD_H;return ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,AH,tgt.x+EW/2,tgt.y+AH/2),tp=edgePt(tgt.x,tgt.y,EW,AH,ent.x+EW/2,ent.y+AH/2);return<line key={`al-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#9AA0A6" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>;}));})()}
             {/* 3. リレーションラベル（最前面） */}
-            {(()=>{const AH=EH+26;return ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id||!rel.label)return null;const fp=edgePt(ent.x,ent.y,EW,AH,tgt.x+EW/2,tgt.y+AH/2),tp=edgePt(tgt.x,tgt.y,EW,AH,ent.x+EW/2,ent.y+AH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;const lw=Math.max(rel.label.length*7,24)+16;return<g key={`alb-${ent.id}-${ri}`}><rect x={mx-lw/2} y={my-9} width={lw} height={17} rx={8} fill="white" stroke="#9AA0A6" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill="#9AA0A6" textAnchor="middle">{rel.label}</text></g>;}));})()}
+            {(()=>{const AH=ACTOR_CARD_H;return ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id||!rel.label)return null;const fp=edgePt(ent.x,ent.y,EW,AH,tgt.x+EW/2,tgt.y+AH/2),tp=edgePt(tgt.x,tgt.y,EW,AH,ent.x+EW/2,ent.y+AH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;const lw=Math.max(rel.label.length*7,24)+16;return<g key={`alb-${ent.id}-${ri}`}><rect x={mx-lw/2} y={my-9} width={lw} height={17} rx={8} fill="white" stroke="#9AA0A6" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill="#9AA0A6" textAnchor="middle">{rel.label}</text></g>;}));})()}
             </g>
           </svg>
           <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
