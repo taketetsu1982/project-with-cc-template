@@ -307,7 +307,7 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
   const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===screenId?{...s,...patch}:s)}));
   const updObj=obj=>updScr({objects:scr.objects.map(o=>o.id===obj.id?obj:o)});
   const delObj=id=>{updScr({objects:scr.objects.filter(o=>o.id!==id)});setSelObjId(null);};
-  const addObj=()=>{const ent=CONCEPT.entities[0];if(!ent)return;const actorTouch=CONCEPT.actors.find(a=>a.id===scr.actorId)?.touches.find(t=>t.entityId===ent.id&&t.crud.length>0);const defaultCrud=actorTouch?actorTouch.crud.filter(c=>c.op==="R").length>0?["R"]:[actorTouch.crud[0].op]:[];const obj={id:uid(),entityId:ent.id,variant:"collection",crud:defaultCrud,area:"main"};updScr({objects:[...scr.objects,obj]});setSelObjId(obj.id);};
+  const addObj=()=>{const actor=CONCEPT.actors.find(a=>a.id===scr.actorId);const allowedEnts=CONCEPT.entities.filter(e=>actor?.touches.some(t=>t.entityId===e.id&&t.crud.length>0));const ent=allowedEnts[0];if(!ent)return;const touch=actor?.touches.find(t=>t.entityId===ent.id&&t.crud.length>0);const defaultCrud=touch?(touch.crud.some(c=>c.op==="R")?["R"]:[touch.crud[0].op]):[];const obj={id:uid(),entityId:ent.id,variant:"collection",crud:defaultCrud,area:"main"};updScr({objects:[...scr.objects,obj]});setSelObjId(obj.id);};
   const toggleCrud=(obj,op)=>{const crud=obj.crud.includes(op)?obj.crud.filter(c=>c!==op):[...obj.crud,op];updObj({...obj,crud});};
   const selObj=scr.objects.find(o=>o.id===selObjId);
   const byArea={};AREAS.forEach(a=>{byArea[a]=scr.objects.filter(o=>(o.area||"main")===a);});
