@@ -275,7 +275,7 @@ function EntityPanel({entity,entities,onUpdate,onDelete,onClose}){
           {entity.relations.length===0&&<div style={{fontSize:14,color:M3.outline,padding:"4px 0"}}>No relations — use ↗ Connect on canvas or + Add</div>}
         </div>
       </div>
-      <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
+      <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
     </div>
   );
 }
