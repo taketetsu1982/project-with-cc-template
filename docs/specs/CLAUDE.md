@@ -9,10 +9,10 @@
 
 | ファイル | 責務 | 導出元 |
 |---|---|---|
-| db-schema.md | テーブル定義・制約・マイグレーション | reqs/conceptual-model.json（entities） |
-| api-spec.md | エンドポイント定義・リクエスト/レスポンス形式 | reqs/prd.md, reqs/conceptual-model.json |
-| auth-spec.md | 認証・認可フロー・ロール定義 | reqs/conceptual-model.json（actors） |
-| ui-spec.md | フロントエンド実装仕様・状態定義 | reqs/conceptual-model.json（screens）, reqs/prd.md |
+| db-schema.md | テーブル定義・制約・マイグレーション | reqs/product-model.json（entities） |
+| api-spec.md | エンドポイント定義・リクエスト/レスポンス形式 | reqs/prd.md, reqs/product-model.json |
+| auth-spec.md | 認証・認可フロー・ロール定義 | reqs/product-model.json（actors） |
+| ui-spec.md | フロントエンド実装仕様・状態定義 | reqs/product-model.json（screens）, reqs/prd.md |
 | analytics-spec.md | 計測設計・イベント定義 | reqs/product-goals.md |
 | infra-spec.md | 検証環境のインフラ構成定義 | local環境を調査 |
 | test-spec.md | テスト計画・シナリオテスト | reqs/user-stories.md + 全specs |
@@ -21,6 +21,6 @@
 ## 編集ルール
 
 - 実装は必ずこのディレクトリのファイルを参照する（reqs/ を直接パースしない）
-- conceptual-model.json にないエンティティを db-schema.md に追加しない
+- product-model.json にないエンティティを db-schema.md に追加しない
 - api-spec.md に追加するときは対応する PRD 機能を明記する
 - ui-spec.md の状態定義（Loading/Empty/Error/Success）を必ず実装する

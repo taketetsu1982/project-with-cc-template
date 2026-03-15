@@ -14,7 +14,7 @@
 | mrd.md | 市場構造・購入者・参入戦略（WHERE, WHO:Buyer, HOW MUCH） | PMMとPdM |
 | prd.md | 利用者・提供価値・機能定義・スコープ（WHY, WHO:User ,WHAT） | PdMとPMM・開発 |
 | conceptual-model.md | エンティティ・関係の設計意図（Model of WHAT） | 開発 |
-| conceptual-model.json | 統合JSON: entities/actors/composites/screens/navigation（HTMLエディタで操作） | 開発 |
+| product-model.json | 統合JSON: entities/actors/composites/screens/navigation（HTMLエディタで操作） | 開発 |
 | user-stories.md | ユーザーストーリーと受け入れ条件（WHAT to develop） | QA・開発 |
 
 ## 編集ルール
@@ -23,6 +23,6 @@
 - WHO は Buyer（mrd.md）と User（prd.md）に分離して定義する
 - 3つがある程度固まってから conceptual-model.md に降ろす
 - 新しいエンティティを追加する前に conceptual-model.md を更新する
-- 新しい画面を追加する前に conceptual-model.json の screens を更新する
+- 新しい画面を追加する前に product-model.json の screens を更新する
 - 現在のPGに含まない機能は記述しない（product-goals.md + 該当PGファイルを確認）
 - product-goals.md の確信度が「—」のセクションは記述しない

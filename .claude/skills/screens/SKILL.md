@@ -5,22 +5,22 @@ description: Generate screens and navigation in conceptual-model JSON with HTML 
 
 # /screens
 
-conceptual-model.json の screens / navigation を生成し、HTMLエディタで画面遷移図を編集する。
+product-model.json の screens / navigation を生成し、HTMLエディタで画面遷移図を編集する。
 entities / actors / composites は /conceptual-model で編集する（同じJSONファイルを共有）。
 
 ## Input
 
-1. **Conversation**: conceptual-model.json の entities/actors から screens/navigation を生成
-2. **既存JSON**: `docs/reqs/conceptual-model.json` の screens/navigation 部分を編集
+1. **Conversation**: product-model.json の entities/actors から screens/navigation を生成
+2. **既存JSON**: `docs/reqs/product-model.json` の screens/navigation 部分を編集
 
 ## Output
 
-- `docs/reqs/conceptual-model.json` — 統合JSON（screens/navigation 部分を更新）
-- `docs/reqs/screens.html` — HTMLエディタ（ブラウザで開く）
+- `docs/reqs/product-model.json` — 統合JSON（screens/navigation 部分を更新）
+- `docs/reqs/screen-editor.html` — HTMLエディタ（ブラウザで開く）
 
 ## JSON Schema
 
-`docs/reqs/conceptual-model.json` の統合スキーマ（全体定義は /conceptual-model の SKILL.md を参照）。
+`docs/reqs/product-model.json` の統合スキーマ（全体定義は /conceptual-model の SKILL.md を参照）。
 このスキルは **screens** と **navigation** フィールドのみ編集する。
 
 ### screens
@@ -29,7 +29,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 {
   "id": "kebab-case識別子",
   "name": "画面名",
-  "actorId": "conceptual-model.jsonのactor id",
+  "actorId": "product-model.jsonのactor id",
   "x": 60, "y": 60,
   "prompt": "この画面の実装についての補足指示（自然言語）",
   "objects": [
@@ -71,7 +71,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 
 ### Step 1: Conceptual Model を読み込む
 
-`docs/reqs/conceptual-model.json` を読み込む。
+`docs/reqs/product-model.json` を読み込む。
 entities・actors を把握した上で screens/navigation を生成する。
 
 ### Step 2: 画面を設計する
@@ -86,23 +86,23 @@ actor ごとに必要な画面を洗い出す。
 
 ### Step 3: JSON ファイルを更新する
 
-`docs/reqs/conceptual-model.json` の screens/navigation を更新する。
+`docs/reqs/product-model.json` の screens/navigation を更新する。
 既存の entities/actors/composites はそのまま保持する。
 
 ### Step 4: ブラウザで開く
 
 ```bash
-open docs/reqs/screens.html
+open docs/reqs/screen-editor.html
 ```
 
 ### Step 5: 完了報告
 
 ```
 Screens generated:
-- JSON:   docs/reqs/conceptual-model.json (screens/navigation updated)
-- Editor: docs/reqs/screens.html (opened)
+- JSON:   docs/reqs/product-model.json (screens/navigation updated)
+- Editor: docs/reqs/screen-editor.html (opened)
 
-conceptual-model.json をHTMLにドロップして接続してください。
+product-model.json をHTMLにドロップして接続してください。
 同じJSONファイルに entities/actors/screens 全てが含まれています。
 
 - Actor タブ: アクターごとの画面遷移図を確認・編集

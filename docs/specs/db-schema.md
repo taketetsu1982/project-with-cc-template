@@ -5,7 +5,7 @@
 **バージョン:** 0.1
 **ステータス:** Draft
 **最終更新:** {日付}
-**導出元:** docs/reqs/conceptual-model.json（entities）
+**導出元:** docs/reqs/product-model.json（entities）
 
 ---
 

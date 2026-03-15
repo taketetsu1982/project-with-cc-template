@@ -13,12 +13,12 @@
 ### 1. PG / PRD / MRD → Conceptual Model
 - **トリガー**: PRD・MRDが固まり、概念モデルの作成・更新に入るとき
 - **アクション**: `/conceptual-model` を実行
-- **完了条件**: `conceptual-model.json` に entities + actors が揃っている
+- **完了条件**: `product-model.json` に entities + actors が揃っている
 
 ### 2. Conceptual Model → Screens
-- **トリガー**: `conceptual-model.json` に entities・actors が定義され、画面設計に入るとき
+- **トリガー**: `product-model.json` に entities・actors が定義され、画面設計に入るとき
 - **アクション**: `/screens` を実行
-- **完了条件**: `conceptual-model.json` の screens + navigation が定義されている
+- **完了条件**: `product-model.json` の screens + navigation が定義されている
 
 ### 3. Screens 完了後 → 並列で進める
 
@@ -28,7 +28,7 @@ Screens完了後、以下の2トラックを並列で進める。
 
 | 順序 | Spec | 導出元 | ファイル |
 |---|---|---|---|
-| 1 | DB Schema | conceptual-model.json（entities） | `docs/specs/db-schema.md` |
+| 1 | DB Schema | product-model.json（entities） | `docs/specs/db-schema.md` |
 | 2 | API Spec | db-schema + conceptual-model + prd | `docs/specs/api-spec.md` |
 | 3 | Auth Spec | api-spec + conceptual-model（actors） | `docs/specs/auth-spec.md` |
 | 4 | UI Spec | conceptual-model（screens）+ api-spec | `docs/specs/ui-spec.md` |
@@ -51,9 +51,9 @@ Screens完了後、以下の2トラックを並列で進める。
 
 #### 実装時の制約
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
-- `conceptual-model.json` にないエンティティをDBに追加しない。先にPRDに戻る
+- `product-model.json` にないエンティティをDBに追加しない。先にPRDに戻る
 - APIを追加するときは `docs/specs/api-spec.md` の命名規則に従い、対応するPRD機能を明記する
-- 画面を追加するときは conceptual-model.json の screens を先に追加/更新する
+- 画面を追加するときは product-model.json の screens を先に追加/更新する
 - イベント計測を追加するときは `docs/specs/analytics-spec.md` のイベント命名規則に従う
 
 ## スキップのルール

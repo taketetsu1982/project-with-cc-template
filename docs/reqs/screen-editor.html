@@ -29,14 +29,14 @@
 </style>
 </head>
 <body>
-<div class="file-drop-overlay" id="sc-drop-overlay"><span class="drop-msg">Drop conceptual-model.json to connect</span></div>
+<div class="file-drop-overlay" id="sc-drop-overlay"><span class="drop-msg">Drop product-model.json to connect</span></div>
 <div id="sc-toast"></div>
 <div id="sc-toolbar">
   <label class="sc-auto-switch" id="sc-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="sc-switch-track"><span class="sc-switch-thumb"></span></span></label>
   <button class="sc-connect-btn" id="sc-connect-btn" onclick="handleConnect()">
     <span class="sc-dot" id="sc-dot"></span>
     <span id="sc-label">Connect</span>
-    <span class="sc-hint" id="sc-hint">(Drop conceptual-model.json)</span>
+    <span class="sc-hint" id="sc-hint">(Drop product-model.json)</span>
   </button>
   <span id="sc-edited">Edited</span>
   <button class="sc-tb-btn" id="sc-saveas-btn" style="display:none" onclick="handleSaveAs()">Save to...</button>
@@ -72,10 +72,10 @@ function showToast(m){const t=document.getElementById('sc-toast');t.textContent=
 function markModified(){document.getElementById('sc-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
 async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('sc-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
-function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[],composites:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-saveas-btn').style.display='none';document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop conceptual-model.json)');}
+function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[],composites:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-saveas-btn').style.display='none';document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop product-model.json)');}
 function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('sc-saveas-btn').style.display='';document.getElementById('sc-auto-btn').style.display='flex';}
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'sc-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__scLoadData)window.__scLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-async function handleSaveAs(){const full=getFullJson();if(!full)return;try{const h=await window.showSaveFilePicker({id:'sc-editor',suggestedName:fileHandle?fileHandle.name:'conceptual-model.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});onFileConnected(h);await writeFile();showToast('保存しました: '+h.name);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
+async function handleSaveAs(){const full=getFullJson();if(!full)return;try{const h=await window.showSaveFilePicker({id:'sc-editor',suggestedName:fileHandle?fileHandle.name:'product-model.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});onFileConnected(h);await writeFile();showToast('保存しました: '+h.name);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
 function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('sc-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 let dragC=0;const ov=document.getElementById('sc-drop-overlay');
 document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
