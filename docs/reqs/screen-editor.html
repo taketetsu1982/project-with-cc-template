@@ -294,14 +294,19 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
           const missing=touchedIds.filter(eid=>!usedIds.has(eid));
           if(missing.length>0){
             const names=missing.map(eid=>CONCEPT.entities.find(e=>e.id===eid)?.name||eid);
-            warnings.push({actor:actor.name,entities:names});
+            warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});
+          }
+          const emptyCrud=actorScreens.flatMap(s=>s.objects.filter(o=>o.crud.length===0));
+          if(emptyCrud.length>0){
+            const names=emptyCrud.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
+            warnings.push({actor:actor.name,msg:`「${[...new Set(names)].join("」「")}」のCRUDが設定されていません`});
           }
         });
         if(warnings.length===0)return null;
         return<div style={{position:"absolute",bottom:16,left:16,zIndex:20,display:"flex",flexDirection:"column",gap:8}}>
           {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
             <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
-            <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: 「{w.entities.join("」「")}」が画面に含まれていません</span>
+            <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: {w.msg}</span>
           </div>)}
         </div>;
       })()}
