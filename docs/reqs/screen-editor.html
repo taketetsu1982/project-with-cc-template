@@ -248,7 +248,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
             <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
         </div>
-        {(()=>{const scr=screens.screens.find(s=>s.id===selScrId);if(!scr)return null;const actor=CONCEPT.actors.find(a=>a.id===scr.actorId);const allowedIds=actor?actor.touches.map(t=>t.entityId):[];const allowedEnts=CONCEPT.entities.filter(e=>allowedIds.includes(e.id));const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selScrId?{...s,...patch}:s)}));const delScr=()=>{setSelScrId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selScrId),transitions:m.transitions.filter(n=>n.from!==selScrId&&n.to!==selScrId)}));};return(
+        {(()=>{const scr=screens.screens.find(s=>s.id===selScrId);if(!scr)return null;const actor=CONCEPT.actors.find(a=>a.id===scr.actorId);const allowedIds=actor?actor.touches.filter(t=>t.crud.length>0).map(t=>t.entityId):[];const allowedEnts=CONCEPT.entities.filter(e=>allowedIds.includes(e.id));const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===selScrId?{...s,...patch}:s)}));const delScr=()=>{setSelScrId(null);setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==selScrId),transitions:m.transitions.filter(n=>n.from!==selScrId&&n.to!==selScrId)}));};return(
           <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
             <div style={{padding:"16px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,textTransform:"uppercase",letterSpacing:"0.5px"}}>Screen</span><button onClick={()=>setSelScrId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1}}>×</button></div>
             <div style={{flex:1,overflowY:"auto",padding:16}}>
@@ -274,7 +274,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
       {(()=>{
         const warnings=[];
         CONCEPT.actors.forEach(actor=>{
-          const touchedIds=actor.touches.map(t=>t.entityId);
+          const touchedIds=actor.touches.filter(t=>t.crud.length>0).map(t=>t.entityId);
           const actorScreens=screens.screens.filter(s=>s.actorId===actor.id);
           const usedIds=new Set(actorScreens.flatMap(s=>s.objects.map(o=>o.entityId)));
           const missing=touchedIds.filter(eid=>!usedIds.has(eid));
