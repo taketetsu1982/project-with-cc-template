@@ -18,7 +18,7 @@
 ### 2. Conceptual Model → Screens
 - **トリガー**: `product-model.json` に entities・actors が定義され、画面設計に入るとき
 - **アクション**: `/screens` を実行
-- **完了条件**: `product-model.json` の screens + navigation が定義されている
+- **完了条件**: `product-model.json` の screens + transitions が定義されている
 
 ### 3. Screens 完了後 → 並列で進める
 

@@ -6,7 +6,7 @@ description: Generate and edit conceptual model JSON with HTML editor
 # /conceptual-model
 
 Conceptual ModelのJSONを生成し、ブラウザで操作できるHTMLエディタを起動する。
-entities / actors / composites を編集する（screens / navigation は /screens で編集する）。
+entities / actors / composites を編集する（screens / transitions は /screens で編集する）。
 
 ## Input
 
@@ -28,7 +28,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
   "actors": [],
   "composites": [],
   "screens": [],
-  "navigation": []
+  "transitions": []
 }
 ```
 
@@ -38,7 +38,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 | actors | CM | ロール（操作者）定義 |
 | composites | CM | 複合画面定義 |
 | screens | Screens | 画面定義 |
-| navigation | Screens | 画面遷移定義 |
+| transitions | Screens | 画面遷移定義 |
 
 ### entities
 
@@ -90,7 +90,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 }
 ```
 
-### navigation（Screensエディタの担当）
+### transitions（Screensエディタの担当）
 
 ```json
 { "id": "一意ID", "from": "screen id", "to": "screen id", "trigger": "遷移トリガー" }
@@ -102,7 +102,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 - relationsの `type` は `has-many` / `has-one` / `belongs-to` / `many-to-many`
 - actorsはPRDのロール定義から導出する
 - compositesはダッシュボード等の複合画面のみ
-- **パススルールール**: CMエディタはscreens/navigationフィールドを読み込み時に保持し、保存時にそのまま書き戻す。screens/navigationが存在しなくてもエラーにしない
+- **パススルールール**: CMエディタはscreens/transitionsフィールドを読み込み時に保持し、保存時にそのまま書き戻す。screens/transitionsが存在しなくてもエラーにしない
 
 ## Execution Steps
 
@@ -110,7 +110,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 
 docs/reqs/prd.md と docs/reqs/mrd.md と docs/reqs/conceptual-model.md を読み、
 entities・actors・compositesをJSONとして生成する。
-既存の product-model.json がある場合はそれを読み込み、screens/navigationはそのまま保持する。
+既存の product-model.json がある場合はそれを読み込み、screens/transitionsはそのまま保持する。
 
 ### Step 2: JSONファイルを書き出す
 

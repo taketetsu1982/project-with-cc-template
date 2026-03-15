@@ -1,27 +1,27 @@
 ---
 name: screens
-description: Generate screens and navigation in conceptual-model JSON with HTML editor
+description: Generate screens and transitions in conceptual-model JSON with HTML editor
 ---
 
 # /screens
 
-product-model.json の screens / navigation を生成し、HTMLエディタで画面遷移図を編集する。
+product-model.json の screens / transitions を生成し、HTMLエディタで画面遷移図を編集する。
 entities / actors / composites は /conceptual-model で編集する（同じJSONファイルを共有）。
 
 ## Input
 
-1. **Conversation**: product-model.json の entities/actors から screens/navigation を生成
-2. **既存JSON**: `docs/reqs/product-model.json` の screens/navigation 部分を編集
+1. **Conversation**: product-model.json の entities/actors から screens/transitions を生成
+2. **既存JSON**: `docs/reqs/product-model.json` の screens/transitions 部分を編集
 
 ## Output
 
-- `docs/reqs/product-model.json` — 統合JSON（screens/navigation 部分を更新）
+- `docs/reqs/product-model.json` — 統合JSON（screens/transitions 部分を更新）
 - `docs/reqs/screen-editor.html` — HTMLエディタ（ブラウザで開く）
 
 ## JSON Schema
 
 `docs/reqs/product-model.json` の統合スキーマ（全体定義は /conceptual-model の SKILL.md を参照）。
-このスキルは **screens** と **navigation** フィールドのみ編集する。
+このスキルは **screens** と **transitions** フィールドのみ編集する。
 
 ### screens
 
@@ -49,7 +49,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 - `variant`: `collection` = 一覧表示、`single` = 単体表示
 - `crud`: この画面で実行可能な操作（actor の touches 権限の範囲内）
 
-### navigation
+### transitions
 
 ```json
 { "id": "一意ID", "from": "screen id", "to": "screen id", "trigger": "遷移トリガー" }
@@ -59,7 +59,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 
 - 各 screen は1つの actorId を持つ
 - objects の crud は actor の touches 権限の範囲内で設定する
-- navigation は同一 actor 内の遷移のみ定義する
+- transitions は同一 actor 内の遷移のみ定義する
 - **パススルールール**: Screens エディタは entities/actors/composites フィールドを読み込み時に保持し、保存時にそのまま書き戻す。これらが空でもエラーにしない
 
 ## 画面設計の認知プロセス
@@ -72,7 +72,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 ### Step 1: Conceptual Model を読み込む
 
 `docs/reqs/product-model.json` を読み込む。
-entities・actors を把握した上で screens/navigation を生成する。
+entities・actors を把握した上で screens/transitions を生成する。
 
 ### Step 2: 画面を設計する
 
@@ -82,11 +82,11 @@ actor ごとに必要な画面を洗い出す。
 2. R 権限 → 一覧（collection）+ 詳細（single）
 3. C 権限 → 作成画面
 4. composites のダッシュボード画面を追加
-5. 画面間の navigation を定義
+5. 画面間の transitions を定義
 
 ### Step 3: JSON ファイルを更新する
 
-`docs/reqs/product-model.json` の screens/navigation を更新する。
+`docs/reqs/product-model.json` の screens/transitions を更新する。
 既存の entities/actors/composites はそのまま保持する。
 
 ### Step 4: ブラウザで開く
@@ -99,7 +99,7 @@ open docs/reqs/screen-editor.html
 
 ```
 Screens generated:
-- JSON:   docs/reqs/product-model.json (screens/navigation updated)
+- JSON:   docs/reqs/product-model.json (screens/transitions updated)
 - Editor: docs/reqs/screen-editor.html (opened)
 
 product-model.json をHTMLにドロップして接続してください。

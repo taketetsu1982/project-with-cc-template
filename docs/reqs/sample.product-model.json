@@ -2,7 +2,7 @@
   "entities": [
     {
       "id": "workspace",
-      "name": "Workspace",
+      "name": "ワークスペース",
       "relations": [
         {
           "id": "r1",
@@ -16,18 +16,28 @@
           "type": "has-many",
           "label": "has"
         }
-      ]
+      ],
+      "x": 37,
+      "y": 87
     },
     {
-      "id": "project",
-      "name": "Project",
+      "id": "member",
+      "name": "メンバー",
       "relations": [
         {
           "id": "r3",
-          "targetId": "milestone",
+          "targetId": "task",
           "type": "has-many",
-          "label": "has"
-        },
+          "label": "assigned to"
+        }
+      ],
+      "x": 350,
+      "y": 146
+    },
+    {
+      "id": "project",
+      "name": "プロジェクト",
+      "relations": [
         {
           "id": "r4",
           "targetId": "task",
@@ -40,78 +50,56 @@
           "type": "has-many",
           "label": "assigned"
         }
-      ]
-    },
-    {
-      "id": "milestone",
-      "name": "Milestone",
-      "relations": [
-        {
-          "id": "r6",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "groups"
-        }
-      ]
+      ],
+      "x": 685,
+      "y": 0
     },
     {
       "id": "task",
-      "name": "Task",
+      "name": "タスク",
       "relations": [
         {
-          "id": "r7",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "subtasks"
-        },
-        {
-          "id": "r8",
-          "targetId": "member",
-          "type": "has-many",
-          "label": "assigned to"
-        },
-        {
-          "id": "r9",
+          "id": "r6",
           "targetId": "comment",
           "type": "has-many",
           "label": "has"
         },
         {
-          "id": "r10",
+          "id": "r7",
           "targetId": "label",
           "type": "has-many",
           "label": "tagged"
+        },
+        {
+          "id": "r8",
+          "targetId": "member",
+          "type": "belongs-to",
+          "label": "assigned to"
         }
-      ]
+      ],
+      "x": 909,
+      "y": 202
     },
     {
-      "id": "member",
-      "name": "Member",
-      "relations": [
-        {
-          "id": "r11",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "owns"
-        }
-      ]
+      "id": "label",
+      "name": "ラベル",
+      "relations": [],
+      "x": 553,
+      "y": 230
     },
     {
       "id": "comment",
-      "name": "Comment",
+      "name": "コメント",
       "relations": [
         {
-          "id": "r12",
+          "id": "r9",
           "targetId": "member",
           "type": "belongs-to",
           "label": "by"
         }
-      ]
-    },
-    {
-      "id": "label",
-      "name": "Label",
-      "relations": []
+      ],
+      "x": 396,
+      "y": 427
     }
   ],
   "actors": [
@@ -132,16 +120,6 @@
         {
           "entityId": "project",
           "scope": "own",
-          "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
-          ]
-        },
-        {
-          "entityId": "milestone",
-          "scope": "all",
           "crud": [
             "C",
             "R",
@@ -203,13 +181,6 @@
           ]
         },
         {
-          "entityId": "milestone",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
           "entityId": "task",
           "scope": "all",
           "crud": [
@@ -243,86 +214,27 @@
           ]
         }
       ]
-    },
-    {
-      "id": "viewer",
-      "name": "Viewer",
-      "touches": [
-        {
-          "entityId": "project",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "entityId": "milestone",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "entityId": "task",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "entityId": "comment",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "entityId": "label",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "entityId": "member",
-          "scope": "all",
-          "crud": [
-            "R"
-          ]
-        }
-      ]
     }
   ],
   "composites": [
     {
-      "id": "project-dashboard",
-      "name": "Project Dashboard",
+      "id": "owner-dashboard",
+      "name": "オーナーダッシュボード",
       "actorId": "owner",
       "uses": [
         "project",
         "task",
-        "milestone",
         "member"
-      ]
-    },
-    {
-      "id": "my-tasks",
-      "name": "My Tasks",
-      "actorId": "member-actor",
-      "uses": [
-        "task",
-        "project",
-        "label"
       ]
     }
   ],
   "screens": [
     {
       "id": "project-list",
-      "name": "Project一覧",
+      "name": "プロジェクト一覧",
       "actorId": "owner",
-      "x": 60,
-      "y": 60,
+      "x": -173,
+      "y": -7,
       "prompt": "",
       "objects": [
         {
@@ -338,12 +250,12 @@
       ]
     },
     {
-      "id": "project-dashboard",
-      "name": "Project Dashboard",
+      "id": "project-detail",
+      "name": "プロジェクト詳細",
       "actorId": "owner",
-      "x": 300,
-      "y": 60,
-      "prompt": "MilestoneごとにTaskをグループ化して表示。進捗をプログレスバーで可視化。未アサインTaskを右サイドバーに表示。",
+      "x": -26,
+      "y": 259,
+      "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
         {
           "id": "o2",
@@ -356,42 +268,37 @@
         },
         {
           "id": "o3",
-          "entityId": "milestone",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R"
-          ]
-        },
-        {
-          "id": "o4",
           "entityId": "task",
           "variant": "collection",
           "crud": [
             "C",
-            "R"
+            "R",
+            "U",
+            "D"
           ]
         },
         {
-          "id": "o5",
+          "id": "o4",
           "entityId": "member",
           "variant": "collection",
           "crud": [
-            "R"
+            "C",
+            "R",
+            "D"
           ]
         }
       ]
     },
     {
       "id": "task-detail",
-      "name": "Task詳細",
+      "name": "タスク詳細",
       "actorId": "owner",
-      "x": 300,
-      "y": 280,
-      "prompt": "サブタスクをチェックリスト形式で表示。コメントはタイムライン形式。添付ファイル・期限・担当者はサイドバーに。",
+      "x": 41,
+      "y": 536,
+      "prompt": "タスクの編集フォームとコメントスレッド。ラベル選択はタグピッカー。",
       "objects": [
         {
-          "id": "o6",
+          "id": "o5",
           "entityId": "task",
           "variant": "single",
           "crud": [
@@ -401,16 +308,17 @@
           ]
         },
         {
-          "id": "o7",
+          "id": "o6",
           "entityId": "comment",
           "variant": "collection",
           "crud": [
             "C",
-            "R"
+            "R",
+            "D"
           ]
         },
         {
-          "id": "o8",
+          "id": "o7",
           "entityId": "label",
           "variant": "collection",
           "crud": [
@@ -420,64 +328,35 @@
       ]
     },
     {
-      "id": "member-list",
-      "name": "Member管理",
-      "actorId": "owner",
-      "x": 560,
-      "y": 60,
-      "prompt": "",
-      "objects": [
-        {
-          "id": "o9",
-          "entityId": "member",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "my-tasks",
-      "name": "My Tasks",
+      "id": "member-task-list",
+      "name": "マイタスク",
       "actorId": "member-actor",
       "x": 60,
       "y": 60,
-      "prompt": "自分にアサインされたTaskを期限順に表示。Projectごとにグループ化切り替え可能。",
+      "prompt": "自分にアサインされたタスクを期限順に表示。",
       "objects": [
         {
-          "id": "o10",
+          "id": "o8",
           "entityId": "task",
           "variant": "collection",
           "crud": [
             "C",
             "R",
             "U"
-          ]
-        },
-        {
-          "id": "o11",
-          "entityId": "project",
-          "variant": "collection",
-          "crud": [
-            "R"
           ]
         }
       ]
     },
     {
       "id": "member-task-detail",
-      "name": "Task詳細",
+      "name": "タスク詳細",
       "actorId": "member-actor",
       "x": 60,
-      "y": 260,
-      "prompt": "サブタスクをチェックリスト形式で表示。コメントはタイムライン形式。",
+      "y": 280,
+      "prompt": "",
       "objects": [
         {
-          "id": "o12",
+          "id": "o9",
           "entityId": "task",
           "variant": "single",
           "crud": [
@@ -486,77 +365,36 @@
           ]
         },
         {
-          "id": "o13",
+          "id": "o10",
           "entityId": "comment",
           "variant": "collection",
           "crud": [
             "C",
             "R",
-            "U",
             "D"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "viewer-project",
-      "name": "Project閲覧",
-      "actorId": "viewer",
-      "x": 60,
-      "y": 60,
-      "prompt": "",
-      "objects": [
-        {
-          "id": "o14",
-          "entityId": "project",
-          "variant": "single",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "id": "o15",
-          "entityId": "milestone",
-          "variant": "collection",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "id": "o16",
-          "entityId": "task",
-          "variant": "collection",
-          "crud": [
-            "R"
           ]
         }
       ]
     }
   ],
-  "navigation": [
+  "transitions": [
     {
       "id": "n1",
       "from": "project-list",
-      "to": "project-dashboard",
-      "trigger": "Tap project"
+      "to": "project-detail",
+      "trigger": "Tap row"
     },
     {
       "id": "n2",
-      "from": "project-dashboard",
+      "from": "project-detail",
       "to": "task-detail",
       "trigger": "Tap task"
     },
     {
       "id": "n3",
-      "from": "project-dashboard",
-      "to": "member-list",
-      "trigger": "Manage members"
-    },
-    {
-      "id": "n4",
-      "from": "my-tasks",
+      "from": "member-task-list",
       "to": "member-task-detail",
-      "trigger": "Tap task"
+      "trigger": "Tap row"
     }
   ]
 }

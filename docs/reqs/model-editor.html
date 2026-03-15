@@ -53,9 +53,9 @@
   .cm-connect-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--md-sys-shape-full);padding:6px 16px;font-size:14px;font-weight:500;line-height:20px;color:var(--md-sys-color-on-surface-variant);cursor:pointer;transition:background .15s}
   .cm-connect-btn:hover{background:var(--md-sys-color-surface-container)}
   .cm-dot{width:8px;height:8px;border-radius:50%;background:var(--md-sys-color-outline)}
-  .cm-dot.connected{background:#386A20}.cm-dot.saving{background:#7D5700}.cm-dot.error{background:var(--md-sys-color-error)}
+  .cm-dot.connected{background:#1E8E3E}.cm-dot.saving{background:#E37400}.cm-dot.error{background:var(--md-sys-color-error)}
   .cm-hint{font-weight:400;color:var(--md-sys-color-outline);font-size:12px;line-height:16px}
-  #cm-edited{display:none;font-size:12px;font-weight:500;line-height:16px;color:#7D5700;letter-spacing:0.1px}
+  #cm-edited{display:none;font-size:12px;font-weight:500;line-height:16px;color:#E37400;letter-spacing:0.1px}
   .cm-auto-switch{display:none;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--md-sys-color-on-surface-variant);cursor:pointer;user-select:none}
   .cm-auto-switch .cm-switch-track{position:relative;width:32px;height:18px;background:var(--md-sys-color-outline);border-radius:var(--md-sys-shape-full);transition:background .2s}
   .cm-auto-switch.active .cm-switch-track{background:#0B57D0}
@@ -156,6 +156,15 @@ const EW=140,EH=50;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={entities:[],actors:[],composites:[]};
+// ノード群の中心を返す（キャンバス中央に合わせるために使用）
+function calcCenterPan(items,w,h){
+  if(!items||items.length===0)return{x:0,y:0};
+  const xs=items.map(i=>i.x||0),ys=items.map(i=>i.y||0);
+  const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
+  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+  return{cx,cy};
+}
+let initialCenter=null;
 function uniqueName(base,existingNames){
   if(!existingNames.includes(base))return base;
   const m=base.match(/^(.+?)(\d+)$/);
@@ -164,7 +173,7 @@ function uniqueName(base,existingNames){
   while(existingNames.includes(stem+n))n++;
   return stem+n;
 }
-function ensurePositions(data){if(!data||!data.entities)return data;const cols=4,gapX=200,gapY=110,padX=80,padY=60;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
+function ensurePositions(data){if(!data||!data.entities)return data;const cols=3,gapX=320,gapY=200,padX=80,padY=80;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
 
 // M3 コンポーネント
 function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"10px 14px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
@@ -178,15 +187,31 @@ function Btn({children,onClick,accent,small,danger,ghost}){
 const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
 const ZOOM_MIN=0.25,ZOOM_MAX=3;
+function useInitialPan(items,iw,ih){
+  const svgRef=useRef();
+  const[pan,setPan]=useState({x:0,y:0});
+  const inited=useRef(false);
+  useEffect(()=>{
+    if(inited.current||!items||items.length===0||!svgRef.current)return;
+    const r=svgRef.current.getBoundingClientRect();
+    if(!r.width)return;
+    const c=calcCenterPan(items,iw,ih);
+    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
+    inited.current=true;
+  },[items]);
+  return{svgRef,pan,setPan,resetInit:()=>{inited.current=false;}};
+}
+
 function EntityView({model,setModel,setModelSilent,selId,setSelId}){
   const[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
-  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const{svgRef,pan,setPan,resetInit}=useInitialPan(model.entities,EW,EH);
+  const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const ents=model.entities,selEnt=ents.find(e=>e.id===selId);
   const onBoxMD=(e,id)=>{e.stopPropagation();if(conn!==null){if(conn===""){setConn(id);return;}if(conn!==id){const nr={id:uid(),targetId:id,type:"has-many",label:""};setModel(m=>({...m,entities:m.entities.map(en=>en.id===conn?{...en,relations:[...en.relations,nr]}:en)}));setConn(null);}return;}setSelId(id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-en.x,y:(e.clientY-r.top)/zoom+pan.y-en.y};setDrag(id);};
   const onBgMD=e=>{if(conn!==null)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
-  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,(e.clientX-r.left)/zoom+pan.x-dOff.current.x),y:Math.max(0,(e.clientY-r.top)/zoom+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
+  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:(e.clientX-r.left)/zoom+pan.x-dOff.current.x,y:(e.clientY-r.top)/zoom+pan.y-dOff.current.y}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
   const onUp=()=>{if(drag)setModel(m=>m);setDrag(null);setPanning(false);};
   const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
   const upd=u=>setModel(m=>({...m,entities:m.entities.map(e=>e.id===u.id?u:e)}));
@@ -215,23 +240,19 @@ function EntityView({model,setModel,setModelSilent,selId,setSelId}){
           </defs>
           <rect width="100%" height="100%" fill="url(#dotpat)" data-bg="1" onMouseDown={onBgMD}/>
           <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
-          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6",hs=hi?"-hi":"";
-            // タイプ別スタイル
-            const rtype=rel.type||"has-many";
-            const dash=rtype==="belongs-to"?"6 4":rtype==="many-to-many"?"3 3":"none";
-            const endMk=rtype==="has-many"?`url(#m-hm${hs})`:rtype==="has-one"?`url(#m-ho${hs})`:rtype==="belongs-to"?`url(#m-bt${hs})`:`url(#m-mm${hs})`;
-            const startMk=rtype==="many-to-many"?`url(#m-mm-s${hs})`:"";
-            if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<g key={`${ent.id}-${ri}`}><path d={`M${lx},${ty} C${lx+38},${ty-14} ${lx+38},${ty+28} ${lx},${ty+20}`} fill="none" stroke={col} strokeWidth="1.5" strokeDasharray={dash} markerEnd={endMk}/>{rel.label&&<text x={lx+42} y={ty+6} fontSize={11} fill={col}>{rel.label}</text>}</g>;}
-            const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;
-            return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray={dash} markerEnd={endMk} markerStart={startMk}/>{rel.label&&<><rect x={mx-24} y={my-9} width={48} height={17} rx={4} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill={col} textAnchor="middle">{rel.label}</text></>}</g>;}))}
+          {/* 1. ノード（最背面） */}
           {ents.map(ent=>{const p=entPalette(ents,ent.id),isSel=selId===ent.id,isCS=conn===ent.id;return<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={EW} height={EH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={EH} rx={14} fill={p.bg} stroke={isSel||isCS?p.fg:"transparent"} strokeWidth={isSel||isCS?2.5:0}/><text x={EW/2} y={EH/2+5} fontSize={14} fontWeight="600" fill={p.fg} fontFamily="inherit" textAnchor="middle">{ent.name}</text></g>;})}
+          {/* 2. リレーション線 */}
+          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6",hs=hi?"-hi":"";const rtype=rel.type||"has-many";const dash=rtype==="belongs-to"?"6 4":rtype==="many-to-many"?"3 3":"none";const endMk=rtype==="has-many"?`url(#m-hm${hs})`:rtype==="has-one"?`url(#m-ho${hs})`:rtype==="belongs-to"?`url(#m-bt${hs})`:`url(#m-mm${hs})`;const startMk=rtype==="many-to-many"?`url(#m-mm-s${hs})`:"";if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<path key={`l-${ent.id}-${ri}`} d={`M${lx},${ty} C${lx+38},${ty-14} ${lx+38},${ty+28} ${lx},${ty+20}`} fill="none" stroke={col} strokeWidth="1.5" strokeDasharray={dash} markerEnd={endMk}/>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2);return<line key={`l-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray={dash} markerEnd={endMk} markerStart={startMk}/>;}))}
+          {/* 3. リレーションラベル（最前面） */}
+          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||!rel.label)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6";const lw=Math.max(rel.label.length*7,24)+16;if(tgt.id===ent.id){const lx=ent.x+EW-6,ty=ent.y+14;return<text key={`lb-${ent.id}-${ri}`} x={lx+42} y={ty+6} fontSize={11} fill={col}>{rel.label}</text>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`lb-${ent.id}-${ri}`}><rect x={mx-lw/2} y={my-9} width={lw} height={17} rx={8} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill={col} textAnchor="middle">{rel.label}</text></g>;}))}
           </g>
         </svg>
         <div style={{position:"absolute",top:16,left:16,display:"flex",gap:8,alignItems:"center"}}><Btn small onClick={addEnt}>+ Entity</Btn><Btn small ghost={!connOn} accent={connOn} onClick={()=>setConn(connOn?null:"")}>{connOn?(connHasSrc?"→ select target":"← select source"):"↗ Connect"}</Btn>{connOn&&<Btn small ghost onClick={()=>setConn(null)}>✕</Btn>}</div>
         <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
-          <button onClick={()=>setZoom(z=>Math.max(ZOOM_MIN,z*0.8))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
-          <button onClick={()=>setZoom(1)} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
-          <button onClick={()=>setZoom(z=>Math.min(ZOOM_MAX,z*1.25))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
+          <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.max(ZOOM_MIN,z*0.8);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
+          <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx,y:wy-cy});return 1;});}} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
+          <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
         </div>
       </div>
       {selEnt&&<EntityPanel key={selEnt.id} entity={selEnt} entities={ents} onUpdate={upd} onDelete={()=>{setSelId(null);setModel(m=>({...m,entities:m.entities.filter(e=>e.id!==selEnt.id)}));}} onClose={()=>setSelId(null)}/>}
@@ -245,7 +266,7 @@ function EntityPanel({entity,entities,onUpdate,onDelete,onClose}){
   const updRel=(id,k,v)=>upd({relations:entity.relations.map(r=>r.id===id?{...r,[k]:v}:r)});
   const delRel=id=>upd({relations:entity.relations.filter(r=>r.id!==id)});
   return(
-    <div style={{width:300,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
+    <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
       <div style={{padding:"12px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase"}}>Entity</span><button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1,padding:"0 2px"}}>×</button></div>
       <div style={{flex:1,overflowY:"auto",padding:16}}>
         <div style={{marginBottom:20}}><SLabel>Name</SLabel><Input value={entity.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:16,fontWeight:500}}/></div>
@@ -254,7 +275,7 @@ function EntityPanel({entity,entities,onUpdate,onDelete,onClose}){
           {entity.relations.length===0&&<div style={{fontSize:14,color:M3.outline,padding:"4px 0"}}>No relations — use ↗ Connect on canvas or + Add</div>}
         </div>
       </div>
-      <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
+      <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={onDelete}>Delete entity</Btn></div>
     </div>
   );
 }
@@ -291,9 +312,10 @@ function ActorEditModal({actors,onSave,onClose}){
 function ActorView({model,setModel,setModelSilent}){
   const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null);
   const[showEdit,setShowEdit]=useState(false);
-  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH);
+  const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const actor=model.actors.find(a=>a.id===actorId),ents=model.entities,selEnt=ents.find(e=>e.id===selEntId),touch=actor?actor.touches.find(t=>t.entityId===selEntId):null;
   const updActor=u=>setModel(m=>({...m,actors:m.actors.map(a=>a.id===u.id?u:a)}));
   const handleEditSave=(newList)=>{
@@ -306,7 +328,7 @@ function ActorView({model,setModel,setModelSilent}){
   };
   const onBgMD=e=>{setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
   const onBoxMD=(e,id)=>{e.stopPropagation();setSelEntId(prev=>prev===id?null:id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-en.x,y:(e.clientY-r.top)/zoom+pan.y-en.y};setDrag(id);};
-  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:Math.max(0,(e.clientX-r.left)/zoom+pan.x-dOff.current.x),y:Math.max(0,(e.clientY-r.top)/zoom+pan.y-dOff.current.y)}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
+  const onMM=useCallback(e=>{if(drag){const r=svgRef.current.getBoundingClientRect();setModelSilent(m=>({...m,entities:m.entities.map(en=>en.id===drag?{...en,x:(e.clientX-r.left)/zoom+pan.x-dOff.current.x,y:(e.clientY-r.top)/zoom+pan.y-dOff.current.y}:en)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setModelSilent]);
   const onUp=()=>{if(drag)setModel(m=>m);setDrag(null);setPanning(false);};
   const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
   const addTouch=eid=>{if(!actor)return;updActor({...actor,touches:[...actor.touches,{entityId:eid,scope:"all",crud:["R"]}]});setSelEntId(eid);};
@@ -328,21 +350,25 @@ function ActorView({model,setModel,setModelSilent}){
             <defs><pattern id="dotpat2" width={24/zoom} height={24/zoom} patternUnits="userSpaceOnUse" x={(-pan.x*zoom)%24} y={(-pan.y*zoom)%24}><circle cx={1/zoom} cy={1/zoom} r={1/zoom} fill="#E0E0E0"/></pattern><marker id="marr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9AA0A6"/></marker></defs>
             <rect width="100%" height="100%" fill="url(#dotpat2)" data-bg="1" onMouseDown={onBgMD}/>
             <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
-            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`${ent.id}-${ri}`}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#9AA0A6" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>{rel.label&&<><rect x={mx-24} y={my-9} width={48} height={17} rx={4} fill="white" stroke="#9AA0A6" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill="#9AA0A6" textAnchor="middle">{rel.label}</text></>}</g>;}))}
+            {/* 1. ノード（最背面） */}
             {ents.map(ent=>{const t=actor.touches.find(tt=>tt.entityId===ent.id),touched=!!t,p=entPalette(ents,ent.id),isSel=selEntId===ent.id,crudW=28,crudGap=4,totalCrudW=crudW*4+crudGap*3,crudX=(EW-totalCrudW)/2,cardH=EH+26;return(<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:"pointer"}}><rect x={1} y={2} width={EW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={cardH} rx={14} fill={touched?p.bg:"#F5F5F5"} stroke={isSel?p.fg:"transparent"} strokeWidth={isSel?2.5:0} opacity={touched?1:0.6}/><text x={EW/2} y={EH/2+3} fontSize={14} fontWeight={touched?"600":"400"} fill={touched?p.fg:"#BDC1C6"} fontFamily="inherit" textAnchor="middle">{ent.name}</text>{CRUD_OPS.map((op,oi)=>{const on=touched&&t&&t.crud.includes(op);return<g key={op} transform={`translate(${crudX+oi*(crudW+crudGap)},${EH+4})`}><rect width={crudW} height={18} rx={9} fill={on?CRUD_BG[op]:"#F0F0F0"}/><text x={crudW/2} y={13} fontSize={11} fontWeight="600" fill={on?CRUD_COLOR[op]:"#DADCE0"} textAnchor="middle">{op}</text></g>;})}</g>);})}
+            {/* 2. リレーション線 */}
+            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2);return<line key={`al-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="#9AA0A6" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#marr2)"/>;}))}
+            {/* 3. リレーションラベル（最前面） */}
+            {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||tgt.id===ent.id||!rel.label)return null;const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;const lw=Math.max(rel.label.length*7,24)+16;return<g key={`alb-${ent.id}-${ri}`}><rect x={mx-lw/2} y={my-9} width={lw} height={17} rx={8} fill="white" stroke="#9AA0A6" strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill="#9AA0A6" textAnchor="middle">{rel.label}</text></g>;}))}
             </g>
           </svg>
           <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 6px",boxShadow:"var(--md-sys-elevation-1)"}}>
-            <button onClick={()=>setZoom(z=>Math.max(ZOOM_MIN,z*0.8))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
-            <button onClick={()=>setZoom(1)} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
-            <button onClick={()=>setZoom(z=>Math.min(ZOOM_MAX,z*1.25))} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
+            <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.max(ZOOM_MIN,z*0.8);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>−</button>
+            <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx,y:wy-cy});return 1;});}} style={{minWidth:44,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:12,fontWeight:500,color:"#5F6368",borderRadius:14,fontFamily:"inherit"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>{Math.round(zoom*100)}%</button>
+            <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
         </div>
         {selEnt&&(
-          <div style={{width:280,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
+          <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
             <div style={{padding:"12px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:entColor(ents,selEnt.id)}}/><span style={{fontSize:14,fontWeight:500,color:M3.onSurface}}>{selEnt.name}</span></div><button onClick={()=>setSelEntId(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:M3.onSurfaceVar,lineHeight:1,padding:"0 2px"}}>×</button></div>
             <div style={{padding:16,flex:1,display:"flex",flexDirection:"column"}}>
-              {touch?(<><div style={{flex:1}}><div style={{marginBottom:16}}><SLabel>Scope</SLabel><div style={{display:"flex",gap:8}}>{SCOPE_OPTS.map(sc=>(<button key={sc} onClick={()=>updTouch(selEnt.id,"scope",sc)} style={{flex:1,padding:"8px 0",fontSize:14,fontWeight:500,borderRadius:M3.shapeFull,cursor:"pointer",border:touch.scope===sc?"none":`1px solid ${M3.outline}`,background:touch.scope===sc?"#D3E3FD":M3.surface,color:touch.scope===sc?"#041E49":"#9AA0A6",letterSpacing:"0.1px"}}>{sc}</button>))}</div></div><div><SLabel>CRUD</SLabel><div style={{display:"flex",gap:8}}>{CRUD_OPS.map(op=>{const on=touch.crud.includes(op);return<button key={op} onClick={()=>toggleCrud(selEnt.id,op)} style={{flex:1,padding:"10px 0",fontSize:14,fontWeight:700,borderRadius:M3.shapeSm,cursor:"pointer",border:"none",background:on?CRUD_BG[op]:M3.surfaceContHigh,color:on?CRUD_COLOR[op]:"#DADCE0",letterSpacing:"0.1px"}}>{op}</button>;})}</div></div></div><div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16}}><Btn danger onClick={()=>removeTouch(selEnt.id)}>Remove access</Btn></div></>):(<div style={{textAlign:"center",paddingTop:24}}><div style={{fontSize:14,color:M3.onSurfaceVar,marginBottom:16,lineHeight:"20px"}}>{actor.name} has no access<br/>to {selEnt.name}</div><Btn accent onClick={()=>addTouch(selEnt.id)}>+ Grant access</Btn></div>)}
+              {touch?(<><div style={{flex:1}}><div style={{marginBottom:16}}><SLabel>Scope</SLabel><div style={{display:"flex",gap:8}}>{SCOPE_OPTS.map(sc=>(<button key={sc} onClick={()=>updTouch(selEnt.id,"scope",sc)} style={{flex:1,padding:"8px 0",fontSize:14,fontWeight:500,borderRadius:M3.shapeFull,cursor:"pointer",border:touch.scope===sc?"none":`1px solid ${M3.outline}`,background:touch.scope===sc?"#D3E3FD":M3.surface,color:touch.scope===sc?"#041E49":"#9AA0A6",letterSpacing:"0.1px"}}>{sc}</button>))}</div></div><div><SLabel>CRUD</SLabel><div style={{display:"flex",gap:8}}>{CRUD_OPS.map(op=>{const on=touch.crud.includes(op);return<button key={op} onClick={()=>toggleCrud(selEnt.id,op)} style={{flex:1,padding:"10px 0",fontSize:14,fontWeight:700,borderRadius:M3.shapeSm,cursor:"pointer",border:"none",background:on?CRUD_BG[op]:M3.surfaceContHigh,color:on?CRUD_COLOR[op]:"#DADCE0",letterSpacing:"0.1px"}}>{op}</button>;})}</div></div></div><div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={()=>removeTouch(selEnt.id)}>Remove access</Btn></div></>):(<div style={{textAlign:"center",paddingTop:24}}><div style={{fontSize:14,color:M3.onSurfaceVar,marginBottom:16,lineHeight:"20px"}}>{actor.name} has no access<br/>to {selEnt.name}</div><Btn accent onClick={()=>addTouch(selEnt.id)}>+ Grant access</Btn></div>)}
             </div>
           </div>
         )}
@@ -359,7 +385,7 @@ function CompositeView({model,setModel}){
   const upd=u=>setModel(m=>({...m,composites:m.composites.map(c=>c.id===u.id?u:c)}));
   return(
     <div style={{display:"flex",height:"100%"}}>
-      <div style={{width:240,borderRight:`1px solid ${M3.outlineVar}`,background:M3.surface,display:"flex",flexDirection:"column"}}>
+      <div style={{width:320,borderRight:`1px solid ${M3.outlineVar}`,background:M3.surface,display:"flex",flexDirection:"column"}}>
         <div style={{padding:"16px 16px 12px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
         <div style={{flex:1,overflowY:"auto"}}>
           {model.composites.length===0&&<div style={{padding:16,fontSize:14,color:M3.outline,lineHeight:"20px"}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
@@ -375,13 +401,12 @@ function CompositePanel({comp,model,onUpdate,onDelete}){
   const upd=p=>onUpdate({...comp,...p}),toggle=eid=>{const uses=comp.uses.includes(eid)?comp.uses.filter(u=>u!==eid):[...comp.uses,eid];upd({uses});};
   return(
     <div style={{flex:1,overflowY:"auto",padding:24,background:M3.surfaceContLow}}>
-      <div style={{marginBottom:24}}><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:22,fontWeight:400,lineHeight:"28px",border:"none",background:"transparent",padding:0,width:"auto"}}/></div>
+      <div style={{marginBottom:24}}><SLabel>Name</SLabel><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:16,fontWeight:500}}/></div>
       <div style={{marginBottom:20}}><SLabel>Actor</SLabel><Sel value={comp.actorId} onChange={e=>upd({actorId:e.target.value})} style={{width:"100%"}}><option value="">— select —</option>{model.actors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</Sel></div>
       <div><SLabel>Entities in this screen</SLabel><div style={{display:"flex",flexDirection:"column",gap:8}}>
         {model.entities.map(ent=>{const c=entColor(model.entities,ent.id),used=comp.uses.includes(ent.id);return<div key={ent.id} onClick={()=>toggle(ent.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",background:used?c+"0f":M3.surface,border:`1px solid ${used?c+"60":"#DADCE0"}`,borderRadius:M3.shapeSm,cursor:"pointer",transition:"all .1s"}}><div style={{width:18,height:18,borderRadius:M3.shapeXs,border:`2px solid ${used?c:"#DADCE0"}`,background:used?c:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{used&&<span style={{color:"white",fontSize:12,fontWeight:700,lineHeight:1}}>✓</span>}</div><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:14,fontWeight:500,color:used?M3.onSurface:"#9AA0A6"}}>{ent.name}</span></div></div>;})}
       </div></div>
-      {comp.uses.length>0&&(<div style={{marginTop:20,padding:16,background:M3.surface,border:"1px solid #FFF0C7",borderRadius:M3.shapeMd,boxShadow:"var(--md-sys-elevation-1)"}}><div style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,marginBottom:8,letterSpacing:"0.5px",textTransform:"uppercase"}}>Preview</div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{comp.uses.map(eid=>{const ent=model.entities.find(e=>e.id===eid),c=entColor(model.entities,eid);return ent?<span key={eid} style={{padding:"4px 12px",background:c+"14",border:`1px solid ${c}40`,borderRadius:M3.shapeFull,fontSize:12,color:c,fontWeight:500,letterSpacing:"0.1px"}}>{ent.name}</span>:null;})}</div></div>)}
-      <div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
+      <div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
     </div>
   );
 }
@@ -494,6 +519,7 @@ function App(){
     window.__cmLoadData=d=>{
       const cmData=splitData(d);
       const loaded=ensurePositions(cmData);
+      initialCenter=calcCenterPan(loaded.entities,EW,EH);
       setModelRaw(loaded);
       histRef.current={stack:[JSON.parse(JSON.stringify(loaded))],idx:0};
       setTab("entity");
