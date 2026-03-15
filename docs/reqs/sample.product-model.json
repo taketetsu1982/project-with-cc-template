@@ -100,6 +100,13 @@
       ],
       "x": 396,
       "y": 427
+    },
+    {
+      "id": "use735",
+      "name": "ああああああああああああああああ",
+      "x": 117,
+      "y": 276.5,
+      "relations": []
     }
   ],
   "actors": [
@@ -262,6 +269,10 @@
             {
               "op": "U",
               "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "own"
             }
           ]
         },
@@ -274,7 +285,7 @@
             },
             {
               "op": "R",
-              "scope": "own"
+              "scope": "all"
             },
             {
               "op": "U",
@@ -316,7 +327,9 @@
         "project",
         "task",
         "member"
-      ]
+      ],
+      "x": 60,
+      "y": -120
     }
   ],
   "screens": [
@@ -345,7 +358,7 @@
       "name": "プロジェクト詳細",
       "actorId": "owner",
       "x": -26,
-      "y": 258,
+      "y": 259,
       "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
         {
@@ -504,6 +517,15 @@
           ]
         }
       ]
+    },
+    {
+      "id": "1mjjl5",
+      "name": "New Screen2",
+      "actorId": "member-actor",
+      "x": -272.75,
+      "y": 74.5,
+      "prompt": "",
+      "objects": []
     }
   ],
   "transitions": [

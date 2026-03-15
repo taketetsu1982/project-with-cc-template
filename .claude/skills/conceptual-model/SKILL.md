@@ -79,7 +79,8 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
   "id": "kebab-case識別子",
   "name": "画面名",
   "actorId": "対象アクターid",
-  "uses": ["entityId1", "entityId2"]
+  "uses": ["entityId1", "entityId2"],
+  "x": 60, "y": 60
 }
 ```
 
