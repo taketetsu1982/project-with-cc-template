@@ -154,6 +154,27 @@ function ensureScreenPositions(data){
   return data;
 }
 
+function calcCenterPan(items,w,h){
+  if(!items||items.length===0)return{cx:0,cy:0};
+  const xs=items.map(i=>i.x||0),ys=items.map(i=>i.y||0);
+  const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
+  return{cx:(minX+maxX)/2,cy:(minY+maxY)/2};
+}
+function useInitialPan(items,iw,ih){
+  const svgRef=useRef();
+  const[pan,setPan]=useState({x:0,y:0});
+  const inited=useRef(false);
+  useEffect(()=>{
+    if(inited.current||!items||items.length===0||!svgRef.current)return;
+    const r=svgRef.current.getBoundingClientRect();
+    if(!r.width)return;
+    const c=calcCenterPan(items,iw,ih);
+    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2});
+    inited.current=true;
+  },[items]);
+  return{svgRef,pan,setPan};
+}
+
 function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,padding:"10px 14px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
 function Sel({style,children,...p}){return<select{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,padding:"10px 14px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
 function Btn({children,onClick,accent,small,danger,ghost}){
@@ -166,8 +187,9 @@ const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,letterSpacing
 
 function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
   const[actorId,setActorId]=useState(CONCEPT.actors[0]?.id||null),[selNavId,setSelNavId]=useState(null),[selScrId,setSelScrId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
-  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const{svgRef,pan,setPan}=useInitialPan(screens.screens,SW,SH);
+  const[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
+  const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const visScr=screens.screens.filter(s=>s.actorId===actorId);
   const visNav=screens.navigation.filter(n=>visScr.find(s=>s.id===n.from)&&visScr.find(s=>s.id===n.to));
   const selNav=visNav.find(n=>n.id===selNavId);

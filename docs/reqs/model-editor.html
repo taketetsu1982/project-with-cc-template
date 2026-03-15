@@ -156,6 +156,15 @@ const EW=140,EH=50;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
 const EMPTY={entities:[],actors:[],composites:[]};
+// ノード群の中心を返す（キャンバス中央に合わせるために使用）
+function calcCenterPan(items,w,h){
+  if(!items||items.length===0)return{x:0,y:0};
+  const xs=items.map(i=>i.x||0),ys=items.map(i=>i.y||0);
+  const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
+  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+  return{cx,cy};
+}
+let initialCenter=null;
 function uniqueName(base,existingNames){
   if(!existingNames.includes(base))return base;
   const m=base.match(/^(.+?)(\d+)$/);
@@ -178,11 +187,27 @@ function Btn({children,onClick,accent,small,danger,ghost}){
 const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
 const ZOOM_MIN=0.25,ZOOM_MAX=3;
+function useInitialPan(items,iw,ih){
+  const svgRef=useRef();
+  const[pan,setPan]=useState({x:0,y:0});
+  const inited=useRef(false);
+  useEffect(()=>{
+    if(inited.current||!items||items.length===0||!svgRef.current)return;
+    const r=svgRef.current.getBoundingClientRect();
+    if(!r.width)return;
+    const c=calcCenterPan(items,iw,ih);
+    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2});
+    inited.current=true;
+  },[items]);
+  return{svgRef,pan,setPan,resetInit:()=>{inited.current=false;}};
+}
+
 function EntityView({model,setModel,setModelSilent,selId,setSelId}){
   const[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
-  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const{svgRef,pan,setPan,resetInit}=useInitialPan(model.entities,EW,EH);
+  const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const ents=model.entities,selEnt=ents.find(e=>e.id===selId);
   const onBoxMD=(e,id)=>{e.stopPropagation();if(conn!==null){if(conn===""){setConn(id);return;}if(conn!==id){const nr={id:uid(),targetId:id,type:"has-many",label:""};setModel(m=>({...m,entities:m.entities.map(en=>en.id===conn?{...en,relations:[...en.relations,nr]}:en)}));setConn(null);}return;}setSelId(id);const r=svgRef.current.getBoundingClientRect();const en=ents.find(e=>e.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-en.x,y:(e.clientY-r.top)/zoom+pan.y-en.y};setDrag(id);};
   const onBgMD=e=>{if(conn!==null)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
@@ -286,9 +311,10 @@ function ActorEditModal({actors,onSave,onClose}){
 function ActorView({model,setModel,setModelSilent}){
   const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null);
   const[showEdit,setShowEdit]=useState(false);
-  const[pan,setPan]=useState({x:0,y:0}),[panning,setPanning]=useState(false);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH);
+  const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
-  const svgRef=useRef(),dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
+  const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0});
   const actor=model.actors.find(a=>a.id===actorId),ents=model.entities,selEnt=ents.find(e=>e.id===selEntId),touch=actor?actor.touches.find(t=>t.entityId===selEntId):null;
   const updActor=u=>setModel(m=>({...m,actors:m.actors.map(a=>a.id===u.id?u:a)}));
   const handleEditSave=(newList)=>{
@@ -489,6 +515,7 @@ function App(){
     window.__cmLoadData=d=>{
       const cmData=splitData(d);
       const loaded=ensurePositions(cmData);
+      initialCenter=calcCenterPan(loaded.entities,EW,EH);
       setModelRaw(loaded);
       histRef.current={stack:[JSON.parse(JSON.stringify(loaded))],idx:0};
       setTab("entity");
