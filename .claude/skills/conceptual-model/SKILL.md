@@ -59,7 +59,15 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
   "id": "kebab-case識別子",
   "name": "ロール名",
   "touches": [
-    { "entityId": "エンティティid", "scope": "all | own", "crud": ["C", "R", "U", "D"] }
+    {
+      "entityId": "エンティティid",
+      "crud": [
+        { "op": "C", "scope": "all" },
+        { "op": "R", "scope": "all" },
+        { "op": "U", "scope": "own" },
+        { "op": "D", "scope": "own" }
+      ]
+    }
   ]
 }
 ```
