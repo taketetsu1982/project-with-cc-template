@@ -415,7 +415,7 @@ function CompositeView({model,setModel}){
   const upd=u=>setModel(m=>({...m,composites:m.composites.map(c=>c.id===u.id?u:c)}));
   return(
     <div style={{display:"flex",height:"100%"}}>
-      <div style={{width:320,background:M3.surface,display:"flex",flexDirection:"column"}}>
+      <div style={{width:320,background:M3.surface,boxShadow:"var(--md-sys-elevation-1)",display:"flex",flexDirection:"column"}}>
         <div style={{padding:"16px 16px 12px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
         <div style={{flex:1,overflowY:"auto"}}>
           {model.composites.length===0&&<div style={{padding:16,fontSize:14,color:M3.outline,lineHeight:"20px"}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
