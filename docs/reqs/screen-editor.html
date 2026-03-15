@@ -264,7 +264,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen}){
 
 const PH_ROWS=[[72,55,80],[64,80,58],[80,62,70]];
 
-function WireframeView({screenId,screens,setScreens,onBack}){
+function ScreenDetailView({screenId,screens,setScreens,onBack}){
   const[selObjId,setSelObjId]=useState(null);
   const scr=screens.screens.find(s=>s.id===screenId);if(!scr)return null;
   const updScr=patch=>setScreens(m=>({...m,screens:m.screens.map(s=>s.id===screenId?{...s,...patch}:s)}));
@@ -297,7 +297,7 @@ function CollWF({obj,color}){return(<div>{obj.crud.includes("C")&&(<div style={{
 
 function SingleWF({obj,color}){return(<div>{["Field A","Field B","Field C"].map((f,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}><div style={{width:64,fontSize:12,color:"#9AA0A6",textAlign:"right",flexShrink:0}}>{f}</div><div style={{flex:1,height:32,background:"#FAFAFA",border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm}}/></div>))}{obj.crud.includes("U")&&(<div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:16}}><div style={{padding:"8px 16px",background:"#F5F5F5",borderRadius:M3.shapeFull,fontSize:13,color:"#5F6368"}}>Cancel</div><div style={{padding:"8px 16px",background:color,borderRadius:M3.shapeFull,fontSize:13,color:"white",fontWeight:500}}>Save</div></div>)}</div>);}
 
-const TABS=[{id:"map",label:"Map"},{id:"wireframe",label:"Wireframe"}];
+const TABS=[{id:"map",label:"Map"},{id:"detail",label:"Screen"}];
 
 function App(){
   const[screens,setScreensRaw]=useState(EMPTY),[view,setView]=useState("map"),[scrId,setScrId]=useState(null);
@@ -355,8 +355,8 @@ function App(){
         <div ref={barRef} style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:12,paddingRight:16,fontSize:14,fontFamily:"inherit"}}/>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
-        {view==="map"&&<MapView screens={screens} setScreens={setScreens} setScreensSilent={setScreensSilent} onSelectScreen={id=>{setScrId(id);setView("wireframe");}}/>}
-        {view==="wireframe"&&scrId&&<WireframeView screenId={scrId} screens={screens} setScreens={setScreens} onBack={()=>{setView("map");setScrId(null);}}/>}
+        {view==="map"&&<MapView screens={screens} setScreens={setScreens} setScreensSilent={setScreensSilent} onSelectScreen={id=>{setScrId(id);setView("detail");}}/>}
+        {view==="detail"&&scrId&&<ScreenDetailView screenId={scrId} screens={screens} setScreens={setScreens} onBack={()=>{setView("map");setScrId(null);}}/>}
       </div>
     </div>
   );
