@@ -169,18 +169,22 @@ function calcCenterPan(items,w,h){
   const minX=Math.min(...xs),maxX=Math.max(...xs)+w,minY=Math.min(...ys),maxY=Math.max(...ys)+h;
   return{cx:(minX+maxX)/2,cy:(minY+maxY)/2};
 }
+let loadGeneration=0;
 function useInitialPan(items,iw,ih){
   const svgRef=useRef();
   const[pan,setPan]=useState({x:0,y:0});
-  const inited=useRef(false);
+  const lastGen=useRef(-1);
   useEffect(()=>{
-    if(inited.current||!items||items.length===0||!svgRef.current)return;
-    const r=svgRef.current.getBoundingClientRect();
-    if(!r.width)return;
-    const c=calcCenterPan(items,iw,ih);
-    setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
-    inited.current=true;
-  },[items]);
+    if(lastGen.current===loadGeneration||!items||items.length===0||!svgRef.current)return;
+    requestAnimationFrame(()=>{
+      if(!svgRef.current)return;
+      const r=svgRef.current.getBoundingClientRect();
+      if(!r.width||!r.height)return;
+      const c=calcCenterPan(items,iw,ih);
+      setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
+      lastGen.current=loadGeneration;
+    });
+  },[items,iw,ih]);
   return{svgRef,pan,setPan};
 }
 
@@ -343,6 +347,7 @@ function App(){
   useEffect(()=>{
     window.__scLoadData=d=>{
       const scData=ensureScreenPositions(splitData(d));
+      loadGeneration++;
       setScreensRaw(scData);
       histRef.current={stack:[JSON.parse(JSON.stringify(scData))],idx:0};
       setView("map");setScrId(null);
