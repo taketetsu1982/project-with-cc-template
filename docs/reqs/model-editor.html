@@ -164,7 +164,7 @@ function uniqueName(base,existingNames){
   while(existingNames.includes(stem+n))n++;
   return stem+n;
 }
-function ensurePositions(data){if(!data||!data.entities)return data;const cols=3,gapX=260,gapY=140,padX=80,padY=60;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
+function ensurePositions(data){if(!data||!data.entities)return data;const cols=3,gapX=320,gapY=200,padX=80,padY=80;data.entities.forEach((ent,i)=>{if(ent.x===undefined||ent.y===undefined){ent.x=padX+(i%cols)*gapX;ent.y=padY+Math.floor(i/cols)*gapY;}});return data;}
 
 // M3 コンポーネント
 function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"10px 14px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
