@@ -318,22 +318,42 @@
       ]
     }
   ],
-  "composites": [
+  "screens": [
     {
       "id": "owner-dashboard",
       "name": "オーナーダッシュボード",
       "actorId": "owner",
       "objects": [
-        { "id": "co1", "entityId": "project", "variant": "collection", "crud": ["R"] },
-        { "id": "co2", "entityId": "task", "variant": "collection", "crud": ["R"] },
-        { "id": "co3", "entityId": "member", "variant": "collection", "crud": ["R"] }
+        {
+          "id": "co1",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co2",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co3",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
       ],
       "prompt": "KPI（月次進捗・タスク完了率）をカード形式で上部に表示。プロジェクト別タスク数をグラフで中段に。",
-      "x": 60,
-      "y": -120
-    }
-  ],
-  "screens": [
+      "x": 168,
+      "y": -148,
+      "type": "composite"
+    },
     {
       "id": "project-list",
       "name": "プロジェクト一覧",
@@ -352,7 +372,8 @@
             "D"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "project-detail",
@@ -403,7 +424,8 @@
           ],
           "area": "main"
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "task-detail",
@@ -441,7 +463,8 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "member-task-list",
@@ -469,7 +492,8 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "member-task-detail",
@@ -499,7 +523,8 @@
           ],
           "area": "right"
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "f3x8qy",
@@ -517,7 +542,8 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "1mjjl5",
@@ -526,7 +552,8 @@
       "x": -272.75,
       "y": 74.5,
       "prompt": "",
-      "objects": []
+      "objects": [],
+      "type": "screen"
     }
   ],
   "transitions": [
@@ -551,6 +578,18 @@
     {
       "id": "oscbrq",
       "from": "f3x8qy",
+      "to": "project-list",
+      "trigger": "Tap"
+    },
+    {
+      "id": "pe6uqx",
+      "from": "project-list",
+      "to": "owner-dashboard",
+      "trigger": "Tap"
+    },
+    {
+      "id": "4kysn5",
+      "from": "owner-dashboard",
       "to": "project-list",
       "trigger": "Tap"
     }

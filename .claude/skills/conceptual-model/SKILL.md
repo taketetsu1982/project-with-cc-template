@@ -6,7 +6,7 @@ description: Generate and edit conceptual model JSON with HTML editor
 # /conceptual-model
 
 Conceptual ModelのJSONを生成し、ブラウザで操作できるHTMLエディタを起動する。
-entities / actors / composites を編集する（screens / transitions は /screens で編集する）。
+entities / actors を編集する（screens / transitions は /screens で編集する）。
 
 ## Input
 
@@ -26,7 +26,6 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 {
   "entities": [],
   "actors": [],
-  "composites": [],
   "screens": [],
   "transitions": []
 }
@@ -36,8 +35,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 |---|---|---|
 | entities | CM | エンティティ定義 |
 | actors | CM | ロール（操作者）定義 |
-| composites | CM | 複合画面定義 |
-| screens | Screens | 画面定義 |
+| screens | Screens | 画面定義（type: "screen" / "composite"） |
 | transitions | Screens | 画面遷移定義 |
 
 ### entities
@@ -72,21 +70,6 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 }
 ```
 
-### composites
-
-```json
-{
-  "id": "kebab-case識別子",
-  "name": "画面名",
-  "actorId": "対象アクターid",
-  "objects": [
-    { "id": "一意ID", "entityId": "エンティティid", "variant": "collection | single", "crud": ["C", "R"] }
-  ],
-  "prompt": "実装補足指示",
-  "x": 60, "y": 60
-}
-```
-
 ### screens（Screensエディタの担当。スキーマ詳細は /screens の SKILL.md を参照）
 
 ```json
@@ -113,7 +96,6 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 - エンティティはフラットな配列。グルーピングはしない
 - relationsの `type` は `has-many` / `has-one` / `belongs-to` / `many-to-many`
 - actorsはPRDのロール定義から導出する
-- compositesはダッシュボード等の複合画面のみ
 - **パススルールール**: CMエディタはscreens/transitionsフィールドを読み込み時に保持し、保存時にそのまま書き戻す。screens/transitionsが存在しなくてもエラーにしない
 
 ## Execution Steps
@@ -121,7 +103,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 ### Step 1: JSONを生成
 
 docs/reqs/prd.md と docs/reqs/mrd.md と docs/reqs/conceptual-model.md を読み、
-entities・actors・compositesをJSONとして生成する。
+entities・actorsをJSONとして生成する。
 既存の product-model.json がある場合はそれを読み込み、screens/transitionsはそのまま保持する。
 
 ### Step 2: JSONファイルを書き出す

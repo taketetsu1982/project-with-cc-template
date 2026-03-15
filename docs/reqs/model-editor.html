@@ -91,7 +91,7 @@ let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,modelRef
 
 function getFullJson(){
   if(!modelRef)return null;
-  return{...passthrough,entities:modelRef.entities,actors:modelRef.actors,composites:modelRef.composites};
+  return{...passthrough,entities:modelRef.entities,actors:modelRef.actors};
 }
 
 function updateStatus(s,l,h){const dot=document.getElementById('cm-dot');dot.className='cm-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
@@ -103,9 +103,9 @@ function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};i
 function onFileConnected(h){fileHandle=h;updateStatus('connected',h.name);document.getElementById('cm-auto-btn').style.display='flex';if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('cm-auto-btn').classList.add('active');}}
 
 function splitData(data){
-  const{entities,actors,composites,...rest}=data;
+  const{entities,actors,...rest}=data;
   passthrough=rest;
-  return{entities:entities||[],actors:actors||[],composites:composites||[]};
+  return{entities:entities||[],actors:actors||[]};
 }
 
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
@@ -168,7 +168,7 @@ const SELF_REF_X=6,SELF_REF_Y=14,SELF_REF_CP=38;
 const GRID_COLS=3,GRID_GAP_X=360,GRID_GAP_Y=240,GRID_PAD_X=80,GRID_PAD_Y=80;
 const uid=()=>Math.random().toString(36).slice(2,8);
 function edgePt(x,y,w,h,tx,ty){const cx=x+w/2,cy=y+h/2,dx=tx-cx,dy=ty-cy;if(Math.abs(dx)*h>Math.abs(dy)*w)return dx>0?{x:x+w,y:cy}:{x,y:cy};return dy>0?{x:cx,y:y+h}:{x:cx,y};}
-const EMPTY={entities:[],actors:[],composites:[]};
+const EMPTY={entities:[],actors:[]};
 // ノード群の中心を返す（キャンバス中央に合わせるために使用）
 function calcCenterPan(items,w,h){
   if(!items||items.length===0)return{x:0,y:0};
@@ -408,55 +408,8 @@ function ActorView({model,setModel,setModelSilent}){
   );
 }
 
-function CompositeView({model,setModel}){
-  const[selId,setSelId]=useState(model.composites[0]?.id||null);
-  const sel_=model.composites.find(c=>c.id===selId);
-  const add=()=>{const id=uid();setModel(m=>({...m,composites:[...m.composites,{id,name:"New Composite",actorId:m.actors[0]?.id||"",objects:[],prompt:"",x:80,y:80}]}));setSelId(id);};
-  const upd=u=>setModel(m=>({...m,composites:m.composites.map(c=>c.id===u.id?u:c)}));
-  return(
-    <div style={{display:"flex",height:"100%"}}>
-      <div style={{width:320,background:M3.surface,boxShadow:"var(--md-sys-elevation-1)",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"16px 16px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",boxShadow:"var(--md-sys-elevation-1)",position:"relative",zIndex:1}}><SLabel>Composites</SLabel><Btn small ghost onClick={add}>+ Add</Btn></div>
-        <div style={{flex:1,overflowY:"auto"}}>
-          {model.composites.length===0&&<div style={{padding:16,fontSize:14,color:M3.outline,lineHeight:"20px"}}>Composite screens combine multiple entities — dashboards, feeds, summaries.</div>}
-          {model.composites.map(comp=>{const isSel=selId===comp.id,actor=model.actors.find(a=>a.id===comp.actorId);return<div key={comp.id} onClick={()=>setSelId(comp.id)} style={{padding:"16px 16px",cursor:"pointer",borderBottom:`1px solid ${M3.surfaceCont}`,borderLeft:`3px solid ${isSel?"#7D5700":"transparent"}`,background:isSel?"#FFF0C7":"transparent"}}><div style={{fontSize:14,fontWeight:500,color:isSel?"#7D5700":M3.onSurface}}>{comp.name}</div><div style={{fontSize:12,color:M3.onSurfaceVar,marginTop:4}}>{actor?.name||"—"} · {(comp.objects||[]).length} objects</div></div>;})}
-        </div>
-      </div>
-      {sel_?(<CompositePanel key={sel_.id} comp={sel_} model={model} onUpdate={upd} onDelete={()=>{setSelId(model.composites.find(c=>c.id!==sel_.id)?.id||null);setModel(m=>({...m,composites:m.composites.filter(c=>c.id!==sel_.id)}));}}/>):(<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:M3.outline,fontSize:14}}>Select a composite</div>)}
-    </div>
-  );
-}
 
-function CompositePanel({comp,model,onUpdate,onDelete}){
-  const upd=p=>onUpdate({...comp,...p});
-  const objs=comp.objects||[];
-  const addObj=()=>{const ent=model.entities[0];if(!ent)return;upd({objects:[...objs,{id:uid(),entityId:ent.id,variant:"collection",crud:["R"]}]});};
-  const updObj=(id,patch)=>upd({objects:objs.map(o=>o.id===id?{...o,...patch}:o)});
-  const delObj=id=>upd({objects:objs.filter(o=>o.id!==id)});
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:24,background:M3.surfaceContLow}}>
-      <div style={{marginBottom:24}}><SLabel>Name</SLabel><Input value={comp.name} onChange={e=>upd({name:e.target.value})} style={{fontSize:16,fontWeight:500}}/></div>
-      <div style={{marginBottom:24}}><SLabel>Actor</SLabel><Sel value={comp.actorId} onChange={e=>upd({actorId:e.target.value})} style={{width:"100%"}}><option value="">— select —</option>{model.actors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</Sel></div>
-      <div style={{marginBottom:24}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><SLabel>Objects</SLabel><Btn small ghost onClick={addObj}>+ Add</Btn></div>
-        {objs.length===0?<div style={{fontSize:13,color:"#C4C7C5"}}>No objects</div>:<div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {objs.map(obj=>{const c=entColor(model.entities,obj.entityId),p=entPalette(model.entities,obj.entityId);return<div key={obj.id} style={{background:p.bg+"18",border:`1px solid ${p.bg}60`,borderRadius:M3.shapeSm,padding:"16px 16px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:p.bg,flexShrink:0}}/>
-            <Sel value={obj.entityId} onChange={e=>updObj(obj.id,{entityId:e.target.value})} style={{flex:1,fontSize:14,fontWeight:500,border:"none",background:"transparent",color:p.fg,padding:0}}>{model.entities.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</Sel>
-            <button onClick={()=>delObj(obj.id)} style={{background:"none",border:"none",color:"#C4C7C5",cursor:"pointer",padding:"0 4px",flexShrink:0}} onMouseEnter={e=>{e.target.style.color="#D93025";}} onMouseLeave={e=>{e.target.style.color="#C4C7C5";}}><span className="msi" style={{fontSize:16}}>close</span></button>
-          </div>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <div style={{display:"flex",gap:4}}>{["collection","single"].map(v=>(<button key={v} onClick={()=>updObj(obj.id,{variant:v})} style={{padding:"4px 8px",fontSize:12,fontWeight:500,borderRadius:M3.shapeFull,cursor:"pointer",border:obj.variant===v?"none":`1px solid ${M3.outlineVar}`,background:obj.variant===v?"#D3E3FD":"white",color:obj.variant===v?"#041E49":"#9AA0A6"}}>{v}</button>))}</div>
-            <div style={{display:"flex",gap:4,marginLeft:"auto"}}>{CRUD_OPS.map(op=>(<button key={op} onClick={()=>{const crud=obj.crud.includes(op)?obj.crud.filter(c=>c!==op):[...obj.crud,op];updObj(obj.id,{crud});}} style={{fontSize:12,fontWeight:700,padding:"4px 8px",borderRadius:4,border:"none",cursor:"pointer",background:obj.crud.includes(op)?CRUD_BG[op]:"#F5F5F5",color:obj.crud.includes(op)?CRUD_COLOR[op]:"#DADCE0"}}>{op}</button>))}</div>
-          </div>
-        </div>;})}
-      </div>}</div>
-      <div style={{borderTop:`1px solid ${M3.outlineVar}`,paddingTop:16,marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={onDelete}>Delete composite</Btn></div>
-    </div>
-  );
-}
-
-const TABS=[{id:"entity",label:"Entity"},{id:"actor",label:"Actor"},{id:"composite",label:"Composite"}];
+const TABS=[{id:"entity",label:"Entity"},{id:"actor",label:"Actor"}];
 
 const CIRCLED=["⓪","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"];
 const circled=n=>n<CIRCLED.length?CIRCLED[n]:String(n);
@@ -573,7 +526,7 @@ function App(){
     return()=>{window.__cmLoadData=null;};
   },[]);
 
-  const counts={entity:model.entities.length,actor:model.actors.length,composite:model.composites.length};
+  const counts={entity:model.entities.length,actor:model.actors.length};
   const barRef=useRef(null);
   useEffect(()=>{
     if(!barRef.current)return;
@@ -592,7 +545,6 @@ function App(){
       <div style={{flex:1,overflow:"hidden"}}>
         {tab==="entity"&&<EntityView model={model} setModel={setModel} setModelSilent={setModelSilent} selId={entSelId} setSelId={setEntSelId}/>}
         {tab==="actor"&&<ActorView model={model} setModel={setModel} setModelSilent={setModelSilent}/>}
-        {tab==="composite"&&<CompositeView model={model} setModel={setModel}/>}
       </div>
     </div>
   );
