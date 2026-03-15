@@ -128,6 +128,5 @@ HTMLエディタで product-model.json をドラッグ&ドロップ、
 
 1. Entity タブでエンティティ・関係を確認・編集
 2. Actor タブでロール別CRUD権限を確認・編集
-3. Composite タブでダッシュボード等の複合画面を定義
-4. 確定後、/screens を実行して画面定義を作成
+3. 確定後、/screens を実行して画面定義を作成（Compositeはscreensのtype: compositeで定義）
 ```

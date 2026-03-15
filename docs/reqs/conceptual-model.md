@@ -14,8 +14,8 @@
 | ファイル | 役割 |
 |---------|------|
 | `conceptual-model.md`（このファイル） | 設計意図・関係の意味・背景（人間用） |
-| `product-model.json` | entities・actors・composites・screens・transitions（機械用・正） |
-| `model-editor.html` | CMエディタ（Entity / Actor / Composite を編集） |
+| `product-model.json` | entities・actors・screens(type: screen\|composite)・transitions（機械用・正） |
+| `model-editor.html` | CMエディタ（Entity / Actor を編集） |
 | `screen-editor.html` | Screensエディタ（Screens / Transitions を編集） |
 
 **1つのJSONファイルを2つのエディタが共有する。各エディタは担当外フィールドをパススルーで保持する。**
