@@ -304,7 +304,7 @@ function ActorEditModal({actors,onSave,onClose}){
   const del=i=>setList(l=>l.filter((_,j)=>j!==i));
   const move=(from,to)=>{if(to<0||to>=list.length)return;setList(l=>{const n=[...l];const[item]=n.splice(from,1);n.splice(to,0,item);return n;});};
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.32)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}} onClick={onClose}><div style={{background:"var(--md-sys-color-surface)",borderRadius:"var(--md-sys-shape-lg)",boxShadow:"var(--md-sys-elevation-2)",width:400,maxHeight:"70vh",display:"flex",flexDirection:"column",fontFamily:"inherit"}} onClick={e=>e.stopPropagation()}>
-    <div style={{padding:"24px 24px 16px",borderBottom:"1px solid var(--md-sys-color-outline-variant)"}}><span style={{fontSize:16,fontWeight:500,lineHeight:"24px",color:"var(--md-sys-color-on-surface)"}}>Actors</span></div>
+    <div style={{padding:"24px 24px 16px",borderBottom:"1px solid var(--md-sys-color-outline-variant)",display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:16,fontWeight:500,lineHeight:"24px",color:"var(--md-sys-color-on-surface)"}}>Actors</span><Btn ghost small onClick={add}>+ Add</Btn></div>
     <div style={{flex:1,overflowY:"auto",padding:"8px 24px"}}>
       {list.map((a,i)=>(<div key={a.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:"1px solid var(--md-sys-color-surface-container)"}} draggable onDragStart={()=>setDragIdx(i)} onDragOver={e=>{e.preventDefault();}} onDrop={()=>{if(dragIdx!==null&&dragIdx!==i)move(dragIdx,i);setDragIdx(null);}} onDragEnd={()=>setDragIdx(null)}>
         <span style={{cursor:"grab",color:"var(--md-sys-color-outline)",fontSize:16,userSelect:"none",flexShrink:0,width:20,textAlign:"center"}} title="Drag to reorder">⠿</span>
@@ -313,9 +313,8 @@ function ActorEditModal({actors,onSave,onClose}){
       </div>))}
       {list.length===0&&<div style={{padding:"24px 0",textAlign:"center",color:"var(--md-sys-color-outline)",fontSize:14}}>No actors</div>}
     </div>
-    <div style={{padding:"16px 24px 24px",borderTop:"1px solid var(--md-sys-color-outline-variant)",display:"flex",alignItems:"center"}}>
-      <Btn ghost small onClick={add}>+ Add</Btn>
-      <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+    <div style={{padding:"16px 24px 24px",borderTop:"1px solid var(--md-sys-color-outline-variant)",display:"flex",alignItems:"center",justifyContent:"flex-end"}}>
+      <div style={{display:"flex",gap:8}}>
         <Btn ghost onClick={onClose}>Cancel</Btn>
         <Btn accent onClick={()=>onSave(list)}>Save</Btn>
       </div>
