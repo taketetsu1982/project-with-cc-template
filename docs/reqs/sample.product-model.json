@@ -100,6 +100,13 @@
       ],
       "x": 396,
       "y": 427
+    },
+    {
+      "id": "use735",
+      "name": "ああああああああああああああああ",
+      "x": 117,
+      "y": 276.5,
+      "relations": []
     }
   ],
   "actors": [
@@ -262,6 +269,10 @@
             {
               "op": "U",
               "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "own"
             }
           ]
         },
@@ -274,7 +285,7 @@
             },
             {
               "op": "R",
-              "scope": "own"
+              "scope": "all"
             },
             {
               "op": "U",
@@ -307,25 +318,48 @@
       ]
     }
   ],
-  "composites": [
+  "screens": [
     {
       "id": "owner-dashboard",
       "name": "オーナーダッシュボード",
       "actorId": "owner",
-      "uses": [
-        "project",
-        "task",
-        "member"
-      ]
-    }
-  ],
-  "screens": [
+      "objects": [
+        {
+          "id": "co1",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co2",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co3",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
+      ],
+      "prompt": "KPI（月次進捗・タスク完了率）をカード形式で上部に表示。プロジェクト別タスク数をグラフで中段に。",
+      "x": 147,
+      "y": -67,
+      "type": "composite"
+    },
     {
       "id": "project-list",
       "name": "プロジェクト一覧",
       "actorId": "owner",
       "x": -173,
-      "y": -7,
+      "y": -6,
       "prompt": "",
       "objects": [
         {
@@ -338,14 +372,15 @@
             "D"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "project-detail",
       "name": "プロジェクト詳細",
       "actorId": "owner",
       "x": -26,
-      "y": 258,
+      "y": 259,
       "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
         {
@@ -389,7 +424,8 @@
           ],
           "area": "main"
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "task-detail",
@@ -427,7 +463,8 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "member-task-list",
@@ -455,7 +492,8 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "member-task-detail",
@@ -485,7 +523,8 @@
           ],
           "area": "right"
         }
-      ]
+      ],
+      "type": "screen"
     },
     {
       "id": "f3x8qy",
@@ -503,7 +542,18 @@
             "R"
           ]
         }
-      ]
+      ],
+      "type": "screen"
+    },
+    {
+      "id": "1mjjl5",
+      "name": "New Screen2",
+      "actorId": "member-actor",
+      "x": -272.75,
+      "y": 74.5,
+      "prompt": "",
+      "objects": [],
+      "type": "screen"
     }
   ],
   "transitions": [
@@ -528,6 +578,18 @@
     {
       "id": "oscbrq",
       "from": "f3x8qy",
+      "to": "project-list",
+      "trigger": "Tap"
+    },
+    {
+      "id": "pe6uqx",
+      "from": "project-list",
+      "to": "owner-dashboard",
+      "trigger": "Tap"
+    },
+    {
+      "id": "4kysn5",
+      "from": "owner-dashboard",
       "to": "project-list",
       "trigger": "Tap"
     }
