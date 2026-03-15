@@ -9,12 +9,12 @@
 ## このファイルについて
 
 このファイルは**人間が読むための設計意図・背景・関係性の説明**を記述する。
-構造定義は `conceptual-model.json` が正であり、HTMLエディタで操作する。
+構造定義は `product-model.json` が正であり、HTMLエディタで操作する。
 
 | ファイル | 役割 |
 |---------|------|
 | `conceptual-model.md`（このファイル） | 設計意図・関係の意味・背景（人間用） |
-| `conceptual-model.json` | entities・actors・composites・screens・navigation（機械用・正） |
+| `product-model.json` | entities・actors・composites・screens・navigation（機械用・正） |
 | `model-editor.html` | CMエディタ（Entity / Actor / Composite を編集） |
 | `screen-editor.html` | Screensエディタ（Screens / Navigation を編集） |
 
@@ -42,20 +42,20 @@
 
 ## エンティティ間の関係
 
-エンティティ間の関係は `conceptual-model.json` の `entities[].relations` で表現。
+エンティティ間の関係は `product-model.json` の `entities[].relations` で表現。
 
 ---
 
 ## アクター定義
 
-アクター（操作者ロール）は `conceptual-model.json` の `actors` で定義。
+アクター（操作者ロール）は `product-model.json` の `actors` で定義。
 各アクターがどのエンティティにどの権限（CRUD + scope）でアクセスするかを管理する。
 
 ---
 
 ## 画面定義
 
-画面定義は `conceptual-model.json` の `screens` / `navigation` で管理。
+画面定義は `product-model.json` の `screens` / `navigation` で管理。
 `/screens` を実行してScreensエディタで編集する。
 
 ---

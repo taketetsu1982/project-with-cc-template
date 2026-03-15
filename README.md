@@ -59,7 +59,7 @@ project_root/
 │   │   ├── mrd.md               #   市場要求定義
 │   │   ├── prd.md               #   プロダクト要求定義
 │   │   ├── conceptual-model.md  #   概念モデル（設計意図・人間用）
-│   │   ├── conceptual-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
+│   │   ├── product-model.json #  概念モデル（エンティティ・ビュー定義・機械用・正）
 │   │   ├── model-editor.html     #  CMエディタ（ブラウザで開く）
 │   │   ├── screen-editor.html    #  Screensエディタ（ブラウザで開く）
 │   │   └── user-stories.md      #   ユーザーストーリー
@@ -94,7 +94,7 @@ project_root/
 
 順序：`pg0 ⇔ prd ⇔ mrd → conceptual-model → screens`
 
-pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/screens` で画面定義（screens/navigation）を生成する。いずれも同じ `conceptual-model.json` に格納され、HTMLエディタで微調整も可能。
+pg0・prd・mrd は Claude Code と対話しながらつくる。Agent Teams を使えば対話・調査・分析を並列で進められる。3つが固まったら `/conceptual-model` で概念モデル（entities/actors/composites）を生成、続けて `/screens` で画面定義（screens/navigation）を生成する。いずれも同じ `product-model.json` に格納され、HTMLエディタで微調整も可能。
 
 **conceptual-model 以降は、Claude Code が生成し人が確認・調整するスタイルに変わる。**
 
@@ -168,9 +168,9 @@ product-goals（PG一覧・確信度）
    pg0 ⇔ prd（WHO:User, WHY, WHAT） ⇔ mrd（WHERE, WHO:Buyer, HOW MUCH）
         │                                          ↑ Claude Codeと対話しながらつくる
         │
-  conceptual-model.json（entities/actors）           ← /conceptual-model で生成
+  product-model.json（entities/actors）           ← /conceptual-model で生成
         │
-  conceptual-model.json（screens/navigation）        ← /screens で生成
+  product-model.json（screens/navigation）        ← /screens で生成
         │                                          ↑ ここからClaude Codeが生成、人が調整
         │
    user-stories
