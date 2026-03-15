@@ -353,9 +353,9 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
               {(byArea.top.length>0)&&renderZone("top",byArea.top,{})}
               {/* Middle row: Left | Main | Right */}
               <div style={{display:"flex",gap:16}}>
-                {hasLeft&&renderZone("left",byArea.left,{width:280,flexShrink:0})}
+                {hasLeft&&renderZone("left",byArea.left,{width:320,flexShrink:0})}
                 {renderZone("main",byArea.main,{flex:1})}
-                {hasRight&&renderZone("right",byArea.right,{width:280,flexShrink:0})}
+                {hasRight&&renderZone("right",byArea.right,{width:320,flexShrink:0})}
               </div>
               {/* Bottom zone */}
               {(byArea.bottom.length>0)&&renderZone("bottom",byArea.bottom,{})}
