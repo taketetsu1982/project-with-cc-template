@@ -58,7 +58,7 @@ entities / actors / composites は /conceptual-model で編集する（同じJSO
 ### スキーマルール
 
 - 各 screen は1つの actorId を持つ
-- objects の crud は actor の touches 権限の範囲内で設定する
+- objects の crud は actor の touches.crud に含まれる op の範囲内で設定する
 - transitions は同一 actor 内の遷移のみ定義する
 - **パススルールール**: Screens エディタは entities/actors/composites フィールドを読み込み時に保持し、保存時にそのまま書き戻す。これらが空でもエラーにしない
 

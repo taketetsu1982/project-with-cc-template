@@ -109,62 +109,128 @@
       "touches": [
         {
           "entityId": "workspace",
-          "scope": "own",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "own"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
           ]
         },
         {
           "entityId": "project",
-          "scope": "own",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "own"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
           ]
         },
         {
           "entityId": "task",
-          "scope": "all",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "member",
-          "scope": "all",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "label",
-          "scope": "all",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "comment",
-          "scope": "all",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
           ]
         }
       ]
@@ -175,42 +241,67 @@
       "touches": [
         {
           "entityId": "project",
-          "scope": "all",
           "crud": [
-            "R"
+            {
+              "op": "R",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "task",
-          "scope": "all",
           "crud": [
-            "C",
-            "R",
-            "U"
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "comment",
-          "scope": "own",
           "crud": [
-            "C",
-            "R",
-            "U",
-            "D"
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "own"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
           ]
         },
         {
           "entityId": "label",
-          "scope": "all",
           "crud": [
-            "R"
+            {
+              "op": "R",
+              "scope": "all"
+            }
           ]
         },
         {
           "entityId": "member",
-          "scope": "all",
           "crud": [
-            "R"
+            {
+              "op": "R",
+              "scope": "all"
+            }
           ]
         }
       ]
