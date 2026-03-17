@@ -107,7 +107,11 @@ function onFileConnected(h){fileHandle=h;if(!autoSaveEnabled){autoSaveEnabled=tr
 function splitData(data){
   const{entities,actors,...rest}=data;
   passthrough=rest;
-  return{entities:entities||[],actors:actors||[]};
+  const ents=entities||[];
+  let migrated=false;
+  ents.forEach(e=>{(e.relations||[]).forEach(r=>{if(r.type==='belongs-to'){r.type='has-many';migrated=true;}});});
+  if(migrated)setTimeout(()=>showToast('belongs-toをhas-manyに自動変換しました'),300);
+  return{entities:ents,actors:actors||[]};
 }
 
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
@@ -148,7 +152,7 @@ const{CRUD_OPS,CRUD_COLOR,CRUD_BG,ENT_PALETTE,ZOOM_MIN,ZOOM_MAX,MAX_HISTORY,uid,
 const{ensurePositions:_ensurePositions,CIRCLED,circled}=window.__editorLib;
 const entPalette=(ents,id)=>window.__editorLib.entPalette(ents,id);
 const entColor=(ents,id)=>window.__editorLib.entColor(ents,id);
-const REL_TYPES=["has-many","has-one","belongs-to","many-to-many"];
+const REL_TYPES=["has-many","has-one","many-to-many"];
 // ノードサイズ
 const EW=200,EH=72;
 // Actorカード
@@ -219,9 +223,6 @@ function EntityView({model,setModel,setModelSilent,selId,setSelId}){
             {/* has-one: バー（|） */}
             <marker id="m-ho" markerWidth="6" markerHeight="12" refX="5" refY="6" orient="auto"><line x1="5" y1="1" x2="5" y2="11" stroke="#9AA0A6" strokeWidth="2"/></marker>
             <marker id="m-ho-hi" markerWidth="6" markerHeight="12" refX="5" refY="6" orient="auto"><line x1="5" y1="1" x2="5" y2="11" stroke="#1A73E8" strokeWidth="2"/></marker>
-            {/* belongs-to: 矢印（▶） */}
-            <marker id="m-bt" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#9AA0A6"/></marker>
-            <marker id="m-bt-hi" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#1A73E8"/></marker>
             {/* many-to-many: ダイヤモンド（◆） */}
             <marker id="m-mm" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#9AA0A6"/></marker>
             <marker id="m-mm-hi" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><polygon points="1 5,5 1,9 5,5 9" fill="#1A73E8"/></marker>
@@ -233,7 +234,7 @@ function EntityView({model,setModel,setModelSilent,selId,setSelId}){
           {/* 1. ノード（最背面） */}
           {ents.map(ent=>{const p=entPalette(ents,ent.id),isSel=selId===ent.id,isCS=conn===ent.id;return<g key={ent.id} transform={`translate(${ent.x},${ent.y})`} onMouseDown={e=>onBoxMD(e,ent.id)} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={EW} height={EH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={EW} height={EH} rx={14} fill={p.bg} stroke={isSel||isCS?p.fg:"transparent"} strokeWidth={isSel||isCS?2.5:0}/><foreignObject x={0} y={0} width={EW} height={EH}><div style={{width:EW,height:EH,display:"flex",alignItems:"center",justifyContent:"center",padding:"8px 16px",boxSizing:"border-box",fontSize:16,fontWeight:600,color:p.fg,textAlign:"center",wordBreak:"break-word",lineHeight:"20px",overflow:"hidden"}}>{ent.name}</div></foreignObject></g>;})}
           {/* 2. リレーション線 */}
-          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6",hs=hi?"-hi":"";const rtype=rel.type||"has-many";const dash=rtype==="belongs-to"?"6 4":rtype==="many-to-many"?"3 3":"none";const endMk=rtype==="has-many"?`url(#m-hm${hs})`:rtype==="has-one"?`url(#m-ho${hs})`:rtype==="belongs-to"?`url(#m-bt${hs})`:`url(#m-mm${hs})`;const startMk=rtype==="many-to-many"?`url(#m-mm-s${hs})`:"";if(tgt.id===ent.id){const lx=ent.x+EW-SELF_REF_X,ty=ent.y+SELF_REF_Y;return<path key={`l-${ent.id}-${ri}`} d={`M${lx},${ty} C${lx+SELF_REF_CP},${ty-14} ${lx+SELF_REF_CP},${ty+28} ${lx},${ty+20}`} fill="none" stroke={col} strokeWidth="1.5" strokeDasharray={dash} markerEnd={endMk}/>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2);return<line key={`l-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray={dash} markerEnd={endMk} markerStart={startMk}/>;}))}
+          {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6",hs=hi?"-hi":"";const rtype=rel.type||"has-many";const dash=rtype==="many-to-many"?"3 3":"none";const endMk=rtype==="has-many"?`url(#m-hm${hs})`:rtype==="has-one"?`url(#m-ho${hs})`:`url(#m-mm${hs})`;const startMk=rtype==="many-to-many"?`url(#m-mm-s${hs})`:"";if(tgt.id===ent.id){const lx=ent.x+EW-SELF_REF_X,ty=ent.y+SELF_REF_Y;return<path key={`l-${ent.id}-${ri}`} d={`M${lx},${ty} C${lx+SELF_REF_CP},${ty-14} ${lx+SELF_REF_CP},${ty+28} ${lx},${ty+20}`} fill="none" stroke={col} strokeWidth="1.5" strokeDasharray={dash} markerEnd={endMk}/>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2);return<line key={`l-${ent.id}-${ri}`} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={hi?2:1.5} strokeDasharray={dash} markerEnd={endMk} markerStart={startMk}/>;}))}
           {/* 3. リレーションラベル（最前面） */}
           {ents.flatMap(ent=>ent.relations.map((rel,ri)=>{const tgt=ents.find(e=>e.id===rel.targetId);if(!tgt||!rel.label)return null;const hi=selId===ent.id||selId===tgt.id,col=hi?"#1A73E8":"#9AA0A6";const lw=labelWidth(rel.label);if(tgt.id===ent.id){const lx=ent.x+EW-SELF_REF_X,ty=ent.y+SELF_REF_Y;return<text key={`lb-${ent.id}-${ri}`} x={lx+SELF_REF_CP+4} y={ty+6} fontSize={11} fill={col}>{rel.label}</text>;}const fp=edgePt(ent.x,ent.y,EW,EH,tgt.x+EW/2,tgt.y+EH/2),tp=edgePt(tgt.x,tgt.y,EW,EH,ent.x+EW/2,ent.y+EH/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;return<g key={`lb-${ent.id}-${ri}`}><rect x={mx-lw/2} y={my-9} width={lw} height={17} rx={8} fill="white" stroke={col} strokeWidth="0.5" opacity="0.96"/><text x={mx} y={my+4} fontSize={11} fill={col} textAnchor="middle">{rel.label}</text></g>;}))}
           </g>

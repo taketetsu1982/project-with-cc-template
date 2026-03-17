@@ -29,6 +29,12 @@
           "targetId": "task",
           "type": "has-many",
           "label": "assigned to"
+        },
+        {
+          "id": "r9",
+          "targetId": "comment",
+          "type": "has-many",
+          "label": "posted"
         }
       ],
       "x": 400,
@@ -69,12 +75,6 @@
           "targetId": "label",
           "type": "has-many",
           "label": "tagged"
-        },
-        {
-          "id": "r8",
-          "targetId": "member",
-          "type": "belongs-to",
-          "label": "assigned to"
         }
       ],
       "x": 80,
@@ -90,14 +90,7 @@
     {
       "id": "comment",
       "name": "コメント",
-      "relations": [
-        {
-          "id": "r9",
-          "targetId": "member",
-          "type": "belongs-to",
-          "label": "by"
-        }
-      ],
+      "relations": [],
       "x": 720,
       "y": 280
     }

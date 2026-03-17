@@ -45,7 +45,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
   "id": "kebab-case識別子",
   "name": "表示名",
   "relations": [
-    { "id": "一意ID", "targetId": "対象エンティティid", "type": "has-many | has-one | belongs-to | many-to-many", "label": "関係の短い説明" }
+    { "id": "一意ID", "targetId": "対象エンティティid", "type": "has-many | has-one | many-to-many", "label": "関係の短い説明" }
   ]
 }
 ```
@@ -94,7 +94,7 @@ CMエディタとScreensエディタが同じJSONファイルを共有する。
 ### スキーマルール
 
 - エンティティはフラットな配列。グルーピングはしない
-- relationsの `type` は `has-many` / `has-one` / `belongs-to` / `many-to-many`
+- relationsの `type` は `has-many` / `has-one` / `many-to-many`
 - actorsはPRDのロール定義から導出する
 - **パススルールール**: CMエディタはscreens/transitionsフィールドを読み込み時に保持し、保存時にそのまま書き戻す。screens/transitionsが存在しなくてもエラーにしない
 
