@@ -177,7 +177,7 @@ function Btn({children,onClick,accent,small,danger,ghost}){
 const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
 
 function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange}){
-  const[actorId,setActorId]=useState(CONCEPT.actors[0]?.id||null),[selNavId,setSelNavId]=useState(null),[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null);
+  const[actorId,setActorId]=useState(CONCEPT.actors[0]?.id||null),[selNavId,setSelNavId]=useState(null),[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null),[navDrag,setNavDrag]=useState(null);
   const selScr=selId?screens.screens.find(s=>s.id===selId):null;
   const{svgRef,pan,setPan}=useInitialPan(screens.screens,SW,SH);
   const[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
@@ -190,14 +190,16 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
   const updNav=u=>setScreens(m=>({...m,transitions:m.transitions.map(n=>n.id===u.id?u:n)}));
   const delNav=id=>{setSelNavId(null);setScreens(m=>({...m,transitions:m.transitions.filter(n=>n.id!==id)}));};
   const addScreen=(type="screen")=>{const id=uid();const names=screens.screens.map(s=>s.name);const defaultName=type==="composite"?"New Composite":"New Screen";setScreens(m=>({...m,screens:[...m.screens,{id,name:uniqueName(defaultName,names),type,actorId,x:120/zoom+pan.x,y:120/zoom+pan.y,prompt:"",objects:[]}]}));};
+  const onHandleMD=(e,navId,end)=>{e.preventDefault();e.stopPropagation();const r=svgRef.current.getBoundingClientRect();setNavDrag({navId,end,mx:(e.clientX-r.left)/zoom+pan.x,my:(e.clientY-r.top)/zoom+pan.y});setSelNavId(null);};
   const connOn=conn!==null,connHasSrc=conn!==null&&conn!=="";
   const onBgMD=e=>{if(connOn)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
   const onBoxMD=(e,id)=>{e.stopPropagation();if(connOn){if(conn===""){setConn(id);return;}if(conn!==id){setScreens(m=>({...m,transitions:[...m.transitions,{id:uid(),from:conn,to:id,trigger:"Tap"}]}));setConn(null);}return;}setSelNavId(null);setSelId(id);const r=svgRef.current.getBoundingClientRect();const sc=visScr.find(s=>s.id===id);dOff.current={x:(e.clientX-r.left)/zoom+pan.x-sc.x,y:(e.clientY-r.top)/zoom+pan.y-sc.y};didDrag.current=false;setDrag(id);};
-  const onMM=useCallback(e=>{if(drag){didDrag.current=true;const r=svgRef.current.getBoundingClientRect();setScreensSilent(m=>({...m,screens:m.screens.map(s=>s.id===drag?{...s,x:(e.clientX-r.left)/zoom+pan.x-dOff.current.x,y:(e.clientY-r.top)/zoom+pan.y-dOff.current.y}:s)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[drag,panning,pan,zoom,setScreensSilent]);
-  const onUp=()=>{if(drag&&didDrag.current)setScreens(m=>m);setDrag(null);setPanning(false);};
+  const onMM=useCallback(e=>{if(navDrag){const r=svgRef.current.getBoundingClientRect();setNavDrag(d=>({...d,mx:(e.clientX-r.left)/zoom+pan.x,my:(e.clientY-r.top)/zoom+pan.y}));return;}if(drag){didDrag.current=true;const r=svgRef.current.getBoundingClientRect();setScreensSilent(m=>({...m,screens:m.screens.map(s=>s.id===drag?{...s,x:(e.clientX-r.left)/zoom+pan.x-dOff.current.x,y:(e.clientY-r.top)/zoom+pan.y-dOff.current.y}:s)}));return;}if(panning){setPan({x:panStart.current.px-(e.clientX-panStart.current.x)/zoom,y:panStart.current.py-(e.clientY-panStart.current.y)/zoom});}},[navDrag,drag,panning,pan,zoom,setScreensSilent]);
+  const onUp=()=>{if(navDrag){const hit=visScr.find(s=>{const n=findNode(s.id);return n&&navDrag.mx>=n.x&&navDrag.mx<=n.x+SW&&navDrag.my>=n.y&&navDrag.my<=n.y+n.h;});if(hit){const nav=screens.transitions.find(n=>n.id===navDrag.navId);if(nav){const field=navDrag.end==="from"?"from":"to";const other=field==="from"?"to":"from";if(hit.id!==nav[other]){setScreens(m=>({...m,transitions:m.transitions.map(n=>n.id===navDrag.navId?{...n,[field]:hit.id}:n)}));}}}setNavDrag(null);return;}if(drag&&didDrag.current)setScreens(m=>m);setDrag(null);setPanning(false);};
   const onWheel=useCallback(e=>{e.preventDefault();if(e.ctrlKey||e.metaKey){const r=svgRef.current.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);const d=e.deltaY>0?0.92:1.08;setZoom(z=>{const nz=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,z*d));const wx=mx/z+pan.x,wy=my/z+pan.y;setPan({x:wx-mx/nz,y:wy-my/nz});return nz;});}else{setPan(p=>({x:p.x+e.deltaX/zoom,y:p.y+e.deltaY/zoom}));}},[zoom,pan]);
 
   useEffect(()=>{if(CONCEPT.actors.length>0&&!CONCEPT.actors.find(a=>a.id===actorId))setActorId(CONCEPT.actors[0].id);},[screens]);
+  useEffect(()=>{if(selNavId&&!screens.transitions.find(n=>n.id===selNavId))setSelNavId(null);},[screens.transitions,selNavId]);
   useEffect(()=>{onSelChange?.(selId,selNavId,actorId);},[selId,selNavId,actorId]);
 
   return(
@@ -207,14 +209,16 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
       </div>
       <div style={{flex:1,display:"flex",overflow:"hidden"}}>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
-          <svg ref={svgRef} width="100%" height="100%" style={{cursor:drag?"grabbing":panning?"grabbing":connOn?"crosshair":"grab",display:"block"}} onMouseMove={onMM} onMouseUp={onUp} onMouseLeave={onUp} onWheel={onWheel} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg')){if(!connOn){setSelNavId(null);setSelId(null);}}}}>
+          <svg ref={svgRef} width="100%" height="100%" style={{cursor:navDrag?"grabbing":drag?"grabbing":panning?"grabbing":connOn?"crosshair":"grab",display:"block",userSelect:navDrag||drag?"none":"auto"}} onMouseMove={onMM} onMouseUp={onUp} onMouseLeave={onUp} onWheel={onWheel} onClick={e=>{if(e.target===e.currentTarget||e.target.getAttribute('data-bg')){if(!connOn){setSelNavId(null);setSelId(null);}}}}>
             <defs><pattern id="sdots" width={24/zoom} height={24/zoom} patternUnits="userSpaceOnUse" x={(-pan.x*zoom)%24} y={(-pan.y*zoom)%24}><circle cx={1/zoom} cy={1/zoom} r={1/zoom} fill="#E0E0E0"/></pattern><marker id="sarr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9AA0A6"/></marker><marker id="sarr-hi" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#1A73E8"/></marker></defs>
             <rect width="100%" height="100%" fill="url(#sdots)" data-bg="1" onMouseDown={onBgMD}/>
             <g transform={`scale(${zoom}) translate(${-pan.x},${-pan.y})`}>
             {/* 1. スクリーンカード（最背面） */}
             {visScr.map(scr=>{const isComp=scr.type==="composite",isConn=conn===scr.id,isSel=selId===scr.id,objs=scr.objects||[],cardH=SH+Math.max(0,objs.length)*SC_OBJ_ROW_H;return(<g key={scr.id} transform={`translate(${scr.x},${scr.y})`} onMouseDown={e=>onBoxMD(e,scr.id)} onDoubleClick={e=>{e.stopPropagation();onSelectScreen(scr.id);}} style={{cursor:connOn?"pointer":"grab"}}><rect x={1} y={2} width={SW} height={cardH} rx={14} fill="rgba(0,0,0,0.04)"/><rect width={SW} height={cardH} rx={14} fill="white"/><clipPath id={`clip-${scr.id}`}><rect width={SW} height={cardH} rx={14}/></clipPath><g clipPath={`url(#clip-${scr.id})`}><rect width={SW} height={SC_HEADER_H} fill={isComp?"#E8EAED":"#FAFAFA"}/><line x1={0} y1={SC_HEADER_H} x2={SW} y2={SC_HEADER_H} stroke="#E0E0E0" strokeWidth="1"/><foreignObject x={0} y={0} width={SW} height={SC_HEADER_H}><div style={{display:"flex",alignItems:"center",gap:4,padding:"0 12px",height:SC_HEADER_H,boxSizing:"border-box"}}><span className="msi" style={{fontSize:18,color:"#5F6368"}}>{isComp?"dashboard":"crop_square"}</span><span style={{fontSize:14,fontWeight:500,color:"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{scr.name}</span></div></foreignObject>{objs.map((obj,oi)=>{const p=entPalette(obj.entityId);return(<g key={obj.id||oi} transform={`translate(0,${SC_OBJ_START_Y+oi*SC_OBJ_ROW_H})`}><rect x={SC_OBJ_PAD_X} width={SW-SC_OBJ_PAD_X*2} height={18} rx={9} fill={p.bg+"30"}/><circle cx={18} cy={9} r={4} fill={p.bg}/><text x={28} y={13} fontSize={11} fontWeight="500" fill={p.fg} fontFamily="inherit">{entName(obj.entityId)}</text></g>);})}</g><rect width={SW} height={cardH} rx={14} fill="none" stroke={isConn?"#E37400":isSel?"#1A73E8":"#DADCE0"} strokeWidth={isConn||isSel?2.5:1}/></g>);})}
             {/* 2. ナビ線 */}
-            {visNav.map(nav=>{const src=findNode(nav.from),tgt=findNode(nav.to);if(!src||!tgt)return null;const fp=edgePt(src.x,src.y,SW,src.h,tgt.x+SW/2,tgt.y+tgt.h/2),tp=edgePt(tgt.x,tgt.y,SW,tgt.h,src.x+SW/2,src.y+src.h/2),isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";return(<g key={`nl-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelId(null);}}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="transparent" strokeWidth={12} style={{cursor:"pointer"}}/><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={isSel?2:1.5} markerEnd={isSel?"url(#sarr-hi)":"url(#sarr)"} style={{cursor:"pointer"}}/></g>);})}
+            {visNav.map(nav=>{const src=findNode(nav.from),tgt=findNode(nav.to);if(!src||!tgt)return null;const fp=edgePt(src.x,src.y,SW,src.h,tgt.x+SW/2,tgt.y+tgt.h/2),tp=edgePt(tgt.x,tgt.y,SW,tgt.h,src.x+SW/2,src.y+src.h/2),isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";return(<g key={`nl-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelId(null);}}><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke="transparent" strokeWidth={12} style={{cursor:"pointer"}}/><line x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={col} strokeWidth={isSel?2:1.5} markerEnd={isSel?"url(#sarr-hi)":"url(#sarr)"} style={{cursor:"pointer"}}/>{isSel&&!navDrag&&<><circle cx={fp.x} cy={fp.y} r={6} fill="white" stroke="#1A73E8" strokeWidth={2} onMouseDown={e=>onHandleMD(e,nav.id,"from")} style={{cursor:"grab"}}/><circle cx={tp.x} cy={tp.y} r={6} fill="white" stroke="#1A73E8" strokeWidth={2} onMouseDown={e=>onHandleMD(e,nav.id,"to")} style={{cursor:"grab"}}/></>}</g>);})}
+            {/* 2.5. ドラッグ中のプレビュー線 */}
+            {navDrag&&(()=>{const nav=screens.transitions.find(n=>n.id===navDrag.navId);if(!nav)return null;const src=findNode(nav.from),tgt=findNode(nav.to);if(!src||!tgt)return null;const fp2=navDrag.end==="from"?{x:navDrag.mx,y:navDrag.my}:edgePt(src.x,src.y,SW,src.h,navDrag.mx,navDrag.my),tp2=navDrag.end==="to"?{x:navDrag.mx,y:navDrag.my}:edgePt(tgt.x,tgt.y,SW,tgt.h,navDrag.mx,navDrag.my);return<line x1={fp2.x} y1={fp2.y} x2={tp2.x} y2={tp2.y} stroke="#1A73E8" strokeWidth={2} strokeDasharray="4 4" opacity={0.6}/>;})()}
             {/* 3. ナビラベル（最前面） */}
             {visNav.map(nav=>{const src=findNode(nav.from),tgt=findNode(nav.to);if(!src||!tgt)return null;const fp=edgePt(src.x,src.y,SW,src.h,tgt.x+SW/2,tgt.y+tgt.h/2),tp=edgePt(tgt.x,tgt.y,SW,tgt.h,src.x+SW/2,src.y+src.h/2),mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2,isSel=selNavId===nav.id,col=isSel?"#1A73E8":"#9AA0A6";const lw=labelWidth(nav.trigger);return(<g key={`nb-${nav.id}`} onClick={e=>{e.stopPropagation();setSelNavId(isSel?null:nav.id);setSelId(null);}} style={{cursor:"pointer"}}><rect x={mx-lw/2} y={my-10} width={lw} height={19} rx={10} fill={isSel?"#1A73E8":"white"} stroke={col} strokeWidth="0.5"/><text x={mx} y={my+4} fontSize={11} fill={isSel?"white":"#5F6368"} textAnchor="middle" style={{pointerEvents:"none"}}>{nav.trigger}</text></g>);})}
             </g>
@@ -242,17 +246,6 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
               <div style={{display:"flex",justifyContent:"flex-end"}}><button onClick={()=>onSelectScreen(scr.id)} style={{background:"#D3E3FD",border:"none",color:"#041E49",borderRadius:"var(--md-sys-shape-full)",padding:"8px 24px",fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",transition:"box-shadow .15s"}} onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}} onMouseLeave={e=>{e.target.style.boxShadow="none";}}>Open Screen</button></div>
             </div>
             <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={del}>Delete screen</Btn></div>
-          </div>);})()}
-        {(()=>{if(!selNav||selId)return null;const fromName=visScr.find(s=>s.id===selNav.from)?.name||"—";const toName=visScr.find(s=>s.id===selNav.to)?.name||"—";return(
-          <div style={{width:400,borderLeft:`1px solid ${M3.outlineVar}`,background:M3.surfaceContLow,display:"flex",flexDirection:"column",flexShrink:0}}>
-            <div style={{padding:"16px 16px",borderBottom:`1px solid ${M3.outlineVar}`,display:"flex",alignItems:"center",justifyContent:"space-between",background:M3.surface}}><span style={{fontSize:12,fontWeight:500,color:M3.onSurfaceVar,textTransform:"uppercase",letterSpacing:"0.5px"}}>Transition</span><button onClick={()=>setSelNavId(null)} style={{background:"none",border:"none",cursor:"pointer",color:M3.onSurfaceVar}}><span className="msi" style={{fontSize:20}}>close</span></button></div>
-            <div style={{flex:1,overflowY:"auto",padding:16}}>
-              <div style={{marginBottom:16}}><SLabel>From</SLabel><div style={{fontSize:14,fontWeight:500,color:M3.onSurface}}>{fromName}</div></div>
-              <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}><span className="msi" style={{color:"#9AA0A6",fontSize:20}}>arrow_downward</span></div>
-              <div style={{marginBottom:24}}><SLabel>To</SLabel><div style={{fontSize:14,fontWeight:500,color:M3.onSurface}}>{toName}</div></div>
-              <div style={{marginBottom:24}}><SLabel>Trigger</SLabel><Input value={selNav.trigger} onChange={e=>updNav({...selNav,trigger:e.target.value})} placeholder="Tap, Click, etc."/></div>
-            </div>
-            <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16}}><Btn danger onClick={()=>delNav(selNav.id)}>Delete transition</Btn></div>
           </div>);})()}
       </div>
       {(()=>{
@@ -391,8 +384,16 @@ function App(){
   const setSelRef=(scrId,navId,actorId)=>{selRef.current={scrId,navId,actorId};};
 
   const handleDelete=useCallback(()=>{
-    const{scrId}=selRef.current;
-    if(view!=="map"||!scrId)return false;
+    if(view!=="map")return false;
+    const{scrId,navId}=selRef.current;
+    if(navId){
+      const nav=screens.transitions.find(n=>n.id===navId);
+      if(!nav)return false;
+      setScreens(m=>({...m,transitions:m.transitions.filter(n=>n.id!==navId)}));
+      showToast('Deleted transition');
+      return true;
+    }
+    if(!scrId)return false;
     const scr=screens.screens.find(s=>s.id===scrId);
     if(!scr)return false;
     setScreens(m=>({...m,screens:m.screens.filter(s=>s.id!==scrId),transitions:m.transitions.filter(t=>t.from!==scrId&&t.to!==scrId)}));
