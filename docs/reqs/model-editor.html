@@ -157,6 +157,7 @@ const REL_TYPES=["has-many","has-one","many-to-many"];
 const EW=200,EH=72;
 // Actorカード
 const CRUD_W=28,CRUD_GAP=4,CRUD_ROW_H=26,ACTOR_CARD_H=EH+CRUD_ROW_H;
+const CRUD_LABELS={C:"Create",R:"Read",U:"Update",D:"Delete"};
 // 自己参照カーブ
 const SELF_REF_X=6,SELF_REF_Y=14,SELF_REF_CP=38;
 // グリッドレイアウト
@@ -326,8 +327,9 @@ function ActorView({model,setModel,setModelSilent}){
   const removeTouch=eid=>{if(!actor)return;updActor({...actor,touches:actor.touches.filter(t=>t.entityId!==eid)});setSelEntId(null);};
 
   if(!actor)return(<div style={{display:"flex",height:"100%",flexDirection:"column"}}><div style={{background:M3.surface,display:"flex",alignItems:"center",flexShrink:0,minHeight:56,paddingLeft:16,boxShadow:"var(--md-sys-elevation-1)",position:"relative",zIndex:1}}><div style={{marginLeft:"auto",display:"flex",alignItems:"center",paddingRight:16,gap:8}}><Btn small ghost onClick={()=>setShowEdit(true)}>Edit</Btn></div></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:M3.outline,fontSize:14}}>No actors yet</div>{showEdit&&<ActorEditModal actors={model.actors} onSave={handleEditSave} onClose={()=>setShowEdit(false)}/>}</div>);
-  const toggleOp=(op)=>{if(!actor||!selEnt)return;const on=touch&&touch.crud.some(c=>c.op===op);if(on){updActor({...actor,touches:actor.touches.map(t=>t.entityId===selEnt.id?{...t,crud:t.crud.filter(c=>c.op!==op)}:t)});}else{updActor({...actor,touches:actor.touches.map(t=>t.entityId===selEnt.id?{...t,crud:[...t.crud,{op,scope:"all"}]}:t)});}};
-  const setScope=(op,sc)=>updActor({...actor,touches:actor.touches.map(t=>t.entityId===selEnt.id?{...t,crud:t.crud.map(c=>c.op===op?{...c,scope:sc}:c)}:t)});
+  const updateTouchCrud=(eid,fn)=>updActor({...actor,touches:actor.touches.map(t=>t.entityId===eid?{...t,crud:fn(t.crud)}:t)});
+  const toggleOp=(op)=>{if(!selEnt)return;const on=touch&&touch.crud.some(c=>c.op===op);updateTouchCrud(selEnt.id,crud=>on?crud.filter(c=>c.op!==op):[...crud,{op,scope:"all"}]);};
+  const setScope=(op,sc)=>{if(!selEnt)return;updateTouchCrud(selEnt.id,crud=>crud.map(c=>c.op===op?{...c,scope:sc}:c));};
 
   return(
     <div style={{display:"flex",flexDirection:"column",height:"100%",position:"relative"}}>
@@ -361,7 +363,7 @@ function ActorView({model,setModel,setModelSilent}){
             <button onClick={()=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return;const cx=r.width/2,cy=r.height/2;setZoom(z=>{const nz=Math.min(ZOOM_MAX,z*1.25);const wx=cx/z+pan.x,wy=cy/z+pan.y;setPan({x:wx-cx/nz,y:wy-cy/nz});return nz;});}} style={{width:28,height:28,border:"none",background:"transparent",cursor:"pointer",fontSize:16,color:"#5F6368",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>{e.target.style.background="#F5F5F5";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>+</button>
           </div>
           {/* フローティングパネル: ノード右横に表示 */}
-          {selEnt&&(()=>{const sx=(selEnt.x+EW+12-pan.x)*zoom,sy=(selEnt.y-pan.y)*zoom;const CRUD_LABELS={C:"Create",R:"Read",U:"Update",D:"Delete"};return<div style={{position:"absolute",left:sx,top:sy,background:"white",borderRadius:12,boxShadow:"var(--md-sys-elevation-2)",padding:12,zIndex:2,width:260,maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()} onMouseDown={e=>e.stopPropagation()}>
+          {selEnt&&(()=>{const sx=(selEnt.x+EW+12-pan.x)*zoom,sy=(selEnt.y-pan.y)*zoom;return<div style={{position:"absolute",left:sx,top:sy,background:"white",borderRadius:12,boxShadow:"var(--md-sys-elevation-2)",padding:12,zIndex:2,width:260,maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()} onMouseDown={e=>e.stopPropagation()}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:600,color:M3.onSurface}}>{selEnt.name}</span><button onClick={()=>setSelEntId(null)} style={{background:"none",border:"none",cursor:"pointer",color:M3.onSurfaceVar,padding:0,lineHeight:1}}><span className="msi" style={{fontSize:18}}>close</span></button></div>
             {touch?(<>{CRUD_OPS.map(op=>{const entry=touch.crud.find(c=>c.op===op);const on=!!entry;const scope=entry?.scope||"all";return<div key={op} style={{marginBottom:8,padding:"8px 10px",background:on?CRUD_BG[op]+"80":M3.surfaceCont,borderRadius:8,transition:"background .15s"}}>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
