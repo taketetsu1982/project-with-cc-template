@@ -22,6 +22,7 @@
   exports.MAX_HISTORY = 80;
 
   exports.LABEL_CHAR_W = 7;
+  exports.LABEL_CHAR_W_WIDE = 11;
   exports.LABEL_MIN_W = 24;
   exports.LABEL_PAD = 16;
 
@@ -60,9 +61,20 @@
     return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   };
 
-  // ラベル幅の計算
+  // 文字が全角（CJK等）かどうか判定
+  exports.isWideChar = function(ch) {
+    var code = ch.charCodeAt(0);
+    return code > 0x024F;
+  };
+
+  // ラベル幅の計算（半角・全角を考慮）
   exports.labelWidth = function(text) {
-    return Math.max((text || "").length * exports.LABEL_CHAR_W, exports.LABEL_MIN_W) + exports.LABEL_PAD;
+    var s = text || "";
+    var w = 0;
+    for (var i = 0; i < s.length; i++) {
+      w += exports.isWideChar(s[i]) ? exports.LABEL_CHAR_W_WIDE : exports.LABEL_CHAR_W;
+    }
+    return Math.max(w, exports.LABEL_MIN_W) + exports.LABEL_PAD;
   };
 
   // エンティティのカラーパレット取得（entities配列とidを受け取る純粋関数）

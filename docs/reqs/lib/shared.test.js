@@ -4,7 +4,8 @@ const require = createRequire(import.meta.url);
 const {
   uid, uniqueName, edgePt, calcCenterPan, labelWidth,
   entPalette, entColor, entName,
-  CRUD_OPS, ENT_PALETTE, LABEL_CHAR_W, LABEL_MIN_W, LABEL_PAD,
+  CRUD_OPS, ENT_PALETTE, LABEL_CHAR_W, LABEL_CHAR_W_WIDE, LABEL_MIN_W, LABEL_PAD,
+  isWideChar,
 } = require('./shared.js');
 
 describe('uid', () => {
@@ -95,13 +96,34 @@ describe('labelWidth', () => {
     expect(labelWidth(null)).toBe(LABEL_MIN_W + LABEL_PAD);
   });
 
-  it('長いテキストではCHAR_W*length+PADを返す', () => {
+  it('半角テキストではCHAR_W*length+PADを返す', () => {
     const text = 'Click here';
     expect(labelWidth(text)).toBe(text.length * LABEL_CHAR_W + LABEL_PAD);
   });
 
   it('短いテキストではMIN_Wが適用される', () => {
     expect(labelWidth('ab')).toBe(LABEL_MIN_W + LABEL_PAD);
+  });
+
+  it('日本語テキストではCHAR_W_WIDE*length+PADを返す', () => {
+    const text = 'テナント内ユーザ';
+    expect(labelWidth(text)).toBe(text.length * LABEL_CHAR_W_WIDE + LABEL_PAD);
+  });
+
+  it('半角・全角混在テキストでは文字種ごとの幅を合算する', () => {
+    const text = 'has タスク';
+    // 'h','a','s',' ' = 4 * LABEL_CHAR_W, 'タ','ス','ク' = 3 * LABEL_CHAR_W_WIDE
+    expect(labelWidth(text)).toBe(4 * LABEL_CHAR_W + 3 * LABEL_CHAR_W_WIDE + LABEL_PAD);
+  });
+});
+
+describe('isWideChar', () => {
+  it('半角英字はfalse', () => {
+    expect(isWideChar('a')).toBe(false);
+  });
+
+  it('日本語文字はtrue', () => {
+    expect(isWideChar('あ')).toBe(true);
   });
 });
 
