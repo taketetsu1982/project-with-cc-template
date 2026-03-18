@@ -122,8 +122,38 @@ describe('isWideChar', () => {
     expect(isWideChar('a')).toBe(false);
   });
 
-  it('日本語文字はtrue', () => {
+  it('数字・記号はfalse', () => {
+    expect(isWideChar('0')).toBe(false);
+    expect(isWideChar(':')).toBe(false);
+    expect(isWideChar('-')).toBe(false);
+  });
+
+  it('ギリシャ文字(U+03B1)はfalse', () => {
+    expect(isWideChar('\u03B1')).toBe(false);
+  });
+
+  it('キリル文字(U+0411)はfalse', () => {
+    expect(isWideChar('\u0411')).toBe(false);
+  });
+
+  it('CJK統合漢字の先頭(U+4E00)はtrue', () => {
+    expect(isWideChar('\u4E00')).toBe(true);
+  });
+
+  it('ひらがな(U+3042)はtrue', () => {
     expect(isWideChar('あ')).toBe(true);
+  });
+
+  it('カタカナ(U+30A2)はtrue', () => {
+    expect(isWideChar('ア')).toBe(true);
+  });
+
+  it('全角英数(U+FF21)はtrue', () => {
+    expect(isWideChar('\uFF21')).toBe(true);
+  });
+
+  it('ハングル音節(U+AC00)はtrue', () => {
+    expect(isWideChar('\uAC00')).toBe(true);
   });
 });
 

@@ -61,10 +61,16 @@
     return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   };
 
-  // 文字が全角（CJK等）かどうか判定
+  // East Asian Width が Wide/Fullwidth の主要範囲を判定
   exports.isWideChar = function(ch) {
     var code = ch.charCodeAt(0);
-    return code > 0x024F;
+    return (code >= 0x1100 && code <= 0x115F) ||  // ハングル Jamo
+           (code >= 0x2E80 && code <= 0x9FFF) ||  // CJK部首〜CJK統合漢字
+           (code >= 0xAC00 && code <= 0xD7AF) ||  // ハングル音節
+           (code >= 0xF900 && code <= 0xFAFF) ||  // CJK互換漢字
+           (code >= 0xFE30 && code <= 0xFE6F) ||  // CJK互換形
+           (code >= 0xFF01 && code <= 0xFF60) ||  // 全角英数
+           (code >= 0xFFE0 && code <= 0xFFE6);    // 全角記号
   };
 
   // ラベル幅の計算（半角・全角を考慮）
