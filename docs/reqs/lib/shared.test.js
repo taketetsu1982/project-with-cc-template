@@ -4,7 +4,8 @@ const require = createRequire(import.meta.url);
 const {
   uid, uniqueName, edgePt, calcCenterPan, labelWidth,
   entPalette, entColor, entName,
-  CRUD_OPS, ENT_PALETTE, LABEL_CHAR_W, LABEL_MIN_W, LABEL_PAD,
+  CRUD_OPS, ENT_PALETTE, LABEL_CHAR_W, LABEL_CHAR_W_WIDE, LABEL_MIN_W, LABEL_PAD,
+  isWideChar,
 } = require('./shared.js');
 
 describe('uid', () => {
@@ -95,13 +96,64 @@ describe('labelWidth', () => {
     expect(labelWidth(null)).toBe(LABEL_MIN_W + LABEL_PAD);
   });
 
-  it('長いテキストではCHAR_W*length+PADを返す', () => {
+  it('半角テキストではCHAR_W*length+PADを返す', () => {
     const text = 'Click here';
     expect(labelWidth(text)).toBe(text.length * LABEL_CHAR_W + LABEL_PAD);
   });
 
   it('短いテキストではMIN_Wが適用される', () => {
     expect(labelWidth('ab')).toBe(LABEL_MIN_W + LABEL_PAD);
+  });
+
+  it('日本語テキストではCHAR_W_WIDE*length+PADを返す', () => {
+    const text = 'テナント内ユーザ';
+    expect(labelWidth(text)).toBe(text.length * LABEL_CHAR_W_WIDE + LABEL_PAD);
+  });
+
+  it('半角・全角混在テキストでは文字種ごとの幅を合算する', () => {
+    const text = 'has タスク';
+    // 'h','a','s',' ' = 4 * LABEL_CHAR_W, 'タ','ス','ク' = 3 * LABEL_CHAR_W_WIDE
+    expect(labelWidth(text)).toBe(4 * LABEL_CHAR_W + 3 * LABEL_CHAR_W_WIDE + LABEL_PAD);
+  });
+});
+
+describe('isWideChar', () => {
+  it('半角英字はfalse', () => {
+    expect(isWideChar('a')).toBe(false);
+  });
+
+  it('数字・記号はfalse', () => {
+    expect(isWideChar('0')).toBe(false);
+    expect(isWideChar(':')).toBe(false);
+    expect(isWideChar('-')).toBe(false);
+  });
+
+  it('ギリシャ文字(U+03B1)はfalse', () => {
+    expect(isWideChar('\u03B1')).toBe(false);
+  });
+
+  it('キリル文字(U+0411)はfalse', () => {
+    expect(isWideChar('\u0411')).toBe(false);
+  });
+
+  it('CJK統合漢字の先頭(U+4E00)はtrue', () => {
+    expect(isWideChar('\u4E00')).toBe(true);
+  });
+
+  it('ひらがな(U+3042)はtrue', () => {
+    expect(isWideChar('あ')).toBe(true);
+  });
+
+  it('カタカナ(U+30A2)はtrue', () => {
+    expect(isWideChar('ア')).toBe(true);
+  });
+
+  it('全角英数(U+FF21)はtrue', () => {
+    expect(isWideChar('\uFF21')).toBe(true);
+  });
+
+  it('ハングル音節(U+AC00)はtrue', () => {
+    expect(isWideChar('\uAC00')).toBe(true);
   });
 });
 
