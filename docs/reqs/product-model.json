@@ -1,300 +1,108 @@
 {
   "entities": [
     {
-      "id": "workspace",
-      "name": "ワークスペース",
+      "id": "user",
+      "name": "ユーザー",
       "relations": [
         {
           "id": "r1",
-          "targetId": "project",
-          "type": "has-many",
-          "label": "contains"
+          "targetId": "oura-connection",
+          "type": "has-one",
+          "label": "connects"
         },
         {
           "id": "r2",
-          "targetId": "member",
+          "targetId": "daily-record",
           "type": "has-many",
-          "label": "has"
+          "label": "owns"
         }
       ],
-      "x": 80,
-      "y": 80
+      "x": 400,
+      "y": 60
     },
     {
-      "id": "member",
-      "name": "メンバー",
+      "id": "oura-connection",
+      "name": "Oura接続",
+      "relations": [],
+      "x": 80,
+      "y": 60
+    },
+    {
+      "id": "daily-record",
+      "name": "日次レコード",
       "relations": [
         {
           "id": "r3",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "assigned to"
-        },
-        {
-          "id": "r9",
-          "targetId": "comment",
-          "type": "has-many",
-          "label": "posted"
-        }
-      ],
-      "x": 400,
-      "y": 80
-    },
-    {
-      "id": "project",
-      "name": "プロジェクト",
-      "relations": [
-        {
-          "id": "r4",
-          "targetId": "task",
-          "type": "has-many",
+          "targetId": "physical-score",
+          "type": "has-one",
           "label": "contains"
         },
         {
-          "id": "r5",
-          "targetId": "member",
-          "type": "has-many",
-          "label": "assigned"
+          "id": "r4",
+          "targetId": "mental-entry",
+          "type": "has-one",
+          "label": "contains"
         }
       ],
-      "x": 720,
-      "y": 80
-    },
-    {
-      "id": "task",
-      "name": "タスク",
-      "relations": [
-        {
-          "id": "r6",
-          "targetId": "comment",
-          "type": "has-many",
-          "label": "has"
-        },
-        {
-          "id": "r7",
-          "targetId": "label",
-          "type": "has-many",
-          "label": "tagged"
-        }
-      ],
-      "x": 80,
-      "y": 280
-    },
-    {
-      "id": "label",
-      "name": "ラベル",
-      "relations": [],
       "x": 400,
-      "y": 280
+      "y": 260
     },
     {
-      "id": "comment",
-      "name": "コメント",
+      "id": "physical-score",
+      "name": "フィジカルスコア",
+      "relations": [],
+      "x": 80,
+      "y": 260
+    },
+    {
+      "id": "mental-entry",
+      "name": "メンタルエントリ",
       "relations": [],
       "x": 720,
-      "y": 280
+      "y": 260
     }
   ],
   "actors": [
     {
-      "id": "owner",
-      "name": "Owner",
+      "id": "self-tracker",
+      "name": "SelfTracker",
       "touches": [
         {
-          "entityId": "workspace",
+          "entityId": "user",
           "crud": [
-            {
-              "op": "C",
-              "scope": "own"
-            },
-            {
-              "op": "R",
-              "scope": "own"
-            },
-            {
-              "op": "U",
-              "scope": "own"
-            },
-            {
-              "op": "D",
-              "scope": "own"
-            }
+            { "op": "R", "scope": "own" },
+            { "op": "U", "scope": "own" }
           ]
         },
         {
-          "entityId": "project",
+          "entityId": "oura-connection",
           "crud": [
-            {
-              "op": "C",
-              "scope": "own"
-            },
-            {
-              "op": "R",
-              "scope": "own"
-            },
-            {
-              "op": "U",
-              "scope": "own"
-            },
-            {
-              "op": "D",
-              "scope": "own"
-            }
+            { "op": "C", "scope": "own" },
+            { "op": "R", "scope": "own" },
+            { "op": "U", "scope": "own" },
+            { "op": "D", "scope": "own" }
           ]
         },
         {
-          "entityId": "task",
+          "entityId": "daily-record",
           "crud": [
-            {
-              "op": "C",
-              "scope": "all"
-            },
-            {
-              "op": "R",
-              "scope": "all"
-            },
-            {
-              "op": "U",
-              "scope": "all"
-            },
-            {
-              "op": "D",
-              "scope": "all"
-            }
+            { "op": "C", "scope": "own" },
+            { "op": "R", "scope": "own" }
           ]
         },
         {
-          "entityId": "member",
+          "entityId": "physical-score",
           "crud": [
-            {
-              "op": "C",
-              "scope": "all"
-            },
-            {
-              "op": "R",
-              "scope": "all"
-            },
-            {
-              "op": "U",
-              "scope": "all"
-            },
-            {
-              "op": "D",
-              "scope": "all"
-            }
+            { "op": "R", "scope": "own" }
           ]
         },
         {
-          "entityId": "label",
+          "entityId": "mental-entry",
           "crud": [
-            {
-              "op": "C",
-              "scope": "all"
-            },
-            {
-              "op": "R",
-              "scope": "all"
-            },
-            {
-              "op": "U",
-              "scope": "all"
-            },
-            {
-              "op": "D",
-              "scope": "all"
-            }
-          ]
-        },
-        {
-          "entityId": "comment",
-          "crud": [
-            {
-              "op": "C",
-              "scope": "all"
-            },
-            {
-              "op": "R",
-              "scope": "all"
-            },
-            {
-              "op": "U",
-              "scope": "all"
-            },
-            {
-              "op": "D",
-              "scope": "all"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "member-actor",
-      "name": "Member",
-      "touches": [
-        {
-          "entityId": "project",
-          "crud": [
-            {
-              "op": "R",
-              "scope": "all"
-            }
-          ]
-        },
-        {
-          "entityId": "task",
-          "crud": [
-            {
-              "op": "C",
-              "scope": "all"
-            },
-            {
-              "op": "R",
-              "scope": "all"
-            },
-            {
-              "op": "U",
-              "scope": "all"
-            }
-          ]
-        },
-        {
-          "entityId": "comment",
-          "crud": [
-            {
-              "op": "C",
-              "scope": "own"
-            },
-            {
-              "op": "R",
-              "scope": "own"
-            },
-            {
-              "op": "U",
-              "scope": "own"
-            },
-            {
-              "op": "D",
-              "scope": "own"
-            }
-          ]
-        },
-        {
-          "entityId": "label",
-          "crud": [
-            {
-              "op": "R",
-              "scope": "all"
-            }
-          ]
-        },
-        {
-          "entityId": "member",
-          "crud": [
-            {
-              "op": "R",
-              "scope": "all"
-            }
+            { "op": "C", "scope": "own" },
+            { "op": "R", "scope": "own" },
+            { "op": "U", "scope": "own" },
+            { "op": "D", "scope": "own" }
           ]
         }
       ]
