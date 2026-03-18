@@ -108,6 +108,67 @@
       ]
     }
   ],
-  "screens": [],
-  "transitions": []
+  "screens": [
+    {
+      "id": "trend-dashboard",
+      "name": "トレンドダッシュボード",
+      "type": "composite",
+      "actorId": "self-tracker",
+      "x": 400,
+      "y": 60,
+      "prompt": "デフォルトビューは14日トレンド（7日/30日切替可）。カラーゾーン（緑/黄/赤帯）でZ-score範囲を表示。フィジカル×メンタルの統合グラフ。Strain/Recoveryは独立2軸。数値よりトレンドを強調しOrthosomnia回避。相関パターンは観察的表現で提示。今日のメンタル未入力時はCTAを目立たせる",
+      "objects": [
+        { "id": "td-o1", "entityId": "daily-record", "variant": "collection", "crud": ["R"] },
+        { "id": "td-o2", "entityId": "physical-score", "variant": "collection", "crud": ["R"] },
+        { "id": "td-o3", "entityId": "mental-entry", "variant": "collection", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "daily-detail",
+      "name": "日次サマリー",
+      "type": "screen",
+      "actorId": "self-tracker",
+      "x": 400,
+      "y": 300,
+      "prompt": "特定日のフィジカル+メンタルを並べて表示。主観入力（メンタル）を先に、Ouraデータ（フィジカル）を後に重ねる（主観ファースト原則）。Z-score正規化で個人ベースラインからの偏差を表示。メンタル未入力の場合は入力を促すCTA",
+      "objects": [
+        { "id": "dd-o1", "entityId": "daily-record", "variant": "single", "crud": ["R"] },
+        { "id": "dd-o2", "entityId": "physical-score", "variant": "single", "crud": ["R"] },
+        { "id": "dd-o3", "entityId": "mental-entry", "variant": "single", "crud": ["R"] }
+      ]
+    },
+    {
+      "id": "mental-entry-form",
+      "name": "メンタルスコア入力",
+      "type": "screen",
+      "actorId": "self-tracker",
+      "x": 720,
+      "y": 300,
+      "prompt": "気分・エネルギー・ストレス・集中の4軸を1〜7のスライダーで入力。30秒以内で完了できるシンプルなUI。当日分のみ新規作成可。過去分は編集のみ。未来の入力は不可",
+      "objects": [
+        { "id": "me-o1", "entityId": "mental-entry", "variant": "single", "crud": ["C", "U"] }
+      ]
+    },
+    {
+      "id": "oura-settings",
+      "name": "Oura接続設定",
+      "type": "screen",
+      "actorId": "self-tracker",
+      "x": 80,
+      "y": 60,
+      "prompt": "Oura APIとのOAuth2接続を管理。接続状態の表示、新規接続、再接続、切断。トークンリフレッシュ状態の確認",
+      "objects": [
+        { "id": "os-o1", "entityId": "oura-connection", "variant": "single", "crud": ["C", "R", "U", "D"] },
+        { "id": "os-o2", "entityId": "user", "variant": "single", "crud": ["R", "U"] }
+      ]
+    }
+  ],
+  "transitions": [
+    { "id": "t1", "from": "trend-dashboard", "to": "daily-detail", "trigger": "日付タップ" },
+    { "id": "t2", "from": "trend-dashboard", "to": "mental-entry-form", "trigger": "今日の入力CTA" },
+    { "id": "t3", "from": "trend-dashboard", "to": "oura-settings", "trigger": "設定リンク" },
+    { "id": "t4", "from": "daily-detail", "to": "mental-entry-form", "trigger": "メンタル編集ボタン" },
+    { "id": "t5", "from": "mental-entry-form", "to": "daily-detail", "trigger": "保存完了" },
+    { "id": "t6", "from": "daily-detail", "to": "trend-dashboard", "trigger": "戻る" }
+  ]
 }
