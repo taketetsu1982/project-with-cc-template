@@ -6,78 +6,23 @@
 <title>Model Editor</title>
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" as="style"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"/>
+<link rel="stylesheet" href="./lib/editor-base.css"/>
 <style>
-  .msi{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:18px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-smoothing:antialiased}
-  :root{
-    --md-sys-color-primary:#0B57D0;
-    --md-sys-color-on-primary:#FFFFFF;
-    --md-sys-color-primary-container:#D3E3FD;
-    --md-sys-color-on-primary-container:#041E49;
-    --md-sys-color-secondary:#5F6368;
-    --md-sys-color-on-secondary:#FFFFFF;
-    --md-sys-color-secondary-container:#F1F3F4;
-    --md-sys-color-tertiary:#7D5260;
-    --md-sys-color-error:#B3261E;
-    --md-sys-color-error-container:#F9DEDC;
-    --md-sys-color-on-error-container:#410E0B;
-    --md-sys-color-surface:#FFFFFF;
-    --md-sys-color-surface-dim:#E8EAED;
-    --md-sys-color-surface-container-lowest:#FFFFFF;
-    --md-sys-color-surface-container-low:#FAFAFA;
-    --md-sys-color-surface-container:#F5F5F5;
-    --md-sys-color-surface-container-high:#F0F0F0;
-    --md-sys-color-surface-container-highest:#E8EAED;
-    --md-sys-color-on-surface:#1A1A1A;
-    --md-sys-color-on-surface-variant:#5F6368;
-    --md-sys-color-outline:#9AA0A6;
-    --md-sys-color-outline-variant:#E0E0E0;
-    --md-sys-color-inverse-surface:#303030;
-    --md-sys-color-inverse-on-surface:#F2F2F2;
-    /* Elevation — softer shadows */
-    --md-sys-elevation-1:0px 1px 3px rgba(0,0,0,.08),0px 1px 2px rgba(0,0,0,.06);
-    --md-sys-elevation-2:0px 2px 6px rgba(0,0,0,.1),0px 1px 3px rgba(0,0,0,.06);
-    /* Shape */
-    --md-sys-shape-xs:6px;
-    --md-sys-shape-sm:10px;
-    --md-sys-shape-md:14px;
-    --md-sys-shape-lg:18px;
-    --md-sys-shape-xl:24px;
-    --md-sys-shape-full:9999px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body,#root{height:100%;overflow:hidden;font-size:14px}
-  body{font-family:'Google Sans','Roboto','Noto Sans JP',system-ui,sans-serif;color:var(--md-sys-color-on-surface);background:var(--md-sys-color-surface)}
-  .file-drop-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,87,208,.08);border:3px dashed var(--md-sys-color-primary);align-items:center;justify-content:center}
-  .file-drop-overlay.active{display:flex}
-  .drop-msg{font-size:16px;font-weight:500;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-lowest);padding:20px 40px;border-radius:var(--md-sys-shape-lg);box-shadow:var(--md-sys-elevation-2)}
-  #cm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--md-sys-color-inverse-surface);color:var(--md-sys-color-inverse-on-surface);padding:10px 24px;border-radius:var(--md-sys-shape-xs);font-size:14px;font-weight:400;line-height:20px;opacity:0;transition:opacity .2s;z-index:10000;pointer-events:none;box-shadow:var(--md-sys-elevation-2)}
-  #cm-toast.show{opacity:1}
-  #cm-toolbar{display:none}
-  .cm-connect-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--md-sys-color-outline-variant);border-radius:var(--md-sys-shape-full);padding:6px 16px;font-size:14px;font-weight:500;line-height:20px;color:var(--md-sys-color-on-surface-variant);cursor:pointer;transition:background .15s}
-  .cm-connect-btn:hover{background:var(--md-sys-color-surface-container)}
-  .cm-dot{width:8px;height:8px;border-radius:50%;background:#DADCE0}
-  .cm-dot.connected{background:#34A853}.cm-dot.saving{background:#E37400}.cm-dot.error{background:var(--md-sys-color-error)}
-  .cm-hint{font-weight:400;color:var(--md-sys-color-outline);font-size:12px;line-height:16px}
-  #cm-edited{display:none;font-size:12px;font-weight:500;line-height:16px;color:#E37400;letter-spacing:0.1px}
-  .cm-auto-switch{display:none;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--md-sys-color-on-surface-variant);cursor:pointer;user-select:none}
-  .cm-auto-switch .cm-switch-track{position:relative;width:32px;height:18px;background:var(--md-sys-color-outline);border-radius:var(--md-sys-shape-full);transition:background .2s}
-  .cm-auto-switch.active .cm-switch-track{background:#0B57D0}
-  .cm-auto-switch .cm-switch-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;background:var(--md-sys-color-surface-container-lowest);border-radius:50%;transition:left .2s}
-  .cm-auto-switch.active .cm-switch-thumb{left:17px}
+  :root{--md-sys-color-on-secondary:#FFFFFF;--md-sys-color-secondary-container:#F1F3F4;--md-sys-color-tertiary:#7D5260;--md-sys-color-surface-dim:#E8EAED}
 </style>
 </head>
 <body>
 <div class="file-drop-overlay" id="cm-drop-overlay"><span class="drop-msg">Drop JSON file to connect</span></div>
-<div id="cm-toast"></div>
-<div id="cm-toolbar">
+<div class="ed-toast" id="cm-toast"></div>
+<div class="ed-toolbar" id="cm-toolbar">
   <div style="flex:1"></div>
-  <span id="cm-edited">Edited</span>
-  <button class="cm-connect-btn" id="cm-connect-btn" onclick="handleConnect()">
-    <span class="cm-dot" id="cm-dot"></span>
+  <span class="ed-edited" id="cm-edited">Edited</span>
+  <button class="ed-connect-btn" id="cm-connect-btn" onclick="handleConnect()">
+    <span class="ed-dot" id="cm-dot"></span>
     <span id="cm-label">Connect</span>
-    <span class="cm-hint" id="cm-hint">(Drop a JSON file)</span>
+    <span class="ed-hint" id="cm-hint">(Drop a JSON file)</span>
   </button>
-  <label class="cm-auto-switch" id="cm-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="cm-switch-track"><span class="cm-switch-thumb"></span></span></label>
+  <label class="ed-auto-switch" id="cm-auto-btn" onclick="toggleAuto()" title="Auto save">Auto <span class="ed-switch-track"><span class="ed-switch-thumb"></span></span></label>
 </div>
 <div id="root"></div>
 
@@ -96,7 +41,7 @@ function getFullJson(){
   return{...passthrough,entities:modelRef.entities,actors:modelRef.actors};
 }
 
-function updateStatus(s,l,h){const dot=document.getElementById('cm-dot');dot.className='cm-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
+function updateStatus(s,l,h){const dot=document.getElementById('cm-dot');dot.className='ed-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
 function showToast(m){const t=document.getElementById('cm-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000);}
 function markModified(){document.getElementById('cm-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
@@ -115,7 +60,7 @@ function splitData(data){
 }
 
 async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('cm-dot').className='cm-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
+function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('cm-dot').className='ed-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
 let dragC=0;const ov=document.getElementById('cm-drop-overlay');
 document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
 document.addEventListener('dragleave',e=>{if(e.dataTransfer.types.includes('Files')){dragC--;if(dragC<=0){dragC=0;ov.classList.remove('active');}}});
