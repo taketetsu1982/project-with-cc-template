@@ -192,7 +192,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
   const selNav=visNav.find(n=>n.id===selNavId);
   const updNav=u=>setScreens(m=>({...m,transitions:m.transitions.map(n=>n.id===u.id?u:n)}));
   const delNav=id=>{setSelNavId(null);setEditLabel(false);setScreens(m=>({...m,transitions:m.transitions.filter(n=>n.id!==id)}));};
-  const addScreen=(type="screen")=>{const id=uid();const names=screens.screens.map(s=>s.name);const defaultName=type==="composite"?"New Composite":"New Screen";setScreens(m=>({...m,screens:[...m.screens,{id,name:uniqueName(defaultName,names),type,actorIds:CONCEPT.actors.length===1?[CONCEPT.actors[0].id]:[],x:120/zoom+pan.x,y:120/zoom+pan.y,prompt:"",objects:[]}]}));};
+  const addScreen=(type="screen")=>{const id=uid();const names=screens.screens.map(s=>s.name);const defaultName=type==="composite"?"New Composite":"New Screen";setScreens(m=>({...m,screens:[...m.screens,{id,name:uniqueName(defaultName,names),type,actorIds:CONCEPT.actors[0]?[CONCEPT.actors[0].id]:[],x:120/zoom+pan.x,y:120/zoom+pan.y,prompt:"",objects:[]}]}));};
   const onHandleMD=(e,navId,end)=>{e.preventDefault();e.stopPropagation();const r=svgRef.current.getBoundingClientRect();setNavDrag({navId,end,mx:(e.clientX-r.left)/zoom+pan.x,my:(e.clientY-r.top)/zoom+pan.y});setSelNavId(null);setEditLabel(false);};
   const connOn=conn!==null,connHasSrc=conn!==null&&conn!=="";
   const onBgMD=e=>{if(connOn)return;setPanning(true);panStart.current={x:e.clientX,y:e.clientY,px:pan.x,py:pan.y};};
