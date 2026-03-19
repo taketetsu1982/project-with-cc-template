@@ -178,6 +178,30 @@ const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,letterSpacing
 
 const scrActorIds=s=>(s.actorIds||(s.actorId?[s.actorId]:[]));
 
+function WarningBadge({screens}){
+  const[open,setOpen]=useState(false);
+  const warnings=[];
+  CONCEPT.actors.forEach(actor=>{
+    const touchedIds=(actor.touches||[]).filter(t=>(t.crud||[]).length>0).map(t=>t.entityId);
+    const actorScreens=screens.screens.filter(s=>scrActorIds(s).includes(actor.id));
+    const usedIds=new Set(actorScreens.flatMap(s=>(s.objects||[]).map(o=>o.entityId)));
+    const missing=touchedIds.filter(eid=>!usedIds.has(eid));
+    if(missing.length>0){const names=missing.map(eid=>CONCEPT.entities.find(e=>e.id===eid)?.name||eid);warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});}
+    actorScreens.forEach(s=>{
+      const empty=(s.objects||[]).filter(o=>{const ba=o.crudByActor||{};return(ba[actor.id]||[]).length===0;});
+      if(empty.length>0){const names=empty.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);warnings.push({actor:actor.name,msg:`『${s.name}』の「${names.join("」「")}」のCRUDが未設定`});}
+    });
+  });
+  if(warnings.length===0)return null;
+  return<div style={{position:"absolute",bottom:16,left:16,zIndex:20}}>
+    {!open?<button onClick={()=>setOpen(true)} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-full)",padding:"6px 14px",boxShadow:"var(--md-sys-elevation-1)",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:500,color:"#E37400",fontFamily:"inherit"}}><span>⚠</span>{warnings.length} warnings</button>
+    :<div style={{background:"white",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",boxShadow:"var(--md-sys-elevation-2)",maxWidth:480,maxHeight:280,overflowY:"auto"}}>
+      <div style={{padding:"8px 12px",borderBottom:"1px solid #FDD663",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FEF7E0",position:"sticky",top:0}}><span style={{fontSize:13,fontWeight:500,color:"#E37400"}}>⚠ {warnings.length} warnings</span><button onClick={()=>setOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6",padding:0}}><span className="msi" style={{fontSize:18}}>close</span></button></div>
+      {warnings.map((w,i)=><div key={i} style={{padding:"6px 12px",borderBottom:"1px solid #F5F5F5",fontSize:12,color:"#5F6368",lineHeight:"16px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: {w.msg}</div>)}
+    </div>}
+  </div>;
+}
+
 function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange}){
   const[filterActorId,setFilterActorId]=useState(null);
   const[selNavId,setSelNavId]=useState(null),[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null),[connDrag,setConnDrag]=useState(null),[navDrag,setNavDrag]=useState(null),[editLabel,setEditLabel]=useState(false);
@@ -256,33 +280,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
             <div style={{borderTop:`1px solid ${M3.outlineVar}`,padding:16,display:"flex",justifyContent:"flex-end"}}><Btn danger onClick={del}>Delete screen</Btn></div>
           </div>);})()}
       </div>
-      {(()=>{
-        const warnings=[];
-        CONCEPT.actors.forEach(actor=>{
-          const touchedIds=(actor.touches||[]).filter(t=>(t.crud||[]).length>0).map(t=>t.entityId);
-          const actorScreens=screens.screens.filter(s=>scrActorIds(s).includes(actor.id));
-          const usedIds=new Set(actorScreens.flatMap(s=>s.objects.map(o=>o.entityId)));
-          const missing=touchedIds.filter(eid=>!usedIds.has(eid));
-          if(missing.length>0){
-            const names=missing.map(eid=>CONCEPT.entities.find(e=>e.id===eid)?.name||eid);
-            warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});
-          }
-          actorScreens.forEach(s=>{
-            const empty=s.objects.filter(o=>{const ba=o.crudByActor||{};const actorCrud=ba[actor.id]||[];return actorCrud.length===0;});
-            if(empty.length>0){
-              const names=empty.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
-              warnings.push({actor:actor.name,msg:`『${s.name}』の「${names.join("」「")}」のCRUDが設定されていません`});
-            }
-          });
-        });
-        if(warnings.length===0)return null;
-        return<div style={{position:"absolute",bottom:16,left:16,zIndex:20,display:"flex",flexDirection:"column",gap:8}}>
-          {warnings.map((w,i)=><div key={i} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:560}}>
-            <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
-            <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}><strong style={{color:"#1A1A1A"}}>{w.actor}</strong>: {w.msg}</span>
-          </div>)}
-        </div>;
-      })()}
+      <WarningBadge screens={screens}/>
     </div>
   );
 }
