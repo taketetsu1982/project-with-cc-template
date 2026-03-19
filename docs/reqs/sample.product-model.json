@@ -1,203 +1,4 @@
 {
-  "entities": [
-    {
-      "id": "workspace",
-      "name": "ワークスペース",
-      "relations": [
-        {
-          "id": "r1",
-          "targetId": "project",
-          "type": "has-many",
-          "label": "contains"
-        },
-        {
-          "id": "r2",
-          "targetId": "member",
-          "type": "has-many",
-          "label": "has"
-        }
-      ],
-      "x": 80,
-      "y": 80
-    },
-    {
-      "id": "member",
-      "name": "メンバー",
-      "relations": [
-        {
-          "id": "r3",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "assigned to"
-        },
-        {
-          "id": "r9",
-          "targetId": "comment",
-          "type": "has-many",
-          "label": "posted"
-        }
-      ],
-      "x": 400,
-      "y": 80
-    },
-    {
-      "id": "project",
-      "name": "プロジェクト",
-      "relations": [
-        {
-          "id": "r4",
-          "targetId": "task",
-          "type": "has-many",
-          "label": "contains"
-        },
-        {
-          "id": "r5",
-          "targetId": "member",
-          "type": "has-many",
-          "label": "assigned"
-        }
-      ],
-      "x": 720,
-      "y": 80
-    },
-    {
-      "id": "task",
-      "name": "タスク",
-      "relations": [
-        {
-          "id": "r6",
-          "targetId": "comment",
-          "type": "has-many",
-          "label": "has"
-        },
-        {
-          "id": "r7",
-          "targetId": "label",
-          "type": "has-many",
-          "label": "tagged"
-        }
-      ],
-      "x": 400,
-      "y": 280
-    },
-    {
-      "id": "label",
-      "name": "ラベル",
-      "relations": [],
-      "x": 720,
-      "y": 280
-    },
-    {
-      "id": "comment",
-      "name": "コメント",
-      "relations": [],
-      "x": 80,
-      "y": 280
-    }
-  ],
-  "actors": [
-    {
-      "id": "owner",
-      "name": "Owner",
-      "touches": [
-        {
-          "entityId": "workspace",
-          "crud": [
-            { "op": "C", "scope": "own" },
-            { "op": "R", "scope": "own" },
-            { "op": "U", "scope": "own" },
-            { "op": "D", "scope": "own" }
-          ]
-        },
-        {
-          "entityId": "project",
-          "crud": [
-            { "op": "C", "scope": "own" },
-            { "op": "R", "scope": "own" },
-            { "op": "U", "scope": "own" },
-            { "op": "D", "scope": "own" }
-          ]
-        },
-        {
-          "entityId": "task",
-          "crud": [
-            { "op": "C", "scope": "all" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "all" },
-            { "op": "D", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "member",
-          "crud": [
-            { "op": "C", "scope": "all" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "all" },
-            { "op": "D", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "label",
-          "crud": [
-            { "op": "C", "scope": "all" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "all" },
-            { "op": "D", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "comment",
-          "crud": [
-            { "op": "C", "scope": "all" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "all" },
-            { "op": "D", "scope": "all" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "member-actor",
-      "name": "Member",
-      "touches": [
-        {
-          "entityId": "project",
-          "crud": [
-            { "op": "R", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "task",
-          "crud": [
-            { "op": "C", "scope": "all" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "comment",
-          "crud": [
-            { "op": "C", "scope": "own" },
-            { "op": "R", "scope": "all" },
-            { "op": "U", "scope": "own" },
-            { "op": "D", "scope": "own" }
-          ]
-        },
-        {
-          "entityId": "label",
-          "crud": [
-            { "op": "R", "scope": "all" }
-          ]
-        },
-        {
-          "entityId": "member",
-          "crud": [
-            { "op": "R", "scope": "all" }
-          ]
-        }
-      ]
-    }
-  ],
   "screens": [
     {
       "id": "owner-dashboard",
@@ -206,9 +7,30 @@
       "type": "composite",
       "prompt": "KPI（月次進捗・タスク完了率）をカード形式で上部に表示。プロジェクト別タスク数をグラフで中段に。",
       "objects": [
-        { "id": "co1", "entityId": "project", "variant": "collection", "crud": ["R"] },
-        { "id": "co2", "entityId": "task", "variant": "collection", "crud": ["R"] },
-        { "id": "co3", "entityId": "member", "variant": "collection", "crud": ["R"] }
+        {
+          "id": "co1",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co2",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "co3",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
       ],
       "x": 100,
       "y": -80
@@ -220,7 +42,16 @@
       "type": "screen",
       "prompt": "プロジェクトをカード形式で一覧表示。新規作成ボタン付き。",
       "objects": [
-        { "id": "o1", "entityId": "project", "variant": "collection", "crud": ["C", "R", "D"] }
+        {
+          "id": "o1",
+          "entityId": "project",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        }
       ],
       "x": -300,
       "y": 60
@@ -232,9 +63,36 @@
       "type": "screen",
       "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
-        { "id": "o2", "entityId": "project", "variant": "single", "crud": ["R", "U"] },
-        { "id": "o3", "entityId": "task", "variant": "collection", "crud": ["C", "R", "U", "D"] },
-        { "id": "o4", "entityId": "member", "variant": "collection", "crud": ["C", "R", "D"] }
+        {
+          "id": "o2",
+          "entityId": "project",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o3",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o4",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        }
       ],
       "x": 0,
       "y": 260
@@ -246,9 +104,34 @@
       "type": "screen",
       "prompt": "タスクの編集フォームとコメントスレッド。ラベル選択はタグピッカー。",
       "objects": [
-        { "id": "o5", "entityId": "task", "variant": "single", "crud": ["R", "U", "D"] },
-        { "id": "o6", "entityId": "comment", "variant": "collection", "crud": ["C", "R", "D"] },
-        { "id": "o7", "entityId": "label", "variant": "collection", "crud": ["R"] }
+        {
+          "id": "o5",
+          "entityId": "task",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U",
+            "D"
+          ]
+        },
+        {
+          "id": "o6",
+          "entityId": "comment",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        },
+        {
+          "id": "o7",
+          "entityId": "label",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
       ],
       "x": 0,
       "y": 500
@@ -260,7 +143,17 @@
       "type": "screen",
       "prompt": "ワークスペースのメンバー一覧。招待・削除・ロール変更。",
       "objects": [
-        { "id": "o11", "entityId": "member", "variant": "collection", "crud": ["C", "R", "U", "D"] }
+        {
+          "id": "o11",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        }
       ],
       "x": -600,
       "y": 60
@@ -272,7 +165,17 @@
       "type": "screen",
       "prompt": "ラベルの作成・編集・削除。色とテキストを設定。",
       "objects": [
-        { "id": "o12", "entityId": "label", "variant": "collection", "crud": ["C", "R", "U", "D"] }
+        {
+          "id": "o12",
+          "entityId": "label",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U",
+            "D"
+          ]
+        }
       ],
       "x": -600,
       "y": 260
@@ -284,8 +187,24 @@
       "type": "screen",
       "prompt": "自分にアサインされたタスクを期限順に表示。",
       "objects": [
-        { "id": "o8", "entityId": "task", "variant": "collection", "crud": ["C", "R", "U"] },
-        { "id": "o13", "entityId": "member", "variant": "collection", "crud": ["R"] }
+        {
+          "id": "o8",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o13",
+          "entityId": "member",
+          "variant": "collection",
+          "crud": [
+            "R"
+          ]
+        }
       ],
       "x": 60,
       "y": 60
@@ -297,8 +216,24 @@
       "type": "screen",
       "prompt": "参加プロジェクトのタスクをカンバン形式で表示。",
       "objects": [
-        { "id": "o14", "entityId": "project", "variant": "single", "crud": ["R"] },
-        { "id": "o15", "entityId": "task", "variant": "collection", "crud": ["C", "R", "U"] }
+        {
+          "id": "o14",
+          "entityId": "project",
+          "variant": "single",
+          "crud": [
+            "R"
+          ]
+        },
+        {
+          "id": "o15",
+          "entityId": "task",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "U"
+          ]
+        }
       ],
       "x": -300,
       "y": 60
@@ -310,8 +245,25 @@
       "type": "screen",
       "prompt": "タスクの閲覧・編集とコメント投稿。",
       "objects": [
-        { "id": "o9", "entityId": "task", "variant": "single", "crud": ["R", "U"] },
-        { "id": "o10", "entityId": "comment", "variant": "collection", "crud": ["C", "R", "D"] }
+        {
+          "id": "o9",
+          "entityId": "task",
+          "variant": "single",
+          "crud": [
+            "R",
+            "U"
+          ]
+        },
+        {
+          "id": "o10",
+          "entityId": "comment",
+          "variant": "collection",
+          "crud": [
+            "C",
+            "R",
+            "D"
+          ]
+        }
       ],
       "x": 60,
       "y": 280
@@ -343,12 +295,6 @@
       "trigger": "Tap メンバー管理"
     },
     {
-      "id": "t5",
-      "from": "project-list",
-      "to": "owner-dashboard",
-      "trigger": "Tap ダッシュボード"
-    },
-    {
       "id": "t6",
       "from": "project-detail",
       "to": "label-management",
@@ -371,6 +317,313 @@
       "from": "member-project-board",
       "to": "member-task-detail",
       "trigger": "Tap タスクカード"
+    }
+  ],
+  "entities": [
+    {
+      "id": "workspace",
+      "name": "ワークスペース",
+      "relations": [
+        {
+          "id": "r1",
+          "targetId": "project",
+          "type": "has-many",
+          "label": "contains"
+        },
+        {
+          "id": "r2",
+          "targetId": "member",
+          "type": "has-many",
+          "label": "has"
+        }
+      ],
+      "x": 371,
+      "y": -332
+    },
+    {
+      "id": "member",
+      "name": "メンバー",
+      "relations": [
+        {
+          "id": "r3",
+          "targetId": "task",
+          "type": "has-many",
+          "label": "assigned to"
+        },
+        {
+          "id": "r9",
+          "targetId": "comment",
+          "type": "has-many",
+          "label": "posted"
+        }
+      ],
+      "x": 56,
+      "y": -30
+    },
+    {
+      "id": "project",
+      "name": "プロジェクト",
+      "relations": [
+        {
+          "id": "r4",
+          "targetId": "task",
+          "type": "has-many",
+          "label": "contains"
+        },
+        {
+          "id": "r5",
+          "targetId": "member",
+          "type": "has-many",
+          "label": "assigned"
+        },
+        {
+          "id": "49xny9",
+          "targetId": "task",
+          "type": "has-many",
+          "label": ""
+        }
+      ],
+      "x": 803,
+      "y": -92
+    },
+    {
+      "id": "task",
+      "name": "タスク",
+      "relations": [
+        {
+          "id": "r6",
+          "targetId": "comment",
+          "type": "has-many",
+          "label": "has"
+        },
+        {
+          "id": "r7",
+          "targetId": "label",
+          "type": "has-many",
+          "label": "tagged"
+        }
+      ],
+      "x": 434,
+      "y": 176
+    },
+    {
+      "id": "label",
+      "name": "ラベル",
+      "relations": [],
+      "x": 720,
+      "y": 280
+    },
+    {
+      "id": "comment",
+      "name": "コメント",
+      "relations": [],
+      "x": 80,
+      "y": 280
+    }
+  ],
+  "actors": [
+    {
+      "id": "owner",
+      "name": "Owner",
+      "touches": [
+        {
+          "entityId": "workspace",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "own"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
+          ]
+        },
+        {
+          "entityId": "project",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "own"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
+          ]
+        },
+        {
+          "entityId": "task",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "member",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "label",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "comment",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            },
+            {
+              "op": "D",
+              "scope": "all"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "member-actor",
+      "name": "Member",
+      "touches": [
+        {
+          "entityId": "project",
+          "crud": [
+            {
+              "op": "R",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "task",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "all"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "comment",
+          "crud": [
+            {
+              "op": "C",
+              "scope": "own"
+            },
+            {
+              "op": "R",
+              "scope": "all"
+            },
+            {
+              "op": "U",
+              "scope": "own"
+            },
+            {
+              "op": "D",
+              "scope": "own"
+            }
+          ]
+        },
+        {
+          "entityId": "label",
+          "crud": [
+            {
+              "op": "R",
+              "scope": "all"
+            }
+          ]
+        },
+        {
+          "entityId": "member",
+          "crud": [
+            {
+              "op": "R",
+              "scope": "all"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
