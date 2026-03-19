@@ -28,16 +28,14 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="./lib/shared.js"></script>
 <script src="./lib/screen-logic.js"></script>
+<script src="./lib/file-io.js"></script>
+<script src="./lib/ui-components.js"></script>
 
 <script>
 let passthrough={};
 let CONCEPT={entities:[],actors:[]};
-let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,screensRef=null;
+let screensRef=null;
 
-function getFullJson(){
-  if(!screensRef)return null;
-  return{...passthrough,screens:screensRef.screens,transitions:screensRef.transitions};
-}
 function splitData(data){
   const{screens,transitions,...rest}=data;
   passthrough=rest;
@@ -47,45 +45,24 @@ function splitData(data){
   return{screens:scrs,transitions:transitions||[]};
 }
 
-function updateStatus(s,l,h){const dot=document.getElementById('sc-dot');dot.className='ed-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('sc-label').textContent=l||'';document.getElementById('sc-hint').textContent=h||'';}
-function showToast(m){const t=document.getElementById('sc-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000);}
-function markModified(){document.getElementById('sc-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
-function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
-async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('sc-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
-function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};CONCEPT={entities:[],actors:[]};if(saveTimer)clearTimeout(saveTimer);document.getElementById('sc-auto-btn').style.display='none';document.getElementById('sc-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
-function onFileConnected(h){fileHandle=h;if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('sc-auto-btn').classList.add('active');}document.getElementById('sc-auto-btn').style.display='flex';updateStatus('connected',h.name);}
-async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'sc-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__scLoadData)window.__scLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('sc-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('sc-dot').className='ed-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
-let dragC=0;const ov=document.getElementById('sc-drop-overlay');
-document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
-document.addEventListener('dragleave',e=>{if(e.dataTransfer.types.includes('Files')){dragC--;if(dragC<=0){dragC=0;ov.classList.remove('active');}}});
-document.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();});
-document.addEventListener('drop',async e=>{dragC=0;ov.classList.remove('active');if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();for(const i of[...e.dataTransfer.items]){if(i.kind!=='file'||typeof i.getAsFileSystemHandle!=='function')continue;const h=await i.getAsFileSystemHandle();if(h.kind==='file'&&h.name.endsWith('.json')){const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__scLoadData)window.__scLoadData(d);return;}}updateStatus('error','Drop not supported');});
-document.addEventListener('keydown',e=>{
-  const mod=e.metaKey||e.ctrlKey;
-  const inField=e.target.closest('input,textarea,select,[contenteditable]');
-  if(mod&&e.key==='s'){e.preventDefault();if(fileHandle)writeFile().then(()=>showToast('保存しました'));return;}
-  if(inField)return;
-  if(mod&&e.key==='z'&&!e.shiftKey){e.preventDefault();window.__scUndo?.();}
-  if(mod&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();window.__scRedo?.();}
-  if(mod&&e.key==='c'){if(window.__scCopy?.()){e.preventDefault();}}
-  if(mod&&e.key==='v'){if(window.__scPaste?.()){e.preventDefault();}}
-  if(mod&&e.key==='x'){if(window.__scCut?.()){e.preventDefault();}}
-  if(e.key==='Delete'||e.key==='Backspace'){if(window.__scDelete?.()){e.preventDefault();}}
+const io=window.__editorIO.createFileIO({
+  ids:{toast:'sc-toast',dot:'sc-dot',label:'sc-label',hint:'sc-hint',edited:'sc-edited',autoBtn:'sc-auto-btn',overlay:'sc-drop-overlay'},
+  getFullJson(){if(!screensRef)return null;return{...passthrough,screens:screensRef.screens,transitions:screensRef.transitions};},
+  onDisconnect(){passthrough={};CONCEPT={entities:[],actors:[]};},
+  loadDataKey:'__scLoadData',
+  keys:{undo:'__scUndo',redo:'__scRedo',copy:'__scCopy',paste:'__scPaste',cut:'__scCut',del:'__scDelete'},
+  filePickerId:'sc-editor',
 });
+const{showToast,markModified}=io;
+function handleConnect(){return io.handleConnect();}
+function toggleAuto(){return io.toggleAuto();}
+io.setupDragDrop();
+io.setupKeyboard();
 </script>
 
 <script type="text/babel">
 const{useState,useRef,useCallback,useEffect}=React;
-const M3={
-  primary:"var(--md-sys-color-primary)",onPrimary:"var(--md-sys-color-on-primary)",primaryContainer:"var(--md-sys-color-primary-container)",onPrimaryContainer:"var(--md-sys-color-on-primary-container)",
-  surface:"var(--md-sys-color-surface)",surfaceContLow:"var(--md-sys-color-surface-container-low)",surfaceCont:"var(--md-sys-color-surface-container)",surfaceContHigh:"var(--md-sys-color-surface-container-high)",
-  onSurface:"var(--md-sys-color-on-surface)",onSurfaceVar:"var(--md-sys-color-on-surface-variant)",
-  outline:"var(--md-sys-color-outline)",outlineVar:"var(--md-sys-color-outline-variant)",
-  error:"var(--md-sys-color-error)",errorContainer:"var(--md-sys-color-error-container)",onErrorContainer:"var(--md-sys-color-on-error-container)",
-  shapeSm:"var(--md-sys-shape-sm)",shapeMd:"var(--md-sys-shape-md)",shapeLg:"var(--md-sys-shape-lg)",shapeFull:"var(--md-sys-shape-full)",
-};
-// lib から取得
+const{M3,Input,Sel,Btn,SLabel,useInitialPan}=window.__editorUI;
 const{CRUD_OPS,CRUD_COLOR,CRUD_BG,ENT_PALETTE,ZOOM_MIN,ZOOM_MAX,MAX_HISTORY,uid,uniqueName,edgePt,calcCenterPan,labelWidth}=window.__editorLib;
 const _ensureScreenPositions=window.__editorLib.ensureScreenPositions;
 const entPalette=id=>window.__editorLib.entPalette(CONCEPT.entities,id);
@@ -102,34 +79,7 @@ const SC_HEADER_H=36,SC_OBJ_START_Y=40,SC_OBJ_ROW_H=22,SC_OBJ_PAD_X=8;
 const SC_GRID_COLS=3,SC_GRID_GAP_X=280,SC_GRID_GAP_Y=220,SC_GRID_PAD_X=60,SC_GRID_PAD_Y=60;
 const SC_MIN_SPAN_FACTOR=160,SC_MIN_SPAN_MIN=200;
 const EMPTY={screens:[],transitions:[]};
-let loadGeneration=0;
-function useInitialPan(items,iw,ih){
-  const svgRef=useRef();
-  const[pan,setPan]=useState({x:0,y:0});
-  const lastGen=useRef(-1);
-  useEffect(()=>{
-    if(lastGen.current===loadGeneration||!items||items.length===0||!svgRef.current)return;
-    requestAnimationFrame(()=>{
-      if(!svgRef.current)return;
-      const r=svgRef.current.getBoundingClientRect();
-      if(!r.width||!r.height)return;
-      const c=calcCenterPan(items,iw,ih);
-      setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
-      lastGen.current=loadGeneration;
-    });
-  },[items,iw,ih]);
-  return{svgRef,pan,setPan};
-}
-
-function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,padding:"8px 16px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
-function Sel({style,children,...p}){return<select{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,padding:"8px 16px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
-function Btn({children,onClick,accent,small,danger,ghost}){
-  const bg=danger?M3.errorContainer:accent?"#1A73E8":ghost?"transparent":M3.surfaceCont;
-  const fg=danger?M3.onErrorContainer:accent?M3.onPrimary:ghost?"#1A73E8":M3.onSurface;
-  const bd=ghost?`1px solid ${M3.outlineVar}`:"none";
-  return<button onClick={onClick}style={{background:bg,border:bd,color:fg,borderRadius:M3.shapeFull,padding:small?"8px 16px":"8px 24px",fontSize:14,fontWeight:500,lineHeight:"20px",letterSpacing:"0.1px",cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",transition:"box-shadow .15s"}}onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}}onMouseLeave={e=>{e.target.style.boxShadow="none";}}>{children}</button>;
-}
-const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
+const loadGenRef={current:0};
 
 const scrActorIds=s=>(s.actorIds||(s.actorId?[s.actorId]:[]));
 
@@ -162,7 +112,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
   const[selNavId,setSelNavId]=useState(null),[selId,setSelId]=useState(null),[drag,setDrag]=useState(null),[conn,setConn]=useState(null),[connDrag,setConnDrag]=useState(null),[navDrag,setNavDrag]=useState(null),[editLabel,setEditLabel]=useState(false);
   const[multiSel,setMultiSel]=useState(new Set());
   const selScr=selId?screens.screens.find(s=>s.id===selId):null;
-  const{svgRef,pan,setPan}=useInitialPan(screens.screens,SW,SH);
+  const{svgRef,pan,setPan}=useInitialPan(screens.screens,SW,SH,loadGenRef);
   const[panning,setPanning]=useState(false),[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0}),didDrag=useRef(false),multiOffsets=useRef({});
   const visScr=screens.screens;
@@ -416,7 +366,7 @@ function App(){
   useEffect(()=>{
     window.__scLoadData=d=>{
       const scData=_ensureScreenPositions(splitData(d),CONCEPT.actors,{cols:SC_GRID_COLS,gapX:SC_GRID_GAP_X,gapY:SC_GRID_GAP_Y,padX:SC_GRID_PAD_X,padY:SC_GRID_PAD_Y,minSpanFactor:SC_MIN_SPAN_FACTOR,minSpanMin:SC_MIN_SPAN_MIN});
-      loadGeneration++;
+      loadGenRef.current++;
       setScreensRaw(scData);
       histRef.current={stack:[JSON.parse(JSON.stringify(scData))],idx:0};
       setView("map");setScrId(null);
