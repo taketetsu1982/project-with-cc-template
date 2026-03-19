@@ -305,15 +305,16 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
   const setActorScope=(obj,actorId,op,sc)=>{const cur=getActorCrud(obj,actorId);const next=cur.map(c=>c.op===op?{...c,scope:sc}:c);setActorCrud(obj,actorId,next);};
   const selObj=scr.objects.find(o=>o.id===selObjId);
   const byArea={};AREAS.forEach(a=>{byArea[a]=scr.objects.filter(o=>(o.area||"main")===a);});
-  const renderObj=(obj)=>{const p=entPalette(obj.entityId),isSel=selObjId===obj.id;return(
-    <div key={obj.id} onClick={()=>setSelObjId(isSel?null:obj.id)} style={{background:"white",borderRadius:M3.shapeSm,border:`2px solid ${isSel?p.fg:"#DADCE0"}`,boxShadow:isSel?`0 0 0 3px ${p.fg}18`:"var(--md-sys-elevation-1)",cursor:"pointer",overflow:"hidden",flex:1,minWidth:0}}>
+  const getVisibleCrud=(obj)=>{if(viewActorId){return getActorCrud(obj,viewActorId).map(c=>c.op);}const byActor=obj.crudByActor||{};const union=new Set();Object.values(byActor).forEach(arr=>arr.forEach(c=>union.add(c.op)));return[...union];};
+  const renderObj=(obj)=>{const p=entPalette(obj.entityId),isSel=selObjId===obj.id,visCrud=getVisibleCrud(obj),hasCrud=visCrud.length>0,dimObj=viewActorId&&!hasCrud;return(
+    <div key={obj.id} onClick={()=>setSelObjId(isSel?null:obj.id)} style={{background:dimObj?"#FAFAFA":"white",borderRadius:M3.shapeSm,border:`2px solid ${isSel?p.fg:dimObj?"#ECECEC":"#DADCE0"}`,boxShadow:isSel?`0 0 0 3px ${p.fg}18`:"var(--md-sys-elevation-1)",cursor:"pointer",overflow:"hidden",flex:1,minWidth:0,opacity:dimObj?0.5:1}}>
       <div style={{padding:"8px 16px",borderBottom:"1px solid #F5F5F5",display:"flex",alignItems:"center",gap:8}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:p.bg}}/>
-        <span style={{fontSize:14,fontWeight:500,color:"#1A1A1A"}}>{entName(obj.entityId)}</span>
+        <div style={{width:8,height:8,borderRadius:"50%",background:dimObj?"#DADCE0":p.bg}}/>
+        <span style={{fontSize:14,fontWeight:500,color:dimObj?"#C4C7C5":"#1A1A1A"}}>{entName(obj.entityId)}</span>
         <span style={{fontSize:12,color:"#9AA0A6",background:"#F5F5F5",padding:"2px 8px",borderRadius:M3.shapeFull}}>{obj.variant}</span>
-        <div style={{marginLeft:"auto",display:"flex",gap:4}}>{CRUD_OPS.map(op=>(<span key={op} style={{fontSize:12,fontWeight:700,padding:"4px 8px",borderRadius:6,background:obj.crud.includes(op)?CRUD_BG[op]:"#F5F5F5",color:obj.crud.includes(op)?CRUD_COLOR[op]:"#DADCE0"}}>{op}</span>))}</div>
+        <div style={{marginLeft:"auto",display:"flex",gap:4}}>{CRUD_OPS.map(op=>(<span key={op} style={{fontSize:12,fontWeight:700,padding:"4px 8px",borderRadius:6,background:visCrud.includes(op)?CRUD_BG[op]:"#F5F5F5",color:visCrud.includes(op)?CRUD_COLOR[op]:"#DADCE0"}}>{op}</span>))}</div>
       </div>
-      <div style={{padding:"16px 16px"}}>{obj.variant==="collection"?<CollWF obj={obj} color={p.fg}/>:<SingleWF obj={obj} color={p.fg}/>}</div>
+      <div style={{padding:"16px 16px"}}>{obj.variant==="collection"?<CollWF obj={obj} color={dimObj?"#DADCE0":p.fg}/>:<SingleWF obj={obj} color={dimObj?"#DADCE0":p.fg}/>}</div>
     </div>);};
   const renderZone=(area,objs,style)=>(
     <div style={{...style,minHeight:objs.length>0?undefined:48,border:objs.length===0?`2px dashed ${M3.outlineVar}`:"none",borderRadius:M3.shapeSm,display:"flex",flexDirection:"column",gap:16,padding:objs.length===0?8:0,position:"relative"}}>
