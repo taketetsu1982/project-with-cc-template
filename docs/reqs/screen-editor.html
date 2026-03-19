@@ -268,7 +268,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
             warnings.push({actor:actor.name,msg:`「${names.join("」「")}」が画面に含まれていません`});
           }
           actorScreens.forEach(s=>{
-            const empty=s.objects.filter(o=>o.crud.length===0);
+            const empty=s.objects.filter(o=>{const ba=o.crudByActor||{};const actorCrud=ba[actor.id]||[];return actorCrud.length===0;});
             if(empty.length>0){
               const names=empty.map(o=>CONCEPT.entities.find(e=>e.id===o.entityId)?.name||o.entityId);
               warnings.push({actor:actor.name,msg:`『${s.name}』の「${names.join("」「")}」のCRUDが設定されていません`});
