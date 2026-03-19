@@ -258,7 +258,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
         const warnings=[];
         CONCEPT.actors.forEach(actor=>{
           const touchedIds=actor.touches.filter(t=>t.crud.length>0).map(t=>t.entityId);
-          const actorScreens=screens.screens.filter(s=>s.actorId===actor.id);
+          const actorScreens=screens.screens.filter(s=>scrActorIds(s).includes(actor.id));
           const usedIds=new Set(actorScreens.flatMap(s=>s.objects.map(o=>o.entityId)));
           const missing=touchedIds.filter(eid=>!usedIds.has(eid));
           if(missing.length>0){
@@ -294,7 +294,7 @@ function ScreenDetailView({screenId,screens,setScreens,onBack}){
   const updObj=obj=>updScr({objects:scr.objects.map(o=>o.id===obj.id?obj:o)});
   const delObj=id=>{updScr({objects:scr.objects.filter(o=>o.id!==id)});setSelObjId(null);};
   const scrActors=scrActorIds(scr);const defaultActorId=scrActors[0]||null;
-  const addObj=()=>{const actor=CONCEPT.actors.find(a=>a.id===defaultActorId);const allowedEnts=CONCEPT.entities.filter(e=>actor?.touches.some(t=>t.entityId===e.id&&t.crud.length>0));const ent=allowedEnts[0];if(!ent)return;const touch=actor?.touches.find(t=>t.entityId===ent.id&&t.crud.length>0);const defaultCrud=touch?(touch.crud.some(c=>c.op==="R")?["R"]:[touch.crud[0].op]):[];const obj={id:uid(),entityId:ent.id,variant:"collection",crud:defaultCrud,area:"main"};updScr({objects:[...scr.objects,obj]});setSelObjId(obj.id);};
+  const addObj=()=>{if(!defaultActorId)return;const actor=CONCEPT.actors.find(a=>a.id===defaultActorId);const allowedEnts=CONCEPT.entities.filter(e=>actor?.touches.some(t=>t.entityId===e.id&&t.crud.length>0));const ent=allowedEnts[0];if(!ent)return;const touch=actor?.touches.find(t=>t.entityId===ent.id&&t.crud.length>0);const defaultCrud=touch?(touch.crud.some(c=>c.op==="R")?["R"]:[touch.crud[0].op]):[];const obj={id:uid(),entityId:ent.id,variant:"collection",crud:defaultCrud,area:"main"};updScr({objects:[...scr.objects,obj]});setSelObjId(obj.id);};
   const toggleCrud=(obj,op)=>{const crud=obj.crud.includes(op)?obj.crud.filter(c=>c!==op):[...obj.crud,op];updObj({...obj,crud});};
   const selObj=scr.objects.find(o=>o.id===selObjId);
   const byArea={};AREAS.forEach(a=>{byArea[a]=scr.objects.filter(o=>(o.area||"main")===a);});
