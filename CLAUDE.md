@@ -95,6 +95,7 @@ make format      # フォーマット
 
 ## Gotchas
 
+- **テンプレート既知課題あり**: `docs/template-issues.md` に6件の改善イシュー（Critical 3 + High 3）を記録済み。主な問題: ドキュメント間の整合性チェック不足、並列トラック依存関係の未管理、レビューステップのワークフロー未組込。`scripts/create-template-issues.sh` でGitHub Issueを一括作成可能
 {プロジェクト固有の注意点をここに記載}
 
 ## 環境変数
