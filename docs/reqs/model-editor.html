@@ -31,23 +31,11 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="./lib/shared.js"></script>
 <script src="./lib/model-logic.js"></script>
+<script src="./lib/file-io.js"></script>
 
 <script>
 let passthrough={};
-let fileHandle=null,autoSaveEnabled=false,saveTimer=null,isSaving=false,modelRef=null;
-
-function getFullJson(){
-  if(!modelRef)return null;
-  return{...passthrough,entities:modelRef.entities,actors:modelRef.actors};
-}
-
-function updateStatus(s,l,h){const dot=document.getElementById('cm-dot');dot.className='ed-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('cm-label').textContent=l||'';document.getElementById('cm-hint').textContent=h||'';}
-function showToast(m){const t=document.getElementById('cm-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000);}
-function markModified(){document.getElementById('cm-edited').style.display='inline';if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
-function scheduleAutoSave(){if(saveTimer)clearTimeout(saveTimer);if(!fileHandle||!autoSaveEnabled)return;saveTimer=setTimeout(()=>writeFile(),500);}
-async function writeFile(){if(!fileHandle||isSaving)return;const full=getFullJson();if(!full)return;isSaving=true;updateStatus('saving',fileHandle.name,'');try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(full,null,2)+'\n');await w.close();updateStatus('connected',fileHandle.name);document.getElementById('cm-edited').style.display='none';}catch(e){console.error(e);updateStatus('error','Save failed');if(e.name==='NotAllowedError')disconnectFile();}finally{isSaving=false;}}
-function disconnectFile(){fileHandle=null;autoSaveEnabled=false;passthrough={};if(saveTimer)clearTimeout(saveTimer);document.getElementById('cm-auto-btn').style.display='none';document.getElementById('cm-edited').style.display='none';updateStatus('','Connect','(Drop a JSON file)');}
-function onFileConnected(h){fileHandle=h;if(!autoSaveEnabled){autoSaveEnabled=true;document.getElementById('cm-auto-btn').classList.add('active');}document.getElementById('cm-auto-btn').style.display='flex';updateStatus('connected',h.name);}
+let modelRef=null;
 
 function splitData(data){
   const{entities,actors,...rest}=data;
@@ -55,29 +43,23 @@ function splitData(data){
   const ents=entities||[];
   let migrated=false;
   ents.forEach(e=>{(e.relations||[]).forEach(r=>{if(r.type==='belongs-to'){r.type='has-many';migrated=true;}});});
-  if(migrated)setTimeout(()=>showToast('belongs-toをhas-manyに自動変換しました'),300);
+  if(migrated)setTimeout(()=>io.showToast('belongs-toをhas-manyに自動変換しました'),300);
   return{entities:ents,actors:actors||[]};
 }
 
-async function handleConnect(){if(fileHandle){await writeFile();showToast('保存しました');return;}if(!('showOpenFilePicker' in window)){showToast('JSONファイルをドロップしてください');return;}try{const[h]=await window.showOpenFilePicker({id:'cm-editor',types:[{description:'JSON',accept:{'application/json':['.json']}}]});const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);}catch(e){if(e.name!=='AbortError'){console.error(e);updateStatus('error','Error');}}}
-function toggleAuto(){autoSaveEnabled=!autoSaveEnabled;document.getElementById('cm-auto-btn').classList.toggle('active',autoSaveEnabled);showToast('自動保存 '+(autoSaveEnabled?'ON':'OFF'));if(fileHandle){document.getElementById('cm-dot').className='ed-dot '+(autoSaveEnabled?'connected':'');}if(autoSaveEnabled&&fileHandle)scheduleAutoSave();}
-let dragC=0;const ov=document.getElementById('cm-drop-overlay');
-document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragC++;ov.classList.add('active');}});
-document.addEventListener('dragleave',e=>{if(e.dataTransfer.types.includes('Files')){dragC--;if(dragC<=0){dragC=0;ov.classList.remove('active');}}});
-document.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();});
-document.addEventListener('drop',async e=>{dragC=0;ov.classList.remove('active');if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();for(const i of[...e.dataTransfer.items]){if(i.kind!=='file'||typeof i.getAsFileSystemHandle!=='function')continue;const h=await i.getAsFileSystemHandle();if(h.kind==='file'&&h.name.endsWith('.json')){const f=await h.getFile();const t=await f.text();let d;try{d=JSON.parse(t);}catch{updateStatus('error','Invalid JSON');return;}onFileConnected(h);if(window.__cmLoadData)window.__cmLoadData(d);return;}}updateStatus('error','Drop not supported');});
-document.addEventListener('keydown',e=>{
-  const mod=e.metaKey||e.ctrlKey;
-  const inField=e.target.closest('input,textarea,select,[contenteditable]');
-  if(mod&&e.key==='s'){e.preventDefault();if(fileHandle)writeFile().then(()=>showToast('保存しました'));return;}
-  if(inField)return;
-  if(mod&&e.key==='z'&&!e.shiftKey){e.preventDefault();window.__cmUndo?.();}
-  if(mod&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();window.__cmRedo?.();}
-  if(mod&&e.key==='c'){if(window.__cmCopy?.()){e.preventDefault();}}
-  if(mod&&e.key==='v'){if(window.__cmPaste?.()){e.preventDefault();}}
-  if(mod&&e.key==='x'){if(window.__cmCut?.()){e.preventDefault();}}
-  if(e.key==='Delete'||e.key==='Backspace'){if(window.__cmDelete?.()){e.preventDefault();}}
+const io=window.__editorIO.createFileIO({
+  ids:{toast:'cm-toast',dot:'cm-dot',label:'cm-label',hint:'cm-hint',edited:'cm-edited',autoBtn:'cm-auto-btn',overlay:'cm-drop-overlay'},
+  getFullJson(){if(!modelRef)return null;return{...passthrough,entities:modelRef.entities,actors:modelRef.actors};},
+  onDisconnect(){passthrough={};},
+  loadDataKey:'__cmLoadData',
+  keys:{undo:'__cmUndo',redo:'__cmRedo',copy:'__cmCopy',paste:'__cmPaste',cut:'__cmCut',del:'__cmDelete'},
+  filePickerId:'cm-editor',
 });
+const{showToast,markModified}=io;
+function handleConnect(){return io.handleConnect();}
+function toggleAuto(){return io.toggleAuto();}
+io.setupDragDrop();
+io.setupKeyboard();
 </script>
 
 <script type="text/babel">
