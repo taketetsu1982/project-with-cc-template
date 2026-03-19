@@ -4,7 +4,7 @@
 > A) Specs整合性テスト — 実装がSpecs通りに動くか
 > B) シナリオテスト — ユーザーストーリーが端から端まで通るか
 
-**バージョン:** 0.2
+**バージョン:** 0.3
 **ステータス:** Draft
 **最終更新:** 2026-03-19
 **導出元:** docs/reqs/user-stories.md, docs/specs/db-schema.md, docs/specs/api-spec.md
@@ -22,7 +22,7 @@
 | DB-03 | oura_connections カラム定義 | user_id, access_token, refresh_token, token_expires_at | user_id: UUID NOT NULL UNIQUE FK→users.id, access_token/refresh_token: TEXT NOT NULL, token_expires_at: TIMESTAMPTZ NOT NULL | Must |
 | DB-04 | daily_records カラム定義 | user_id, record_date | user_id: UUID NOT NULL FK→users.id, record_date: DATE NOT NULL | Must |
 | DB-05 | daily_records ユニーク制約 | (user_id, record_date) | 同一ユーザー・同一日付で2件目のINSERTが拒否されることを確認 | Must |
-| DB-06 | physical_scores カラム定義 | daily_record_id, sleep_score, readiness_score, activity_score, hrv_rmssd, resting_heart_rate | daily_record_id: UUID NOT NULL UNIQUE FK→daily_records.id, スコア系: INTEGER/FLOAT NULLABLE | Must |
+| DB-06 | physical_scores カラム定義 | daily_record_id, sleep_score, readiness_score, activity_score, hrv_rmssd, resting_heart_rate, sleep_stages | daily_record_id: UUID NOT NULL UNIQUE FK→daily_records.id, スコア系: INTEGER/FLOAT NULLABLE, sleep_stages: JSONB NULLABLE | Must |
 | DB-07 | mental_entries カラム定義 | daily_record_id, mood, energy, stress, focus | daily_record_id: UUID NOT NULL UNIQUE FK→daily_records.id, 4軸: INTEGER NOT NULL CHECK(BETWEEN 1 AND 7) | Must |
 | DB-08 | mental_entries CHECK制約 | mood, energy, stress, focus | 0以下・8以上の値がINSERTで拒否されることを確認 | Must |
 | DB-09 | FK カスケード | 全外部キー | 親レコード削除時の振る舞いを確認 | Must |
@@ -30,7 +30,7 @@
 
 ### API整合性
 
-> api-spec.md が未具体化のため、user-stories.md の受け入れ条件から想定されるエンドポイントに基づく。api-spec.md 具体化後に更新する。
+> api-spec.md v0.2 に基づく。
 
 | ID | テスト項目 | 検証対象 | 検証方法 | 優先度 |
 |---|---|---|---|---|
@@ -42,13 +42,13 @@
 | API-06 | メンタルエントリ更新 | PATCH/PUT mental_entries | 既存エントリの値変更で200が返り、更新後の値が正しいことを確認 | Must |
 | API-07 | メンタルエントリ バリデーション | POST mental_entries（不正値） | 範囲外の値（0, 8）、欠損フィールドで422が返ることを確認 | Must |
 | API-08 | 日次サマリー取得 | GET daily_records/{date} | 指定日のPhysicalScore + MentalEntryが返ることを確認 | Must |
-| API-09 | トレンドデータ取得 | GET daily_records（期間指定） | 7/14/30日窓のデータがリスト形式で返ることを確認 | Must |
+| API-09 | トレンドデータ取得 | GET /api/v1/trends | window=7/14/30のデータがリスト形式で返り、strain_recoveryフィールドが含まれることを確認 | Must |
 | API-10 | レスポンス形式 | 全エンドポイント | Content-Type: application/json、日時: ISO 8601、ID: UUID v4 を確認 | Must |
 | API-11 | エラーレスポンス | 全エンドポイント | `{ "detail": "..." }` 形式で返ることを確認 | Must |
 
 ### 認証・認可整合性
 
-> PG1は単一ユーザー（SelfTracker）のみ。auth-spec.md 具体化後に更新する。
+> PG1は単一ユーザー（SelfTracker）のみ。auth-spec.md v0.2 に基づく。JWT認証（Access Token 1時間 / Refresh Token 7日）。
 
 | ID | テスト項目 | 検証対象 | 検証方法 | 優先度 |
 |---|---|---|---|---|

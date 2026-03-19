@@ -2,7 +2,7 @@
 
 > データベーススキーマ定義。conceptual-model の写像。
 
-**バージョン:** 0.2
+**バージョン:** 0.3
 **ステータス:** Draft
 **最終更新:** 2026-03-19
 **導出元:** docs/reqs/product-model.json（entities）
@@ -51,8 +51,9 @@ PG1ではENUM定義なし。
 
 | カラム名 | 型 | 制約 | 説明 |
 |---------|---|------|------|
+| `timezone` | TEXT | NOT NULL, DEFAULT 'Asia/Tokyo' | IANAタイムゾーン。日付境界の判定に使用 |
 
-共通カラムのみ。PG1では自分自身のみのため、追加カラムなし。
+PG1では自分自身のみのため、認証情報（メール等）は不要。タイムゾーンはZ-score計算・日次レコードの日付境界判定に必要。
 
 ---
 
@@ -95,8 +96,9 @@ PG1ではENUM定義なし。
 | `activity_score` | INTEGER | - | Oura Activity Score |
 | `hrv_rmssd` | FLOAT | - | HRV（RMSSD、ミリ秒） |
 | `resting_heart_rate` | FLOAT | - | 安静時心拍数（bpm） |
+| `sleep_stages` | JSONB | - | 睡眠ステージ比率（`{"rem": 0.22, "light": 0.45, "deep": 0.18, "awake": 0.15}`）|
 
-各スコアカラムはNULLABLE。Oura APIのデータ欠損に対応するため。
+各スコアカラムはNULLABLE。Oura APIのデータ欠損に対応するため。sleep_stagesはOura APIから取得したREM/Light/Deep/Awakeの比率（0.0〜1.0）をJSONBで保持する。
 
 **インデックス:** `physical_scores_daily_record_id_idx` ON (`daily_record_id`)
 

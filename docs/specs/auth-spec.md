@@ -2,19 +2,24 @@
 
 > 認証・認可フローの定義。api-spec.md はこのドキュメントを参照する。
 
-**バージョン:** 0.1
+**バージョン:** 0.2
 **ステータス:** Draft
-**最終更新:** {日付}
+**最終更新:** 2026-03-19
+**導出元:** docs/reqs/product-model.json（actors）, docs/reqs/prd.md
 
 ---
 
 ## 認証方式
 
-{認証方式の説明}
+PG1は単一ユーザー（自分自身）のみ。JWT（JSON Web Token）ベースの認証を採用する。
+マルチユーザー対応はPG1スコープ外のため、登録・ログインは最小限の実装とする。
 
 | トークン | 有効期限 | 保存先 |
 |---------|---------|--------|
-| {トークン種別} | {期限} | {保存先} |
+| Access Token (JWT) | 1時間 | フロントエンド（メモリ or sessionStorage） |
+| Refresh Token | 7日 | HttpOnly Cookie |
+
+**注意:** Oura OAuth2トークンは別管理。`oura_connections` テーブルに保存する。
 
 ---
 
@@ -24,16 +29,19 @@
 ```
 POST /api/v1/auth/register  (public)
 ```
+PG1では初回セットアップ時に1回のみ使用。メールアドレス + パスワードで登録。
 
 ### ログイン
 ```
 POST /api/v1/auth/login  (public)
 ```
+メールアドレス + パスワードで認証。Access Token + Refresh Token を返却。
 
 ### トークンリフレッシュ
 ```
 POST /api/v1/auth/refresh  (public)
 ```
+Refresh Token（HttpOnly Cookie）を使用してAccess Tokenを再発行。
 
 ---
 
@@ -43,26 +51,41 @@ POST /api/v1/auth/refresh  (public)
 
 | ロール | 想定ユーザー | 権限の特徴 |
 |--------|-------------|----------|
-| {ロール} | {ユーザー} | {特徴} |
+| SelfTracker | Oura Ring所有者（自分自身） | 自分のデータに対するフルアクセス。PhysicalScoreはRead Only |
 
 ### 権限マトリクス
 
-| リソース | {ロール1} | {ロール2} | {ロール3} |
-|---------|:-:|:-:|:-:|
-| {リソース} | {CRUD/R/-} | {CRUD/R/-} | {CRUD/R/-} |
+product-model.json の actors[].touches から導出。
+
+| リソース | SelfTracker |
+|---------|:-:|
+| User | R, U（own） |
+| OuraConnection | C, R, U, D（own） |
+| DailyRecord | C, R（own） |
+| PhysicalScore | R（own） |
+| MentalEntry | C, R, U, D（own） |
+
+**PhysicalScoreの書き込み制限:** PhysicalScoreはOura API同期でのみ作成・更新される。ユーザーからの直接的なPOST/PUT/DELETEリクエストは拒否する（403）。
 
 ---
 
 ## スコープ設計
 
 ### テナントスコープ
-{テナント分離の方針}
+PG1は単一ユーザーのため、テナント分離は不要。全APIで認証済みユーザーのデータのみ返却する（`WHERE user_id = :current_user_id`）。
 
-### その他のスコープ
-{プライバシースコープ等の追加設計}
+### Oura OAuth2スコープ
+Oura APIへのアクセス時に必要なOAuth2スコープ:
+- `daily` — 日次サマリーデータ（Sleep Score, Readiness Score, Activity Score）
+- `heartrate` — 心拍数データ（HRV, 安静時心拍数）
+- `sleep` — 睡眠ステージ比率
 
 ---
 
 ## セキュリティ要件
 
-- {要件1}
+- パスワードはbcrypt（cost factor 12）でハッシュ化して保存
+- Access Token（JWT）にはユーザーIDのみ含める（機密情報を含めない）
+- Refresh TokenはHttpOnly + Secure + SameSite=Strict Cookieで送信
+- Oura OAuth2のstate パラメータでCSRF攻撃を防止
+- Oura APIのaccess_token / refresh_tokenはDBに暗号化して保存
