@@ -3,7 +3,7 @@
     {
       "id": "owner-dashboard",
       "name": "ダッシュボード",
-      "actorId": "owner",
+      "actorIds": ["owner", "member-actor"],
       "type": "composite",
       "prompt": "KPI（月次進捗・タスク完了率）をカード形式で上部に表示。プロジェクト別タスク数をグラフで中段に。",
       "objects": [
@@ -38,7 +38,7 @@
     {
       "id": "project-list",
       "name": "プロジェクト一覧",
-      "actorId": "owner",
+      "actorIds": ["owner", "member-actor"],
       "type": "screen",
       "prompt": "プロジェクトをカード形式で一覧表示。新規作成ボタン付き。",
       "objects": [
@@ -59,7 +59,7 @@
     {
       "id": "project-detail",
       "name": "プロジェクト詳細",
-      "actorId": "owner",
+      "actorIds": ["owner", "member-actor"],
       "type": "screen",
       "prompt": "タスク一覧をカンバン形式で表示。メンバー一覧サイドパネル付き。",
       "objects": [
@@ -100,7 +100,7 @@
     {
       "id": "task-detail",
       "name": "タスク詳細",
-      "actorId": "owner",
+      "actorIds": ["owner", "member-actor"],
       "type": "screen",
       "prompt": "タスクの編集フォームとコメントスレッド。ラベル選択はタグピッカー。",
       "objects": [
@@ -139,7 +139,7 @@
     {
       "id": "member-management",
       "name": "メンバー管理",
-      "actorId": "owner",
+      "actorIds": ["owner"],
       "type": "screen",
       "prompt": "ワークスペースのメンバー一覧。招待・削除・ロール変更。",
       "objects": [
@@ -161,7 +161,7 @@
     {
       "id": "label-management",
       "name": "ラベル管理",
-      "actorId": "owner",
+      "actorIds": ["owner"],
       "type": "screen",
       "prompt": "ラベルの作成・編集・削除。色とテキストを設定。",
       "objects": [
@@ -183,7 +183,7 @@
     {
       "id": "member-my-tasks",
       "name": "マイタスク",
-      "actorId": "member-actor",
+      "actorIds": ["member-actor"],
       "type": "screen",
       "prompt": "自分にアサインされたタスクを期限順に表示。",
       "objects": [
@@ -208,65 +208,6 @@
       ],
       "x": 60,
       "y": 60
-    },
-    {
-      "id": "member-project-board",
-      "name": "プロジェクトボード",
-      "actorId": "member-actor",
-      "type": "screen",
-      "prompt": "参加プロジェクトのタスクをカンバン形式で表示。",
-      "objects": [
-        {
-          "id": "o14",
-          "entityId": "project",
-          "variant": "single",
-          "crud": [
-            "R"
-          ]
-        },
-        {
-          "id": "o15",
-          "entityId": "task",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "U"
-          ]
-        }
-      ],
-      "x": -300,
-      "y": 60
-    },
-    {
-      "id": "member-task-detail",
-      "name": "タスク詳細",
-      "actorId": "member-actor",
-      "type": "screen",
-      "prompt": "タスクの閲覧・編集とコメント投稿。",
-      "objects": [
-        {
-          "id": "o9",
-          "entityId": "task",
-          "variant": "single",
-          "crud": [
-            "R",
-            "U"
-          ]
-        },
-        {
-          "id": "o10",
-          "entityId": "comment",
-          "variant": "collection",
-          "crud": [
-            "C",
-            "R",
-            "D"
-          ]
-        }
-      ],
-      "x": 60,
-      "y": 280
     }
   ],
   "transitions": [
@@ -303,20 +244,14 @@
     {
       "id": "t7",
       "from": "member-my-tasks",
-      "to": "member-task-detail",
+      "to": "task-detail",
       "trigger": "Tap タスク行"
     },
     {
       "id": "t8",
       "from": "member-my-tasks",
-      "to": "member-project-board",
+      "to": "project-detail",
       "trigger": "Tap プロジェクト名"
-    },
-    {
-      "id": "t9",
-      "from": "member-project-board",
-      "to": "member-task-detail",
-      "trigger": "Tap タスクカード"
     }
   ],
   "entities": [

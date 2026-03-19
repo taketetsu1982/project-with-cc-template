@@ -27,6 +27,7 @@ paths:
 
 - 画面定義は `product-model.json` の `screens` / `transitions` で管理する
 - 画面を追加するときは `/screens` でScreensエディタを開いて編集する
-- screens の objects.crud は actors の touches 権限の範囲内で設定する
+- **screens の `actorIds`（配列）で複数actorに属する画面を定義できる。** 同じUIの画面をactor間で共有し、重複を避ける
+- **`objects[].crud` は画面が出しうる操作のmax。** 実際のCRUD = `objects[].crud ∩ actor.touches[].crud` で導出される。actor間のCRUD差分は自動計算されるため、actor別に画面をコピーしない
 - screens が更新されたら、`ui-spec.md` への影響を確認する
 - **transitions は「進む」方向のみ定義する。「戻る」遷移は定義しない。** 戻る導線はブラウザバックやナビゲーションで暗黙的に表現される。一覧→詳細の行き来のような自明な戻り遷移は情報量ゼロのため不要

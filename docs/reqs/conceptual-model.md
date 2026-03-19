@@ -58,6 +58,10 @@
 画面定義は `product-model.json` の `screens` / `transitions` で管理。
 `/screens` を実行してScreensエディタで編集する。
 
+- 画面は `actorIds`（配列）で複数アクターに属することができる
+- `objects[].crud` は画面が提供しうる操作の最大範囲（max）
+- 各アクターの実際のCRUD = `objects[].crud ∩ actor.touches[].crud` で導出される
+
 ---
 
 ## 境界と制約
