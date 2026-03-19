@@ -229,7 +229,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
           {CONCEPT.actors.length>0&&<div style={{position:"absolute",top:16,left:16,display:"flex",gap:8,alignItems:"center"}}>
             <Btn small onClick={()=>addScreen("screen")}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><span className="msi" style={{fontSize:16}}>add_box</span> Screen</span></Btn>
             <Btn small onClick={()=>addScreen("composite")}><span style={{display:"inline-flex",alignItems:"center",gap:4}}><span className="msi" style={{fontSize:16}}>dashboard_customize</span> Composite</span></Btn>
-            <Btn small ghost={!connOn} accent={connOn} onClick={()=>{setConn(connOn?null:"");setConnDrag(null);}}>{connOn?(connHasSrc?"→ select target":"← select source"):<span style={{display:"inline-flex",alignItems:"center",gap:4}}><span className="msi" style={{fontSize:16}}>link</span> Connect</span>}</Btn>
+            <Btn small ghost={!connOn} accent={connOn} onClick={()=>{if(!connOn){setSelId(null);setSelNavId(null);setEditLabel(false);setMultiSel(new Set());multiOffsets.current={};}setConn(connOn?null:"");setConnDrag(null);}}>{connOn?(connHasSrc?"→ select target":"← select source"):<span style={{display:"inline-flex",alignItems:"center",gap:4}}><span className="msi" style={{fontSize:16}}>link</span> Connect</span>}</Btn>
             {connOn&&<Btn small ghost onClick={()=>{setConn(null);setConnDrag(null);}}><span className="msi" style={{fontSize:16}}>close</span></Btn>}
           </div>}
           <div style={{position:"absolute",bottom:16,right:16,display:"flex",alignItems:"center",gap:4,background:"white",borderRadius:"var(--md-sys-shape-full)",padding:"4px 8px",boxShadow:"var(--md-sys-elevation-1)"}}>
