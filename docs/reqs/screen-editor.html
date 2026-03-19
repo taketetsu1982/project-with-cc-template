@@ -259,7 +259,7 @@ function MapView({screens,setScreens,setScreensSilent,onSelectScreen,onSelChange
       {(()=>{
         const warnings=[];
         CONCEPT.actors.forEach(actor=>{
-          const touchedIds=actor.touches.filter(t=>t.crud.length>0).map(t=>t.entityId);
+          const touchedIds=(actor.touches||[]).filter(t=>(t.crud||[]).length>0).map(t=>t.entityId);
           const actorScreens=screens.screens.filter(s=>scrActorIds(s).includes(actor.id));
           const usedIds=new Set(actorScreens.flatMap(s=>s.objects.map(o=>o.entityId)));
           const missing=touchedIds.filter(eid=>!usedIds.has(eid));
