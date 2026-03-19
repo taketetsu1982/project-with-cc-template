@@ -29,3 +29,4 @@ paths:
 - 画面を追加するときは `/screens` でScreensエディタを開いて編集する
 - screens の objects.crud は actors の touches 権限の範囲内で設定する
 - screens が更新されたら、`ui-spec.md` への影響を確認する
+- **transitions は「進む」方向のみ定義する。「戻る」遷移は定義しない。** 戻る導線はブラウザバックやナビゲーションで暗黙的に表現される。一覧→詳細の行き来のような自明な戻り遷移は情報量ゼロのため不要
