@@ -89,7 +89,9 @@ function splitData(data){
   const{screens,transitions,...rest}=data;
   passthrough=rest;
   CONCEPT={entities:rest.entities||[],actors:rest.actors||[]};
-  return{screens:screens||[],transitions:transitions||[]};
+  // crud → crudByActor マイグレーション
+  const scrs=(screens||[]).map(s=>{const aids=s.actorIds||(s.actorId?[s.actorId]:[]);return{...s,objects:(s.objects||[]).map(o=>{if(o.crud&&!o.crudByActor){const ba={};aids.forEach(aid=>{ba[aid]=o.crud.map(op=>({op,scope:"all"}));});return{...o,crudByActor:ba};}return o;})};});
+  return{screens:scrs,transitions:transitions||[]};
 }
 
 function updateStatus(s,l,h){const dot=document.getElementById('sc-dot');dot.className='sc-dot '+((s&&autoSaveEnabled)?s:(s==='error'?s:''));document.getElementById('sc-label').textContent=l||'';document.getElementById('sc-hint').textContent=h||'';}
