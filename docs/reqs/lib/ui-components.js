@@ -21,10 +21,11 @@
   function Input(props) {
     var style = props.style, rest = Object.assign({}, props);
     delete rest.style;
+    var origFocus = rest.onFocus, origBlur = rest.onBlur;
     return h("input", Object.assign({}, rest, {
       style: Object.assign({border:"1px solid "+M3.outlineVar,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"8px 16px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit"}, style),
-      onFocus: function(e){e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";},
-      onBlur: function(e){e.target.style.borderColor="";e.target.style.boxShadow="none";}
+      onFocus: function(e){e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";if(origFocus)origFocus(e);},
+      onBlur: function(e){e.target.style.borderColor="";e.target.style.boxShadow="none";if(origBlur)origBlur(e);}
     }));
   }
 

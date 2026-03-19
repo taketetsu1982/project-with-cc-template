@@ -45,22 +45,27 @@
       saveTimer = setTimeout(function() { writeFile(); }, 500);
     }
 
+    // 成功時 true、失敗・スキップ時 false を返す
     async function writeFile() {
-      if (!fileHandle || isSaving) return;
+      if (!fileHandle || isSaving) return false;
       var full = config.getFullJson();
-      if (!full) return;
+      if (!full) return false;
       isSaving = true;
       updateStatus('saving', fileHandle.name, '');
+      var writable = null;
       try {
-        var w = await fileHandle.createWritable();
-        await w.write(JSON.stringify(full, null, 2) + '\n');
-        await w.close();
+        writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(full, null, 2) + '\n');
+        await writable.close();
         updateStatus('connected', fileHandle.name);
         el(ids.edited).style.display = 'none';
+        return true;
       } catch (e) {
         console.error(e);
+        if (writable) try { await writable.abort(); } catch(_) {}
         updateStatus('error', 'Save failed');
         if (e.name === 'NotAllowedError') disconnectFile();
+        return false;
       } finally {
         isSaving = false;
       }
@@ -86,8 +91,22 @@
       updateStatus('connected', h.name);
     }
 
+    function loadJson(text, fileName) {
+      var d;
+      try { d = JSON.parse(text); } catch (parseErr) {
+        console.error('JSON parse error:', parseErr.message, fileName);
+        updateStatus('error', 'Invalid JSON');
+        return null;
+      }
+      return d;
+    }
+
     async function handleConnect() {
-      if (fileHandle) { await writeFile(); showToast('保存しました'); return; }
+      if (fileHandle) {
+        var ok = await writeFile();
+        if (ok) showToast('保存しました');
+        return;
+      }
       if (!('showOpenFilePicker' in window)) { showToast('JSONファイルをドロップしてください'); return; }
       try {
         var picked = await window.showOpenFilePicker({
@@ -97,13 +116,19 @@
         var h = picked[0];
         var f = await h.getFile();
         var t = await f.text();
-        var d;
-        try { d = JSON.parse(t); } catch (_) { updateStatus('error', 'Invalid JSON'); return; }
+        var d = loadJson(t, h.name);
+        if (!d) return;
         onFileConnected(h);
         var cb = window[config.loadDataKey];
         if (cb) cb(d);
       } catch (e) {
-        if (e.name !== 'AbortError') { console.error(e); updateStatus('error', 'Error'); }
+        if (e.name !== 'AbortError') {
+          console.error(e);
+          var msg = e.name === 'NotAllowedError' ? 'ファイルアクセスが拒否されました'
+                  : e.name === 'SecurityError' ? 'セキュリティエラー'
+                  : 'ファイルを開けませんでした';
+          updateStatus('error', msg);
+        }
       }
     }
 
@@ -133,21 +158,26 @@
         dragC = 0; ov.classList.remove('active');
         if (!e.dataTransfer.types.includes('Files')) return;
         e.preventDefault();
-        for (var item of [...e.dataTransfer.items]) {
-          if (item.kind !== 'file' || typeof item.getAsFileSystemHandle !== 'function') continue;
-          var h = await item.getAsFileSystemHandle();
-          if (h.kind === 'file' && h.name.endsWith('.json')) {
-            var f = await h.getFile();
-            var t = await f.text();
-            var d;
-            try { d = JSON.parse(t); } catch (_) { updateStatus('error', 'Invalid JSON'); return; }
-            onFileConnected(h);
-            var cb = window[config.loadDataKey];
-            if (cb) cb(d);
-            return;
+        try {
+          for (var item of [...e.dataTransfer.items]) {
+            if (item.kind !== 'file' || typeof item.getAsFileSystemHandle !== 'function') continue;
+            var h = await item.getAsFileSystemHandle();
+            if (h.kind === 'file' && h.name.endsWith('.json')) {
+              var f = await h.getFile();
+              var t = await f.text();
+              var d = loadJson(t, h.name);
+              if (!d) return;
+              onFileConnected(h);
+              var cb = window[config.loadDataKey];
+              if (cb) cb(d);
+              return;
+            }
           }
+          updateStatus('error', 'Drop not supported');
+        } catch (dropErr) {
+          console.error(dropErr);
+          updateStatus('error', 'ファイル読み込みに失敗しました');
         }
-        updateStatus('error', 'Drop not supported');
       });
     }
 
@@ -156,7 +186,11 @@
       document.addEventListener('keydown', function(e) {
         var mod = e.metaKey || e.ctrlKey;
         var inField = e.target.closest('input,textarea,select,[contenteditable]');
-        if (mod && e.key === 's') { e.preventDefault(); if (fileHandle) writeFile().then(function() { showToast('保存しました'); }); return; }
+        if (mod && e.key === 's') {
+          e.preventDefault();
+          if (fileHandle) writeFile().then(function(ok) { if (ok) showToast('保存しました'); });
+          return;
+        }
         if (inField) return;
         if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); window[keys.undo]?.(); }
         if (mod && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); window[keys.redo]?.(); }
