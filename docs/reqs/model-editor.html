@@ -29,6 +29,7 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="./lib/ui-components.jsx"></script>
 <script src="./lib/shared.js"></script>
 <script src="./lib/model-logic.js"></script>
 <script src="./lib/file-io.js"></script>
@@ -64,17 +65,7 @@ io.setupKeyboard();
 
 <script type="text/babel">
 const{useState,useRef,useCallback,useEffect}=React;
-// M3 トークン参照用
-const M3={
-  primary:"var(--md-sys-color-primary)",onPrimary:"var(--md-sys-color-on-primary)",primaryContainer:"var(--md-sys-color-primary-container)",onPrimaryContainer:"var(--md-sys-color-on-primary-container)",
-  surface:"var(--md-sys-color-surface)",surfaceDim:"var(--md-sys-color-surface-dim)",surfaceContLow:"var(--md-sys-color-surface-container-low)",surfaceCont:"var(--md-sys-color-surface-container)",surfaceContHigh:"var(--md-sys-color-surface-container-high)",surfaceContHighest:"var(--md-sys-color-surface-container-highest)",
-  onSurface:"var(--md-sys-color-on-surface)",onSurfaceVar:"var(--md-sys-color-on-surface-variant)",
-  outline:"var(--md-sys-color-outline)",outlineVar:"var(--md-sys-color-outline-variant)",
-  error:"var(--md-sys-color-error)",errorContainer:"var(--md-sys-color-error-container)",onErrorContainer:"var(--md-sys-color-on-error-container)",
-  shapeXs:"var(--md-sys-shape-xs)",shapeSm:"var(--md-sys-shape-sm)",shapeMd:"var(--md-sys-shape-md)",shapeLg:"var(--md-sys-shape-lg)",shapeFull:"var(--md-sys-shape-full)",
-  elev1:"var(--md-sys-elevation-1)",elev2:"var(--md-sys-elevation-2)",
-};
-// lib から取得
+const{M3,Input,Sel,Btn,SLabel,useInitialPan,ZoomControls,useHistory}=window.__editorUI;
 const{CRUD_OPS,CRUD_COLOR,CRUD_BG,ENT_PALETTE,ZOOM_MIN,ZOOM_MAX,MAX_HISTORY,uid,uniqueName,edgePt,calcCenterPan,labelWidth}=window.__editorLib;
 const{ensurePositions:_ensurePositions,CIRCLED,circled}=window.__editorLib;
 const entPalette=(ents,id)=>window.__editorLib.entPalette(ents,id);
@@ -91,43 +82,12 @@ const SELF_REF_X=6,SELF_REF_Y=14,SELF_REF_CP=38;
 const GRID_COLS=3,GRID_GAP_X=360,GRID_GAP_Y=240,GRID_PAD_X=80,GRID_PAD_Y=80;
 const EMPTY={entities:[],actors:[]};
 function ensurePositions(data){return _ensurePositions(data,{cols:GRID_COLS,gapX:GRID_GAP_X,gapY:GRID_GAP_Y,padX:GRID_PAD_X,padY:GRID_PAD_Y});}
-
-// M3 コンポーネント
-function Input({style,...p}){return<input{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"8px 16px",outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",...style}}onFocus={e=>{e.target.style.borderColor="#1A73E8";e.target.style.boxShadow="0 0 0 3px rgba(26,115,232,.12)";}}onBlur={e=>{e.target.style.borderColor="";e.target.style.boxShadow="none";}}/>;}
-function Sel({style,children,...p}){return<select{...p}style={{border:`1px solid ${M3.outlineVar}`,borderRadius:M3.shapeSm,background:M3.surface,color:M3.onSurface,fontSize:14,fontWeight:400,lineHeight:"20px",padding:"8px 16px",outline:"none",fontFamily:"inherit",...style}}>{children}</select>;}
-function Btn({children,onClick,accent,small,danger,ghost}){
-  const bg=danger?M3.errorContainer:accent?"#1A73E8":ghost?"transparent":M3.surfaceCont;
-  const fg=danger?M3.onErrorContainer:accent?M3.onPrimary:ghost?"#1A73E8":M3.onSurface;
-  const bd=ghost?`1px solid ${M3.outlineVar}`:"none";
-  return<button onClick={onClick}style={{background:bg,border:bd,color:fg,borderRadius:M3.shapeFull,padding:small?"8px 16px":"8px 24px",fontSize:14,fontWeight:500,lineHeight:"20px",letterSpacing:"0.1px",cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",transition:"box-shadow .15s, background .15s"}}onMouseEnter={e=>{e.target.style.boxShadow="var(--md-sys-elevation-1)";}}onMouseLeave={e=>{e.target.style.boxShadow="none";}}>{children}</button>;
-}
-const SLabel=({children})=><div style={{fontSize:12,fontWeight:500,lineHeight:"16px",letterSpacing:"0.5px",color:M3.onSurfaceVar,textTransform:"uppercase",marginBottom:8}}>{children}</div>;
-
-// データロード時にインクリメントされるカウンター
-let loadGeneration=0;
-function useInitialPan(items,iw,ih){
-  const svgRef=useRef();
-  const[pan,setPan]=useState({x:0,y:0});
-  const lastGen=useRef(-1);
-  useEffect(()=>{
-    if(lastGen.current===loadGeneration||!items||items.length===0||!svgRef.current)return;
-    // レイアウト確定後に計算
-    requestAnimationFrame(()=>{
-      if(!svgRef.current)return;
-      const r=svgRef.current.getBoundingClientRect();
-      if(!r.width||!r.height)return;
-      const c=calcCenterPan(items,iw,ih);
-      setPan({x:c.cx-r.width/2,y:c.cy-r.height/2+40});
-      lastGen.current=loadGeneration;
-    });
-  },[items,iw,ih]);
-  return{svgRef,pan,setPan};
-}
+const loadGenRef={current:0};
 
 function EntityView({model,setModel,setModelSilent,selId,setSelId,selRelId,setSelRelId}){
   const[drag,setDrag]=useState(null),[conn,setConn]=useState(null),[connDrag,setConnDrag]=useState(null),[relDrag,setRelDrag]=useState(null),[editLabel,setEditLabel]=useState(false);
   const[multiSel,setMultiSel]=useState(new Set());
-  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,EH,loadGenRef);
   const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0}),multiOffsets=useRef({});
@@ -240,7 +200,7 @@ function ActorView({model,setModel,setModelSilent}){
   const[actorId,setActorId]=useState(model.actors[0]?.id||null),[selEntId,setSelEntId]=useState(null),[drag,setDrag]=useState(null);
   const[multiSel,setMultiSel]=useState(new Set());
   const[showEdit,setShowEdit]=useState(false);
-  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,ACTOR_CARD_H);
+  const{svgRef,pan,setPan}=useInitialPan(model.entities,EW,ACTOR_CARD_H,loadGenRef);
   const[panning,setPanning]=useState(false);
   const[zoom,setZoom]=useState(1);
   const dOff=useRef({x:0,y:0}),panStart=useRef({x:0,y:0,px:0,py:0}),multiOffsets=useRef({});
@@ -437,7 +397,7 @@ function App(){
     window.__cmLoadData=d=>{
       const cmData=splitData(d);
       const loaded=ensurePositions(cmData);
-      loadGeneration++;
+      loadGenRef.current++;
       setModelRaw(loaded);
       histRef.current={stack:[JSON.parse(JSON.stringify(loaded))],idx:0};
       setTab("entity");
