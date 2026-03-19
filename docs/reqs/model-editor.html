@@ -265,14 +265,19 @@ function EntityView({model,setModel,setModelSilent,selId,setSelId,selRelId,setSe
 }
 
 function OrphanEntityWarning({model}){
-  const allTouchedIds=new Set(model.actors.flatMap(a=>a.touches.filter(t=>t.crud.length>0).map(t=>t.entityId)));
+  const[open,setOpen]=useState(false);
+  const warnings=[];
+  const allTouchedIds=new Set(model.actors.flatMap(a=>(a.touches||[]).filter(t=>(t.crud||[]).length>0).map(t=>t.entityId)));
   const orphans=model.entities.filter(e=>!allTouchedIds.has(e.id));
-  if(orphans.length===0)return null;
+  if(orphans.length>0)warnings.push({msg:`「${orphans.map(e=>e.name).join("」「")}」はどのActorにもアクセス権がありません`});
+  model.entities.forEach(e=>{if(e.relations)e.relations.forEach(r=>{if(!model.entities.find(t=>t.id===r.targetId))warnings.push({msg:`「${e.name}」のリレーション先「${r.targetId}」が存在しません`});});});
+  if(warnings.length===0)return null;
   return<div style={{position:"absolute",bottom:16,left:16,zIndex:20}}>
-    <div style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",padding:"8px 16px",boxShadow:"var(--md-sys-elevation-1)",display:"flex",alignItems:"center",gap:8,maxWidth:480}}>
-      <span style={{color:"#E37400",fontSize:16,flexShrink:0}}>⚠</span>
-      <span style={{fontSize:13,color:"#5F6368",lineHeight:"18px"}}>「{orphans.map(e=>e.name).join("」「")}」はどのActorにもアクセス権がありません</span>
-    </div>
+    {!open?<button onClick={()=>setOpen(true)} style={{background:"#FEF7E0",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-full)",padding:"6px 14px",boxShadow:"var(--md-sys-elevation-1)",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:500,color:"#E37400",fontFamily:"inherit"}}><span>⚠</span>{warnings.length} warnings</button>
+    :<div style={{background:"white",border:"1px solid #FDD663",borderRadius:"var(--md-sys-shape-sm)",boxShadow:"var(--md-sys-elevation-2)",maxWidth:480,maxHeight:280,overflowY:"auto"}}>
+      <div style={{padding:"8px 12px",borderBottom:"1px solid #FDD663",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FEF7E0",position:"sticky",top:0}}><span style={{fontSize:13,fontWeight:500,color:"#E37400"}}>⚠ {warnings.length} warnings</span><button onClick={()=>setOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6",padding:0}}><span className="msi" style={{fontSize:18}}>close</span></button></div>
+      {warnings.map((w,i)=><div key={i} style={{padding:"6px 12px",borderBottom:"1px solid #F5F5F5",fontSize:12,color:"#5F6368",lineHeight:"16px"}}>{w.msg}</div>)}
+    </div>}
   </div>;
 }
 
