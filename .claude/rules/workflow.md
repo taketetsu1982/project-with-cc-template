@@ -15,6 +15,20 @@
 - **アクション**: `/conceptual-model` を実行
 - **完了条件**: `product-model.json` に entities + actors が揃っている
 
+### 1.5. Conceptual Model 変更後の同期
+- **トリガー**: `/conceptual-model` でエディタ編集後、または `product-model.json` の entities/actors が直接変更されたとき
+- **アクション**:
+  1. `conceptual-model.md` を `product-model.json` と照合し、差分があれば更新する
+  2. 以下のSpecsが記述済みの場合、影響を確認してユーザーに報告する
+
+| 変更内容 | 影響するSpec |
+|---|---|
+| entity 追加・削除・名前変更 | `db-schema.md`, `api-spec.md` |
+| actor 追加・削除・名前変更 | `auth-spec.md` |
+| entity/actor 変更 | `ui-spec.md` |
+
+- **スキップ条件**: Specsがテンプレート状態（未記述）の場合、Specs影響チェックはスキップ
+
 ### 2. Conceptual Model → Screens
 - **トリガー**: `product-model.json` に entities・actors が定義され、画面設計に入るとき
 - **アクション**: `/screens` を実行
