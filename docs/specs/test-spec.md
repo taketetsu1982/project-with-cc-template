@@ -4,9 +4,9 @@
 > A) Specs整合性テスト — 実装がSpecs通りに動くか
 > B) シナリオテスト — ユーザーストーリーが端から端まで通るか
 
-**バージョン:** 0.3
+**バージョン:** 0.4
 **ステータス:** Draft
-**最終更新:** 2026-03-19
+**最終更新:** 2026-03-21
 **導出元:** docs/reqs/user-stories.md, docs/specs/db-schema.md, docs/specs/api-spec.md
 
 ---
@@ -287,7 +287,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| バックエンドテスト | {テストフレームワーク} |
-| フロントエンドテスト | {テストフレームワーク} |
-| Oura API モック | OAuth2フローとデータ取得APIのモックサーバー |
-| テストDB | マイグレーション適用済みの専用DB（テスト実行ごとにリセット） |
+| バックエンドテスト | pytest + httpx（async client） |
+| フロントエンドテスト | Vitest + Testing Library |
+| Oura API モック | pytest-httpx によるHTTPモック（バックエンドテスト）/ MSW（Mock Service Worker）によるAPIモック（フロントエンドテスト） |
+| テストDB | PostgreSQL（`oura_dashboard_test`）。テスト実行ごとにマイグレーション適用・データリセット |

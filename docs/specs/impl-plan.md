@@ -142,9 +142,9 @@ US-03 ──→ US-04   │          │
 - Test: API-09, S-06
 
 **計算ロジック詳細:**
-- Strain = avg(stress_z, activity_score_z)
+- Strain = stress_z（単軸）
 - Recovery = avg(mood_z, energy_z, sleep_score_z, readiness_score_z, hrv_rmssd_z)
-- 相関: Pearson |r| ≥ 0.5 のペアを抽出 → 観察的テンプレートで文章化
+- 相関: Pearson |r| ≥ 0.5 のペアを抽出 → 観察的テンプレートで文章化。**30日未満のデータでは空配列**
 - today_mental_submitted フラグ（CTA表示判定）
 - oura_connected フラグ（未接続案内判定）
 

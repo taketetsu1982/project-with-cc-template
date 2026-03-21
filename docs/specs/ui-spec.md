@@ -2,9 +2,9 @@
 
 > フロントエンド実装仕様。conceptual-model.md と prd.md から導出する。
 
-**バージョン:** 0.2
+**バージョン:** 0.3
 **ステータス:** Draft
-**最終更新:** 2026-03-19
+**最終更新:** 2026-03-21
 **導出元:** docs/reqs/product-model.json（screens）, docs/reqs/prd.md, docs/specs/api-spec.md
 
 ---
@@ -13,6 +13,18 @@
 
 特別に指定がない場合、下記のレポジトリを踏襲してデザインする。
 https://github.com/material-components/material-web
+
+### グラフライブラリ
+
+**Chart.js** を採用する。選定理由:
+- 折れ線グラフ + 背景カラーゾーン帯（Chart.js Annotation Plugin）に対応
+- データポイントのクリック/タップイベントに対応（→ 日次サマリーへの遷移）
+- 軽量（バンドルサイズ ≈ 65KB gzip）でモバイル性能に影響しない
+- Material Web にグラフコンポーネントは存在しないため、独立したグラフライブラリが必要
+
+**依存パッケージ:**
+- `chart.js` — グラフ本体
+- `chartjs-plugin-annotation` — カラーゾーン帯の水平描画
 
 ---
 
@@ -135,7 +147,11 @@ https://github.com/material-components/material-web
 **表示ルール:**
 - 数値ラベルはグラフ上に表示しない（トレンド重視・Orthosomnia回避）
 - データポイントのツールチップ: タップ時のみ日付と大まかなゾーン（良好/中立/注意）を表示
-- Z-score未算出期間（14日未満）: 生値の折れ線グラフに切り替え、カラーゾーンは非表示
+- Z-score未算出期間（14日未満）: Strain/Recoveryグラフは非表示（合成Z-scoreが算出できないため）。代わりに個別メトリクスの生値を2つのミニグラフで表示する:
+  - **メンタル生値グラフ**: Y軸 1〜7（固定）、4軸を折れ線で重ねる（`--mental` カラー系）
+  - **フィジカル生値グラフ**: Y軸 0〜100（固定、Score系）、Sleep/Readiness/Activity Scoreを折れ線で重ねる（`--physical` カラー系）。HRV・安静時心拍数はスケールが異なるため非表示
+  - カラーゾーン帯は非表示（Z-scoreベースのため）
+  - 「あとN日でZ-scoreトレンドが表示されます」注記を表示
 
 ---
 

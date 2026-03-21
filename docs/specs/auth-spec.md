@@ -2,9 +2,9 @@
 
 > 認証・認可フローの定義。api-spec.md はこのドキュメントを参照する。
 
-**バージョン:** 0.2
+**バージョン:** 0.3
 **ステータス:** Draft
-**最終更新:** 2026-03-19
+**最終更新:** 2026-03-21
 **導出元:** docs/reqs/product-model.json（actors）, docs/reqs/prd.md
 
 ---
@@ -16,7 +16,7 @@ PG1は単一ユーザー（自分自身）のみ。JWT（JSON Web Token）ベー
 
 | トークン | 有効期限 | 保存先 |
 |---------|---------|--------|
-| Access Token (JWT) | 1時間 | フロントエンド（メモリ or sessionStorage） |
+| Access Token (JWT) | 1時間 | フロントエンド（メモリ。XSS対策のためsessionStorageは使用しない） |
 | Refresh Token | 7日 | HttpOnly Cookie |
 
 **注意:** Oura OAuth2トークンは別管理。`oura_connections` テーブルに保存する。
@@ -85,7 +85,7 @@ Oura APIへのアクセス時に必要なOAuth2スコープ:
 ## セキュリティ要件
 
 - パスワードはbcrypt（cost factor 12）でハッシュ化して保存
-- Access Token（JWT）にはユーザーIDのみ含める（機密情報を含めない）
+- Access Token（JWT）は HS256 署名。ペイロードは `sub`（ユーザーID）、`iat`、`exp` の標準クレームのみ（機密情報を含めない）
 - Refresh TokenはHttpOnly + Secure + SameSite=Strict Cookieで送信
-- Oura OAuth2のstate パラメータでCSRF攻撃を防止
-- Oura APIのaccess_token / refresh_tokenはDBに暗号化して保存
+- Oura OAuth2のstateパラメータでCSRF攻撃を防止。stateは `{user_id}:{ランダム文字列}` の形式でサーバーサイドに一時保存（DBまたはインメモリキャッシュ、TTL 10分）。callbackでstateを照合し、user_idを特定してトークンを保存する
+- Oura APIのaccess_token / refresh_tokenはアプリケーション層でAES-256-GCMで暗号化してDBに保存。暗号化キーは環境変数 `OURA_TOKEN_ENCRYPTION_KEY` で管理する

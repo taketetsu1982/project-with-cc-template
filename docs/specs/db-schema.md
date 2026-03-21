@@ -2,9 +2,9 @@
 
 > データベーススキーマ定義。conceptual-model の写像。
 
-**バージョン:** 0.3
+**バージョン:** 0.4
 **ステータス:** Draft
-**最終更新:** 2026-03-19
+**最終更新:** 2026-03-21
 **導出元:** docs/reqs/product-model.json（entities）
 
 ---
@@ -51,9 +51,13 @@ PG1ではENUM定義なし。
 
 | カラム名 | 型 | 制約 | 説明 |
 |---------|---|------|------|
+| `email` | TEXT | NOT NULL, UNIQUE | メールアドレス（ログイン用） |
+| `password_hash` | TEXT | NOT NULL | bcrypt（cost factor 12）ハッシュ済みパスワード |
 | `timezone` | TEXT | NOT NULL, DEFAULT 'Asia/Tokyo' | IANAタイムゾーン。日付境界の判定に使用 |
 
-PG1では自分自身のみのため、認証情報（メール等）は不要。タイムゾーンはZ-score計算・日次レコードの日付境界判定に必要。
+PG1では自分自身のみだが、auth-spec.mdのJWT認証フロー（register/login）に必要なため `email` と `password_hash` を保持する。タイムゾーンはZ-score計算・日次レコードの日付境界判定に必要。
+
+**インデックス:** `users_email_idx` UNIQUE ON (`email`)
 
 ---
 
