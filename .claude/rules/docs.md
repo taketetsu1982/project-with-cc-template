@@ -20,8 +20,7 @@ paths:
 - CMエディタ（`model-editor.html`）で entities/actors を編集
 - Screensエディタ（`screen-editor.html`）で screens/transitions を編集
 - 両エディタは同じJSONを共有し、担当外フィールドをパススルーで保持する
-- ユーザーから設計指示があった場合、`product-model.json` の変更が `ui-spec.md` と `db-schema.md` に影響しないか確認する
-- `product-model.json` が更新されたら、`conceptual-model.md` も整合するよう更新する
+- `product-model.json` が更新されたら、関連ドキュメントを同期する（詳細は `workflow.md` Step 1.5 および各 SKILL.md の変更同期ステップを参照）
 
 ## Screens（統合JSON内）
 
@@ -29,5 +28,5 @@ paths:
 - 画面を追加するときは `/screens` でScreensエディタを開いて編集する
 - **screens の `actorIds`（配列）で複数actorに属する画面を定義できる。** 同じUIの画面をactor間で共有し、重複を避ける
 - **`objects[].crudByActor` でactorごとのCRUD+Scopeを定義する。** 形式: `{ "actorId": [{op:"C",scope:"all"}, ...] }`。旧 `objects[].crud` 形式はエディタ読み込み時に自動マイグレーションされる
-- screens が更新されたら、`ui-spec.md` への影響を確認する
+- screens が更新されたら、関連ドキュメントを同期する（詳細は `/screens` SKILL.md Step 6 を参照）
 - **transitions は「進む」方向のみ定義する。「戻る」遷移は定義しない。** 戻る導線はブラウザバックやナビゲーションで暗黙的に表現される。一覧→詳細の行き来のような自明な戻り遷移は情報量ゼロのため不要

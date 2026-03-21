@@ -128,7 +128,8 @@ HTMLエディタで product-model.json をドラッグ&ドロップ、
 
 1. Entity タブでエンティティ・関係を確認・編集
 2. Actor タブでロール別CRUD権限を確認・編集
-3. 確定後、/screens を実行して画面定義を作成（Compositeはscreensのtype: compositeで定義）
+3. 編集が完了したら教えてください。関連ドキュメントを同期します
+4. 確定後、/screens を実行して画面定義を作成
 ```
 
 ### Step 5: 変更同期（エディタ保存後）
@@ -153,7 +154,7 @@ HTMLエディタで product-model.json をドラッグ&ドロップ、
 | 変更内容 | 影響するSpec | 確認ポイント |
 |---|---|---|
 | entity 追加・削除・名前変更 | `db-schema.md` | テーブル定義の追加・削除・名前変更 |
-| entity 追加・削除 | `api-spec.md` | CRUDエンドポイントの追加・削除 |
+| entity 追加・削除・名前変更 | `api-spec.md` | CRUDエンドポイント・URLパスの追加・削除・変更 |
 | actor 追加・削除・名前変更 | `auth-spec.md` | ロール設計・権限マトリクス |
 | entity/actor 変更 | `ui-spec.md` | オブジェクト定義・画面アクセス制御 |
 

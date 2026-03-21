@@ -34,6 +34,13 @@
 - **アクション**: `/screens` を実行
 - **完了条件**: `product-model.json` の screens + transitions が定義されている
 
+### 2.5. Screens 変更後の同期
+- **トリガー**: `/screens` でエディタ編集後、または `product-model.json` の screens/transitions が直接変更されたとき
+- **アクション**:
+  1. `conceptual-model.md` の画面定義セクションと照合し、大きな差分があれば更新する
+  2. `ui-spec.md` が記述済みの場合、画面・ルーティング定義への影響を確認する
+- **スキップ条件**: Specsがテンプレート状態（未記述）の場合、Specs影響チェックはスキップ
+
 ### 3. Screens 完了後 → 並列で進める
 
 Screens完了後、以下の2トラックを並列で進める。
