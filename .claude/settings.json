@@ -1,5 +1,37 @@
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*key*)",
+      "Read(./node_modules/**)",
+      "Write(./package*.json)",
+      "Bash(rm *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(chmod +x *)",
+      "Bash(sudo *)"
+    ],
+    "ask": [
+      "Bash(git push *)"
+    ],
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run test *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write(*.js)|Write(*.ts)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write $file"
+          }
+        ]
+      }
+    ]
   }
 }
