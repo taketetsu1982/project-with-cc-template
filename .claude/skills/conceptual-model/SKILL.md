@@ -116,7 +116,7 @@ entities・actorsをJSONとして生成する。
 open docs/reqs/model-editor.html
 ```
 
-### Step 4: 完了報告
+### Step 4: ブラウザで編集
 
 ```
 Conceptual Model generated:
@@ -128,5 +128,34 @@ HTMLエディタで product-model.json をドラッグ&ドロップ、
 
 1. Entity タブでエンティティ・関係を確認・編集
 2. Actor タブでロール別CRUD権限を確認・編集
-3. 確定後、/screens を実行して画面定義を作成（Compositeはscreensのtype: compositeで定義）
+3. 編集が完了したら教えてください。関連ドキュメントを同期します
+4. 確定後、/screens を実行して画面定義を作成
 ```
+
+### Step 5: 変更同期（エディタ保存後）
+
+ユーザーがエディタで編集・保存した後、`product-model.json` を読み込んで以下を同期する。
+
+#### 5a. conceptual-model.md を同期（必須）
+
+`product-model.json` の entities/actors と `conceptual-model.md` の記述を照合し、差分があれば更新する。
+
+| JSON | conceptual-model.md のセクション |
+|---|---|
+| entities[].name | エンティティ一覧 |
+| entities[].relations | エンティティ間の関係 |
+| actors[].name, touches | アクター定義 |
+
+#### 5b. Specs 影響チェック（既存Specsがある場合のみ）
+
+以下のSpecsが既に記述済みの場合、`product-model.json` の変更が影響しないか確認する。
+影響がある場合はユーザーに報告し、更新するか確認する。
+
+| 変更内容 | 影響するSpec | 確認ポイント |
+|---|---|---|
+| entity 追加・削除・名前変更 | `db-schema.md` | テーブル定義の追加・削除・名前変更 |
+| entity 追加・削除・名前変更 | `api-spec.md` | CRUDエンドポイント・URLパスの追加・削除・変更 |
+| actor 追加・削除・名前変更 | `auth-spec.md` | ロール設計・権限マトリクス |
+| entity/actor 変更 | `ui-spec.md` | オブジェクト定義・画面アクセス制御 |
+
+**Specsがテンプレート状態（未記述）の場合はスキップする。**

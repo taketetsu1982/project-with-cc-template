@@ -95,7 +95,7 @@ actor ごとに必要な画面を洗い出す。
 open docs/reqs/screen-editor.html
 ```
 
-### Step 5: 完了報告
+### Step 5: ブラウザで編集
 
 ```
 Screens generated:
@@ -107,4 +107,25 @@ product-model.json をHTMLにドロップして接続してください。
 
 - Actor タブ: アクターごとの画面遷移図を確認・編集
 - 画面カードの ↗ ボタン: 画面詳細（objects + prompt）を編集
+- 編集が完了したら教えてください。関連ドキュメントを同期します
 ```
+
+### Step 6: 変更同期（エディタ保存後）
+
+ユーザーがエディタで編集・保存した後、`product-model.json` を読み込んで以下を同期する。
+
+#### 6a. conceptual-model.md の画面定義セクションを確認
+
+screens/transitions に大きな変更がある場合、`conceptual-model.md` の画面定義セクションの記述と整合しているか確認する。
+
+#### 6b. Specs 影響チェック（既存Specsがある場合のみ）
+
+| 変更内容 | 影響するSpec | 確認ポイント |
+|---|---|---|
+| screen 追加・削除 | `ui-spec.md` | 画面・ルーティング定義 |
+| objects の entity/crud 変更 | `ui-spec.md` | インタラクション定義・フォームのルール |
+| transition 追加・削除 | `ui-spec.md` | 画面遷移フロー |
+
+**Specsがテンプレート状態（未記述）の場合はスキップする。**
+
+> entity/actor レベルの変更（db-schema, api-spec, auth-spec への影響）は `/conceptual-model` の同期ステップ（Step 5b）で確認される。
