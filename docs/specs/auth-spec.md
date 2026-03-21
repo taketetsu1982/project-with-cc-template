@@ -2,7 +2,7 @@
 
 > 認証・認可フローの定義。api-spec.md はこのドキュメントを参照する。
 
-**バージョン:** 0.3
+**バージョン:** 0.4
 **ステータス:** Draft
 **最終更新:** 2026-03-21
 **導出元:** docs/reqs/product-model.json（actors）, docs/reqs/prd.md
@@ -87,5 +87,5 @@ Oura APIへのアクセス時に必要なOAuth2スコープ:
 - パスワードはbcrypt（cost factor 12）でハッシュ化して保存
 - Access Token（JWT）は HS256 署名。ペイロードは `sub`（ユーザーID）、`iat`、`exp` の標準クレームのみ（機密情報を含めない）
 - Refresh TokenはHttpOnly + Secure + SameSite=Strict Cookieで送信
-- Oura OAuth2のstateパラメータでCSRF攻撃を防止。stateは `{user_id}:{ランダム文字列}` の形式でサーバーサイドに一時保存（DBまたはインメモリキャッシュ、TTL 10分）。callbackでstateを照合し、user_idを特定してトークンを保存する
+- Oura OAuth2のstateパラメータでCSRF攻撃を防止。stateは `{user_id}:{ランダム文字列}` の形式でDBに一時保存（TTL 10分。アプリケーション層で期限切れを判定し、古いレコードは定期的に削除する）。callbackでstateを照合し、user_idを特定してトークンを保存する。PG1ではRedis等のキャッシュサービスは導入せず、DBで完結させる
 - Oura APIのaccess_token / refresh_tokenはアプリケーション層でAES-256-GCMで暗号化してDBに保存。暗号化キーは環境変数 `OURA_TOKEN_ENCRYPTION_KEY` で管理する

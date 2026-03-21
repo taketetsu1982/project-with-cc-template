@@ -4,7 +4,7 @@
 > A) Specs整合性テスト — 実装がSpecs通りに動くか
 > B) シナリオテスト — ユーザーストーリーが端から端まで通るか
 
-**バージョン:** 0.4
+**バージョン:** 0.5
 **ステータス:** Draft
 **最終更新:** 2026-03-21
 **導出元:** docs/reqs/user-stories.md, docs/specs/db-schema.md, docs/specs/api-spec.md
@@ -30,7 +30,7 @@
 
 ### API整合性
 
-> api-spec.md v0.2 に基づく。
+> api-spec.md v0.4 に基づく。
 
 | ID | テスト項目 | 検証対象 | 検証方法 | 優先度 |
 |---|---|---|---|---|
@@ -41,6 +41,7 @@
 | API-05 | メンタルエントリ作成 | POST mental_entries | mood/energy/stress/focus（各1-7）で201が返り、daily_recordに紐づくことを確認 | Must |
 | API-06 | メンタルエントリ更新 | PATCH/PUT mental_entries | 既存エントリの値変更で200が返り、更新後の値が正しいことを確認 | Must |
 | API-07 | メンタルエントリ バリデーション | POST mental_entries（不正値） | 範囲外の値（0, 8）、欠損フィールドで422が返ることを確認 | Must |
+| API-12 | メンタルエントリ削除 | DELETE mental_entries/{record_date} | 指定日のメンタルエントリが論理削除され204が返ることを確認。存在しない日付で404が返ることを確認 | Must |
 | API-08 | 日次サマリー取得 | GET daily_records/{date} | 指定日のPhysicalScore + MentalEntryが返ることを確認 | Must |
 | API-09 | トレンドデータ取得 | GET /api/v1/trends | window=7/14/30のデータがリスト形式で返り、strain_recoveryフィールドが含まれることを確認 | Must |
 | API-10 | レスポンス形式 | 全エンドポイント | Content-Type: application/json、日時: ISO 8601、ID: UUID v4 を確認 | Must |
@@ -48,7 +49,7 @@
 
 ### 認証・認可整合性
 
-> PG1は単一ユーザー（SelfTracker）のみ。auth-spec.md v0.2 に基づく。JWT認証（Access Token 1時間 / Refresh Token 7日）。
+> PG1は単一ユーザー（SelfTracker）のみ。auth-spec.md v0.4 に基づく。JWT認証（Access Token 1時間 / Refresh Token 7日）。
 
 | ID | テスト項目 | 検証対象 | 検証方法 | 優先度 |
 |---|---|---|---|---|
@@ -134,6 +135,7 @@
 | E2 | 当日分が既に入力済みの状態で画面を開く | 編集モードで既存の値がプリセット表示 | スライダーが既存値を表示していることを確認 |
 | E3 | 4軸のうち一部のみ設定して保存 | バリデーションエラー（全軸必須） | 422エラーまたはUIバリデーションメッセージ |
 | E4 | 範囲外の値（0, 8）をAPIに送信 | バリデーションエラー | 422エラーレスポンス・DBのCHECK制約で拒否 |
+| E5 | 当日のメンタルエントリをDELETEで論理削除 | 204が返り、再度GETすると404 | mental_entriesのdeleted_atが設定されていることを確認 |
 
 ---
 

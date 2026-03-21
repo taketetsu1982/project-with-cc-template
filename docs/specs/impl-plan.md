@@ -1,9 +1,9 @@
 # Impl Plan — 実装計画
 
-**バージョン:** 0.1
+**バージョン:** 0.2
 **ステータス:** Draft
-**最終更新:** 2026-03-19
-**導出元:** docs/reqs/user-stories.md, docs/specs/db-schema.md, docs/specs/api-spec.md, docs/specs/auth-spec.md
+**最終更新:** 2026-03-21
+**導出元:** docs/reqs/user-stories.md, docs/specs/db-schema.md (v0.4), docs/specs/api-spec.md (v0.4), docs/specs/auth-spec.md (v0.3)
 
 ---
 
