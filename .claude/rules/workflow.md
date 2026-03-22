@@ -69,6 +69,7 @@ Screens完了後、以下の2トラックを並列で進める。
 - **トリガー**: 必要なspecsが揃ったとき
 - **アクション**: specsを参照し `docs/specs/impl-plan.md` に沿って実装する（reqsを直接パースしない）
 - Spec変更が必要になったら、実装前にSpec文書を更新する
+- **チーム実装**: `.claude/teams/impl.md` のimplチームを使用する。実装Mode（Lead+FE+BE）とテストMode（Lead+QA）を行き来しながらストーリー単位で完了させる
 
 #### 実装時の制約
 - DBを変更する前に `docs/reqs/conceptual-model.md` を確認する
