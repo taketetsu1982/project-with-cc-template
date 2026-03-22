@@ -8,12 +8,13 @@
 3 teammates を spawn する:
 
 ### バックエンドエンジニア（backend-engineer）
-**担当ファイル:** `docs/specs/db-schema.md`, `docs/specs/api-spec.md`, `docs/specs/auth-spec.md`
+**担当ファイル:** `docs/specs/db-schema.md`, `docs/specs/api-spec.md`, `docs/specs/auth-spec.md`, `docs/specs/infra-spec.md`
 
 **作業順序:**
 1. db-schema.md — Conceptual Modelからテーブルを導出
 2. api-spec.md — db-schemaとPRDからエンドポイントを設計
 3. auth-spec.md — api-specに対して認可ルールを定義
+4. infra-spec.md — 上記specsの要件から検証環境のインフラ構成を定義
 
 **行動ルール:**
 - Conceptual Modelにないエンティティをテーブルに追加しない
