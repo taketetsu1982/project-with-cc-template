@@ -8,12 +8,13 @@
 3 teammates を spawn する:
 
 ### バックエンドエンジニア（backend-engineer）
-**担当ファイル:** `docs/specs/db-schema.md`, `docs/specs/api-spec.md`, `docs/specs/auth-spec.md`
+**担当ファイル:** `docs/specs/db-schema.md`, `docs/specs/api-spec.md`, `docs/specs/auth-spec.md`, `docs/specs/infra-spec.md`
 
 **作業順序:**
 1. db-schema.md — Conceptual Modelからテーブルを導出
 2. api-spec.md — db-schemaとPRDからエンドポイントを設計
 3. auth-spec.md — api-specに対して認可ルールを定義
+4. infra-spec.md — Phase 2完了後、全Specsの要件から検証環境のインフラ構成を定義
 
 **行動ルール:**
 - Conceptual Modelにないエンティティをテーブルに追加しない
@@ -47,6 +48,10 @@
 
 ### Phase 2: UI仕様・計測設計・テスト設計（3者並列）
 api-spec完了をトリガーに全員が並列作業。
+バックエンドはPhase 1完了後、Phase 2の他Specsが出揃うまで待機。
+
+### Phase 2.5: インフラ設計（バックエンドエンジニア）
+Phase 2の全Specs（ui-spec, analytics-spec, test-spec）完了後、バックエンドがinfra-spec.mdを作成。
 
 ### Phase 3: 相互レビュー（PdM統括）
 各担当が他のSpecsを自分の専門視点でレビューする。
