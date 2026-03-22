@@ -363,7 +363,7 @@ PG1 の出口条件をすべて満たしたら、次の PG へ遷移する。
 | `review-*` | 各種レビュー | 企画・モデル・設計・コードのレビューを複数観点で同時に行う |
 
 **カスタマイズ:**
-- `review-code.md` のレビュー観点を技術スタックに合わせる（例: Go の場合は goroutine リーク、React の場合はレンダリング最適化 等）
+- `review-code.md` のレビュー観点を技術スタックに合わせる（例: Go の場合は goroutine リーク、React の場合はレンダリング最適化 等）。デフォルトはCode Quality & Security・Performance・Design Consistencyの3役構成
 - `plan-specs.md` のエージェント構成をプロジェクト規模に合わせる
 
 **Agent Teams を使わない場合:**
@@ -427,7 +427,7 @@ project_root/
 │       ├── review-prd.md        #   PRDレビュー（UX・技術・スコープ）
 │       ├── review-model.md      #   概念モデルレビュー（デザイン・テクニカル・修正）
 │       ├── review-specs.md      #   Specsレビュー（技術・機能・統合）
-│       ├── review-code.md       #   コードレビュー（品質・性能・UI一貫性）
+│       ├── review-code.md       #   コードレビュー（品質&セキュリティ・性能・デザイン一貫性）
 │       └── impl.md              #   ストーリー実装（UIデザイナー・FE・BE・QA）
 ├── docs/
 │   ├── reqs/                    # 企画ドキュメント（canonical）
