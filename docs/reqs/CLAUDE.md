@@ -16,6 +16,7 @@
 | conceptual-model.md | エンティティ・関係の設計意図（Model of WHAT） | 開発 |
 | product-model.json | 統合JSON: entities/actors/screens(type: screen\|composite)/transitions（HTMLエディタで操作） | 開発 |
 | user-stories.md | ユーザーストーリーと受け入れ条件（WHAT to develop） | QA・開発 |
+| design-details.md | 設計原則の操作的定義・検証状態・数値的根拠（オプション） | 開発・ドメイン専門家 |
 
 ## 編集ルール
 

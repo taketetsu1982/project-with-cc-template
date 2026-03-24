@@ -447,7 +447,8 @@ project_root/
 │   │   ├── screen-editor.html   #   Screensエディタ（ブラウザで開く）
 │   │   ├── lib/                 #   エディタ共有ロジック（純粋関数 + テスト）
 │   │   ├── sample.product-model.json # サンプルJSON（全フィールド網羅）
-│   │   └── user-stories.md      #   ユーザーストーリー
+│   │   ├── user-stories.md      #   ユーザーストーリー
+│   │   └── design-details.md    #   設計原則の操作的定義（オプション）
 │   └── specs/                   # 設計ドキュメント（reqs/から導出）
 │       ├── CLAUDE.md            #   このディレクトリの説明
 │       ├── db-schema.md         #   DBスキーマ定義
