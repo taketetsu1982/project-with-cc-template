@@ -39,10 +39,11 @@ product-goals（PG一覧・確信度）                          ── Step 2
   product-model.json（screens/transitions）              ── Step 5（/screens で生成）
         │                                                   ↑ ここからClaude Codeが生成、人が調整
         ├──────────────────┐
-  Track A: Specs           Track B: User Stories          ── Step 6（並列で進める）
+  Track A: Specs           Track B: User Stories          ── Step 6（A/B並列、C はA+B完了後）
         │                        │
-        │                   Test Spec
         ├──────────────────┘
+        │
+  Track C: Test Spec（A+B完了後に着手）
         │
    impl-plan                                             ── Step 7
         │
@@ -206,7 +207,7 @@ Model Editor と同じ手順。`docs/reqs/screen-editor.html` をブラウザで
 
 ### Step 6：ユーザーストーリーと Specs を並列で進める
 
-画面定義が完了したら、これまでのドキュメントを元に2つのトラックを並列で進める。
+画面定義が完了したら、これまでのドキュメントを元に3つのトラックで進める。Track A と Track B は並列実行可。Track C は Track A + B 完了後に着手する。
 
 #### Track A：Specs（設計仕様群）を導出する
 
@@ -227,21 +228,25 @@ Agent Teams を使う場合は `plan-specs` チーム（BE・デザイン・PdM 
 > Specsを設計して（plan-specs チームで）
 ```
 
-#### Track B：User Stories → Test Spec
+#### Track B：User Stories（Track A と並列可）
 
-1. **`docs/reqs/user-stories.md`** に、画面定義と概念モデルを参照してユーザーストーリーを書く。各ストーリーに受け入れ条件と Gherkin シナリオを定義する
-2. ユーザーストーリーの受け入れ条件から **`docs/specs/test-spec.md`** を導出する
+**`docs/reqs/user-stories.md`** に、画面定義と概念モデルを参照してユーザーストーリーを書く。各ストーリーに受け入れ条件と Gherkin シナリオを定義する。
 
 ```
 > PG1の範囲でユーザーストーリーを書いて。受け入れ条件とGherkinシナリオも定義して
 ```
+
+#### Track C：Test Spec（Track A + B 完了後）
+
+Track A の Specs と Track B の User Stories が揃った時点で、ユーザーストーリーの受け入れ条件 + 確定済みの API Spec・Auth Spec から **`docs/specs/test-spec.md`** を導出する。
+
 ```
 > ユーザーストーリーからtest-specを導出して
 ```
 
 ### Step 7：実装計画を立てる
 
-Track A と Track B の両方が完了したら、実装計画を立てる。
+Track A・B・C のすべてが完了したら、実装計画を立てる。
 
 1. Claude Code に実装計画を依頼する
 2. `docs/reqs/user-stories.md` の各ストーリーが、対応する Specs と照らし合わせてタスクカードに分解される

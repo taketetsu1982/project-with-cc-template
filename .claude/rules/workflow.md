@@ -33,7 +33,7 @@
 
 ### 3. Screens 完了後 → 並列で進める
 
-Screens完了後、以下の2トラックを並列で進める。
+Screens完了後、以下の3トラックで進める。Track A と Track B は並列実行可。Track C は Track A 完了後に着手する。
 
 #### Track A: Specs（設計仕様群）を順次導出
 
@@ -48,13 +48,18 @@ Screens完了後、以下の2トラックを並列で進める。
 
 導出中にSpecを変更した場合は `doc-sync.md` のSpecs間影響マップに従う。
 
-#### Track B: User Stories → Test Spec
+#### Track B: User Stories（Track A と並列可）
 
-1. **User Stories**: screens定義と概念モデルを参照して `docs/reqs/user-stories.md` を更新。各ストーリーに受け入れ条件とシナリオ（Gherkin）を定義
-2. **Test Spec**: ユーザーストーリーの受け入れ条件から `docs/specs/test-spec.md` を導出
+- screens定義と概念モデルを参照して `docs/reqs/user-stories.md` を更新。各ストーリーに受け入れ条件とシナリオ（Gherkin）を定義
+
+#### Track C: Test Spec（Track A 完了後）
+
+- **トリガー**: Track A の Specs 導出 および Track B の User Stories が完了したとき
+- **アクション**: ユーザーストーリーの受け入れ条件 + 確定済みの API Spec・Auth Spec から `docs/specs/test-spec.md` を導出
+- **理由**: Test Spec は API エンドポイントのパス・認証要件等を参照するため、Track A の完成を待つ必要がある
 
 ### 3.5a. フィールド照合チェック
-- **トリガー**: Track AとTrack Bの両方が完了したとき（Specsレビューゲートの前）
+- **トリガー**: Track A・B・C のすべてが完了したとき（Specsレビューゲートの前）
 - **アクション**: `doc-sync.md` のフィールド照合チェックを実施し、不整合があれば修正する
 
 ### 3.5. Specsレビューゲート（必須）
