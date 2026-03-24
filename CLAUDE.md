@@ -32,6 +32,7 @@
 - 概念モデル（設計意図）: @docs/reqs/conceptual-model.md
 - 概念モデル（統合JSON）: @docs/reqs/product-model.json — entities/actors/screens(type: screen|composite)/transitions
 - ユーザーストーリー: @docs/reqs/user-stories.md
+- 設計原則の詳細定義（オプション）: @docs/reqs/design-details.md
 
 ### 設計（specs/ — reqs/ から導出）
 - DB設計: @docs/specs/db-schema.md
