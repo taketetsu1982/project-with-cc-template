@@ -16,8 +16,9 @@ paths:
 
 | 更新したドキュメント | 確認が必要なドキュメント |
 |---|---|
-| `prd.md` | `pg{N}.md`, `conceptual-model.md`, `user-stories.md` |
+| `prd.md` | `pg{N}.md`, `conceptual-model.md`, `user-stories.md`, `design-details.md`（存在する場合） |
 | `mrd.md` | `prd.md`（Buyer/User定義の整合） |
+| `design-details.md` | `api-spec.md`（エッジケース）, `ui-spec.md`（エッジケース）, `test-spec.md` |
 
 ### Conceptual Model 変更時
 

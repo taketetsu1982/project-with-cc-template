@@ -48,3 +48,4 @@
 ## 参照ドキュメント
 - `docs/reqs/product-goals.md`
 - `docs/reqs/mrd.md`
+- `docs/reqs/design-details.md`（存在する場合）

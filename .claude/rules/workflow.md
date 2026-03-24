@@ -18,6 +18,11 @@
 - **完了条件**: `product-model.json` に entities + actors が揃っている
 - **同期**: PRD/MRD変更時は `doc-sync.md` の企画ドキュメント影響マップに従う
 
+### 1.1.（オプション）設計原則の詳細定義
+- **トリガー**: PRDの設計原則にドメイン固有の計算方法・アルゴリズムが含まれる場合
+- **アクション**: `docs/reqs/design-details.md` を作成・更新する
+- **スキップ条件**: 汎用的なプロダクトで操作的定義が不要な場合
+
 ### 1.5. Conceptual Model 変更後の同期
 - **トリガー**: `/conceptual-model` でエディタ編集後、または `product-model.json` の entities/actors が直接変更されたとき
 - **アクション**: `doc-sync.md` のConceptual Model変更時の影響マップに従い、下流を確認・更新する
