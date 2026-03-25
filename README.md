@@ -45,9 +45,15 @@ product-goals（PG一覧・確信度）                          ── Step 2
         │
   Track C: Test Spec（A+B完了後に着手）
         │
+  フィールド照合チェック                                    ── Step 6.5a
+        │
+  Specsレビューゲート（review-specs）                      ── Step 6.5（Critical 0件で通過）
+        │
    impl-plan                                             ── Step 7
         │
    実装（ストーリー単位）                                   ── Step 8
+        │
+  コードレビューゲート（review-code）                       ── Step 8.5（Critical 0件で通過）
         │
    テスト                                                ── Step 9
         │
@@ -244,6 +250,14 @@ Track A の Specs と Track B の User Stories が揃った時点で、ユーザ
 > ユーザーストーリーからtest-specを導出して
 ```
 
+### Step 6.5：Specsレビューゲート
+
+Track A・B・C すべてが完了したら、フィールド照合チェック（entities → DB → API → UI 間のフィールド名・型の一貫性検証）を行い、`review-specs` チームでレビューを実施する。Critical が0件であれば通過。
+
+```
+> Specsをレビューして（review-specs チームで）
+```
+
 ### Step 7：実装計画を立てる
 
 Track A・B・C のすべてが完了したら、実装計画を立てる。
@@ -281,6 +295,14 @@ Track A・B・C のすべてが完了したら、実装計画を立てる。
 
 **実装中にSpecの変更が必要になった場合:**
 実装を先に変えるのではなく、必ず企画（reqs/）→ 設計（specs/）→ 実装の順で更新する。
+
+### Step 8.5：コードレビューゲート
+
+ストーリーの実装が完了したら、`review-code` チームでコードレビューを実施する。Code Quality & Security・Performance・Design Consistency の3観点でレビューされる。Critical が0件であれば通過。
+
+```
+> コードレビューして（review-code チームで）
+```
 
 ### Step 9：テストする
 
@@ -343,6 +365,8 @@ PG1 の出口条件をすべて満たしたら、次の PG へ遷移する。
 | `test-execution.md` | テスト規約・実行方法 | テストフレームワーク・配置規約・実行コマンドを設定する |
 | `ui-design.md` | UI設計ルール | デザインシステムやコンポーネント方針があれば追加する |
 | `pr.md` | PRルール | diff上限やラベル規約をチームに合わせる |
+| `doc-sync.md` | ドキュメント同期ルール | ドキュメント変更時の影響マップ。ドキュメント構造を変えた場合に更新する |
+| `review-gate.md` | レビューゲート運用 | Specs・コードレビューの通過条件やフローを調整する |
 
 **ルールの追加方法:**
 新しいルールは `.claude/rules/` に新規ファイルを作成する。ファイル分けの判断基準：
@@ -415,6 +439,8 @@ project_root/
 │   │   ├── workflow.md          #   Spec駆動開発のワークフロー
 │   │   ├── code-style.md        #   コーディング規約・HTTP設計
 │   │   ├── docs.md              #   ドキュメント間の依存と更新ルール
+│   │   ├── doc-sync.md          #   ドキュメント変更時の影響マップと同期ルール
+│   │   ├── review-gate.md       #   Specs・コードレビューゲートの運用ルール
 │   │   ├── ui-design.md         #   OOUI設計ルール
 │   │   ├── impl-planning.md     #   実装計画ワークフロー（ストーリー→タスク分解）
 │   │   ├── test-execution.md    #   テスト規約・実行ワークフロー
@@ -456,7 +482,9 @@ project_root/
 │       ├── auth-spec.md         #   認証・認可設計
 │       ├── ui-spec.md           #   フロントエンド実装仕様
 │       ├── analytics-spec.md    #   計測設計
-│       └── test-spec.md         #   テスト計画
+│       ├── infra-spec.md        #   検証環境のインフラ構成定義（Specs導出時に生成）
+│       ├── test-spec.md         #   テスト計画
+│       └── impl-plan.md         #   US単位の実装順序・タスクカード（実装計画時に生成）
 ├── Makefile                     # 開発コマンド
 ├── package.json                 # エディタテスト用（vitest）
 ├── vitest.config.js             # vitestの設定
