@@ -13,8 +13,9 @@
 ├── frontend/         # {フロントエンドフレームワーク}
 │   └── src/
 ├── docs/
-│   ├── reqs/         # 企画（canonical）: product-goals / pg{num} / mrd / prd / conceptual-model / user-stories
-│   └── specs/        # 設計（導出）: db-schema / api-spec / auth-spec / ui-spec / analytics-spec / infra-spec / test-spec
+│   ├── reqs/         # 企画: product-goals / pg{num} / mrd / prd / conceptual-model / user-stories
+│   ├── specs/        # 設計（CC自動生成 + 人間微調整）: db-schema / api-spec / auth-spec / ui-spec / etc.
+│   └── whiteboard/   # ストーリー実装時の共有ホワイトボード: {US-ID}.md
 ├── .claude/
 │   ├── rules/        # 開発ルール
 │   ├── skills/        # Skills 定義
@@ -24,43 +25,36 @@
 
 ## Docs map
 
-### 企画（reqs/ — canonical）
-- Product Goals（一覧・確信度）: @docs/reqs/product-goals.md
+### 企画（reqs/）
+- Product Goals（一覧・ドキュメントマップ・確信度）: @docs/reqs/product-goals.md
 - PG{num}: @docs/reqs/pg{num}.md
 - 市場・ユーザー定義: @docs/reqs/mrd.md
 - 提供価値・機能定義: @docs/reqs/prd.md
-- 概念モデル（設計意図）: @docs/reqs/conceptual-model.md
+- 概念モデル（CC自動生成、JSONが正）: @docs/reqs/conceptual-model.md
 - 概念モデル（統合JSON）: @docs/reqs/product-model.json — entities/actors/screens(type: screen|composite)/transitions
 - ユーザーストーリー: @docs/reqs/user-stories.md
 - 設計原則の詳細定義（オプション）: @docs/reqs/design-details.md
 
-### 設計（specs/ — reqs/ から導出）
-- DB設計: @docs/specs/db-schema.md
-- API設計: @docs/specs/api-spec.md
-- 認証・認可: @docs/specs/auth-spec.md
-- UI実装仕様: @docs/specs/ui-spec.md
-- 計測設計: @docs/specs/analytics-spec.md
-- 検証環境のインフラ構成定義: @docs/specs/infra-spec.md
-- テスト仕様: @docs/specs/test-spec.md
-- US単位の実装順序・依存関係・タスクカード: @docs/specs/impl-plan.md
+### 設計（specs/ — CC自動生成 + 人間微調整）
+- DB設計: @docs/specs/db-schema.md — CC自動生成
+- API設計: @docs/specs/api-spec.md — CC自動生成
+- 認証・認可: @docs/specs/auth-spec.md — CC自動生成
+- UI実装仕様: @docs/specs/ui-spec.md — 人間主導
+- 計測設計: @docs/specs/analytics-spec.md — 人間主導
+- 検証環境のインフラ構成定義: @docs/specs/infra-spec.md — 人間主導
+- テスト仕様: @docs/specs/test-spec.md — CC自動生成
+- 実装計画: @docs/specs/impl-plan.md — CC自動生成
 
 ### 企画・設計・開発の流れ
 ```
-Product Goals（Fit Journeyごとのゴールとドキュメントの確信度を管理）
-        ↓
-企画（req/）
-        ↓
-設計（specs/）
-        ↓
-開発・実装（backend/, frontend/）
-        ↓
-テスト・人間の確認
-        ↓
-次のProduct Goalsへ
+         reqs（企画）
+        ↗        ↘
+   実装  ⇄  specs（設計）
 ```
 
-- **Fit Journey に沿って進む。** PMF（プロダクト・マーケット・フィット）に至るまでの仮説検証を段階的に進める。「今のフェーズで何をどこまで書くか」を確信度で管理し、全部一気に書かない。不確かな段階に深く書き過ぎない。
-- **アジャイルに動く。** ドキュメントは一度書いたら固定ではなく確信度で決める。学びが得られるたびに上流から更新し、下流に伝播させる。ドキュメントもアジャイルにアップデートをする。
+- **三角形ループで回す。** reqs・specs・実装はどの頂点からでも始められる。プロトタイプから学んでreqsを更新する、specsを書きながらreqsの矛盾に気づく、いずれも正当なフロー。
+- **Fit Journey に沿って進む。** PMF（プロダクト・マーケット・フィット）に至るまでの仮説検証を段階的に進める。「今のフェーズでどのドキュメントが必要か」をドキュメントマップ（product-goals.md）で管理し、不要なものは作らない。
+- **CCが生成し、人間が微調整する。** specsはCCが `product-model.json` 等から自動生成する。人間は意思決定とレビューに集中する。人間の判断は `<!-- human-decision -->` マーカーで保護。
 - **実装は作り変えることも想定する。** 仮説検証しながらフェーズを進めていくため、開発済の機能を固定化しすぎず、必要であれば設計し直して作り変える。
 
 ## Agent Teams
