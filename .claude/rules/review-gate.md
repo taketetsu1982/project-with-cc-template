@@ -25,7 +25,7 @@ paths:
 | 企画レビュー | MRD完了後 | `review-mrd` | 推奨 |
 | 企画レビュー | PRD完了後 | `review-prd` | 推奨 |
 | モデルレビュー | Conceptual Model完了後 | `review-model` | 推奨 |
-| **Specsレビュー** | **Track A + B 完了後** | **`review-specs`** | **必須** |
+| **Specsレビュー** | **実装着手前（必要なSpecsが揃った時点）** | **`review-specs`** | **必須** |
 | **コードレビュー** | **ストーリー実装完了後** | **`review-code`** | **必須** |
 
 ## ドメイン専門家の定義

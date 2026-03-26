@@ -7,59 +7,61 @@ paths:
 
 # ドキュメント同期ルール
 
-上流ドキュメントを変更した際に、下流ドキュメントを確認・更新するためのルール。
-ワークフロー（`workflow.md`）の各同期ステップで参照される。
+## 基本方針
 
-## 企画ドキュメントの影響マップ
+- CCが変更を検知し、影響範囲を報告する。人間が同期マップを暗記する必要はない
+- 自動導出specはCCが再生成する。人間の意思決定部分（`<!-- human-decision -->` マーカー）は保護する
+- 不整合を発見したら、人間に報告してから修正する（勝手に直さない）
 
-### PRD / MRD 変更時
+## CCによる自動検知
 
-| 更新したドキュメント | 確認が必要なドキュメント |
+ドキュメントまたはコードが変更されたとき、CCは以下を自動でチェックする。
+
+### reqs が変更されたとき
+- `product-model.json` の entities/actors/screens に影響するか確認
+- 既存のspecsとの整合性を確認し、差分を報告
+- 自動導出specの再生成を提案
+
+### specs が変更されたとき
+- reqs との整合性を確認（specsの制約がreqsに反映されているか）
+- 他のspecsへの影響を確認（例: db-schema変更 → api-spec, test-spec）
+- 実装との差分を確認
+
+### 実装が変更されたとき
+- specsとの差分を確認
+- specsにない機能が追加されていないか確認
+- 必要に応じてreqs/specsの更新を提案
+
+## 影響の参考マップ
+
+CCが検知に使う参考情報。人間はこれを覚えなくてよい。
+
+| 変更元 | 影響先 |
 |---|---|
-| `prd.md` | `pg{N}.md`, `conceptual-model.md`, `user-stories.md`, `design-details.md`（存在する場合） |
-| `mrd.md` | `prd.md`（Buyer/User定義の整合） |
-| `design-details.md` | `api-spec.md`（エッジケース）, `ui-spec.md`（エッジケース）, `test-spec.md` |
-
-### Conceptual Model 変更時
-
-1. `conceptual-model.md` を `product-model.json` と照合し、差分があれば `conceptual-model.md` を更新する
-2. 以下のSpecsが記述済みの場合、影響を確認してユーザーに報告する
-
-| 変更内容 | 影響するSpec |
-|---|---|
-| entity 追加・削除・名前変更 | `db-schema.md`, `api-spec.md` |
-| actor 追加・削除・名前変更 | `auth-spec.md` |
-| entity/actor 変更 | `ui-spec.md` |
-
-### Screens 変更時
-
-- `conceptual-model.md` の画面定義セクションと照合
-- `ui-spec.md` の画面・ルーティング定義への影響を確認
-
-## Specs間の影響マップ
-
-Track A の導出中に上流Specを変更した場合、以下に従い下流Specを確認・更新する。
-
-| 更新したSpec | 確認が必要なSpec |
-|---|---|
+| `prd.md` | `pg{N}.md`, `product-model.json`, `user-stories.md` |
+| `mrd.md` | `prd.md`（Buyer/User定義） |
+| `product-model.json` entities | `db-schema.md`, `api-spec.md`, `conceptual-model.md` |
+| `product-model.json` actors | `auth-spec.md`, `ui-spec.md` |
+| `product-model.json` screens | `ui-spec.md`, `user-stories.md` |
+| `design-details.md` | `api-spec.md`, `ui-spec.md`, `test-spec.md` |
 | `db-schema.md` | `api-spec.md`, `test-spec.md` |
-| `api-spec.md` | `auth-spec.md`, `ui-spec.md`, `test-spec.md`, `impl-plan.md` |
+| `api-spec.md` | `auth-spec.md`, `ui-spec.md`, `test-spec.md` |
 | `auth-spec.md` | `db-schema.md`（認証カラム）, `test-spec.md` |
-| `ui-spec.md` | `test-spec.md`（UI整合性テスト）, `impl-plan.md` |
 | `user-stories.md` | `test-spec.md` |
 
 ## フィールド照合チェック
 
-Specsレビューゲート（workflow.md Step 3.5）の前に実施する機械的な整合性検証。
+Specsレビューゲート前にCCが自動実行する整合性検証。
 
-1. PRD機能概要の全データ項目 → DB Schemaのカラムとして存在するか
-2. DB Schemaの全カラム → API Specのレスポンスフィールドとして存在するか
-3. API Specの全エンドポイント → Test Specのテスト項目として存在するか
+1. PRD機能概要のデータ項目 → DB Schemaのカラムとして存在するか
+2. DB Schemaのカラム → API Specのレスポンスフィールドとして存在するか
+3. API Specのエンドポイント → Test Specのテスト項目として存在するか
 4. Auth Specの認証要件 → DB Schemaのテーブル・カラムに反映されているか
-5. User Storiesが「〜を表示する」と記述している場合 → APIがそのデータを返却できるか（API ↔ US振る舞い照合）
-6. `design-details.md` が存在する場合 → 操作的定義のエッジケースがAPI/UIで考慮されているか
+5. User Storiesの「〜を表示する」 → APIがそのデータを返却できるか
+6. `design-details.md` のエッジケース → API/UIで考慮されているか
 
 ## 共通ルール
 
-- **スキップ条件**: 下流のSpecs（`docs/specs/` 配下）がテンプレート状態（未記述）の場合、Specs影響チェックはスキップ。企画ドキュメント（`docs/reqs/` 配下）への影響チェックはスキップしない
-- 不整合を発見した場合は、下流ドキュメントを修正してから次のステップに進む
+- 現在のフェーズで不要なドキュメント（`product-goals.md` のドキュメントマップで「—」）はチェック対象外
+- 自動導出specがテンプレート状態（未記述）の場合、specs影響チェックはスキップ
+- 不整合発見時は下流ドキュメントを修正してから次のステップに進む
