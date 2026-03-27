@@ -62,11 +62,6 @@ entities / actors は /conceptual-model で編集する（同じJSONファイル
 - transitions は同一 actor 内の遷移のみ定義する
 - **パススルールール**: Screens エディタは entities/actors フィールドを読み込み時に保持し、保存時にそのまま書き戻す。これらが空でもエラーにしない
 
-## 画面設計の認知プロセス
-
-画面を設計する際は `wireframe-designer.md` の認知フレームワークに従う。
-参照: `.claude/skills/screens/wireframe-designer.md`
-
 ## Execution Steps
 
 ### Step 1: Conceptual Model を読み込む
