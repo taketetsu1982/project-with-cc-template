@@ -63,7 +63,9 @@ Claude Code と対話しながら MRD・PRD を作成する。
 > /conceptual-model
 ```
 
-PRD から entities/actors を抽出し、`product-model.json` に書き出す。`model-editor.html` で視覚的に編集できる。
+PRD から entities/actors を抽出し、`product-model.json` に書き出す。
+
+**HTMLエディタで編集:** `docs/reqs/model-editor.html` をブラウザで開き、`product-model.json` を接続（Connect ボタンまたはドラッグ&ドロップ）すると、エンティティとリレーションを視覚的に編集できる。Entity タブでエンティティの追加・接続、Actor タブでロール別CRUD権限を設定する。
 
 #### Step 5：画面定義を生成する
 
@@ -71,7 +73,9 @@ PRD から entities/actors を抽出し、`product-model.json` に書き出す�
 > /screens
 ```
 
-概念モデルから screens/transitions を生成する。`screen-editor.html` で視覚的に編集できる。
+概念モデルから screens/transitions を生成する。
+
+**HTMLエディタで編集:** `docs/reqs/screen-editor.html` をブラウザで開き、同じ `product-model.json` を接続する。Map ビューでアクターごとの画面遷移図を確認・編集し、Screen ビューで画面の詳細（オブジェクト、CRUD、遷移先）を設定する。
 
 #### Step 6：ユーザーストーリーを生成する
 
