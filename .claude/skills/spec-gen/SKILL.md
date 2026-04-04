@@ -54,7 +54,8 @@ db-schema → api-spec → auth-spec → test-spec の順に生成する。
 
 ### Step 4: 整合性チェック
 
-doc-checker エージェントを呼び出し、企画↔設計の整合性を確認する。
+`.claude/agents/doc-checker.md` をサブエージェントとして呼び出し、企画↔設計の整合性を確認する。
+doc-checker は読み取り専用で、修正は行わない。
 
 ### Step 5: 結果報告
 
