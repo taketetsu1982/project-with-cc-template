@@ -15,6 +15,9 @@
 ├── docs/
 │   ├── reqs/         # 企画: product-goals / pg{num} / mrd / prd / product-model.json / user-stories
 │   └── specs/        # 設計（CC生成 + 人間微調整）: db-schema / api-spec / auth-spec / ui-spec / etc.
+├── content/
+│   ├── plans/        # ブログ戦略・テーマ計画
+│   └── articles/     # 記事（Markdown）
 ├── .claude/
 │   ├── rules/        # 常時適用ガードレール
 │   ├── skills/       # プロセスごとの手順書
@@ -35,6 +38,8 @@
 
 ## Skills（プロセスの道具箱）
 
+### プロダクト開発
+
 | スキル | 用途 |
 |---|---|
 | `/conceptual-model` | entities/actors 編集（HTMLエディタ） |
@@ -43,6 +48,16 @@
 | `/spec-gen` | 企画書 → specs一式生成 + 整合性チェック |
 | `/impl-plan` | ストーリー → タスクカード生成 |
 | `/test-run` | test-specに基づくテスト実行 |
+
+### ブログ制作
+
+| スキル | 用途 |
+|---|---|
+| `/outline` | 構成案作成（グローバル） |
+| `/draft` | 構成案 + brand-voice → 記事執筆 |
+| `/revise` | 推敲（グローバル） |
+| `/fact-check` | 事実検証（グローバル） |
+| `/sns` | SNS投稿文生成（グローバル） |
 
 ## コマンド
 
