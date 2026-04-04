@@ -7,6 +7,13 @@ paths:
 
 # ワークフロー制約
 
+## ドキュメントファースト
+
+- 企画（reqs）→ 設計（specs）→ 実装の順で進める
+- 実装着手前に対応するspecsが存在すること。なければ `/spec-gen` で生成する
+- specs生成後は doc-checker で整合性を確認する
+- プロトタイプ/スパイクは例外。ただし学びをreqs/specsに反映してから本実装に進む
+
 ## product-model.json が概念の正
 
 - エンティティの追加・変更は product-model.json を先に更新する
