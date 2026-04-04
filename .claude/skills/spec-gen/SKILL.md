@@ -5,26 +5,27 @@ description: 企画書（reqs）から設計書（specs）を生成・更新す�
 
 # /spec-gen
 
-企画書（reqs）を読み込み、設計書（specs）を自動生成または更新する。
+企画書（reqs）全体を理解した上で、設計書（specs）を自動生成または更新する。
 生成後に doc-checker エージェントで整合性を確認する。
 
-## Input
+## Input（すべて読み込む）
 
-- `docs/reqs/product-model.json` — entities, actors, screens, transitions
-- `docs/reqs/prd.md` — 機能定義、設計原則
-- `docs/reqs/user-stories.md` — ストーリーと受け入れ条件
-- `docs/reqs/mrd.md` — 市場・ユーザー定義（参考）
+- `docs/reqs/prd.md` — ビジョン、設計原則、機能定義。specsの「なぜこう設計するか」の根拠
+- `docs/reqs/mrd.md` — 市場・Buyer定義。セキュリティ要件やスケール要件の根拠
+- `docs/reqs/product-model.json` — entities, actors, screens, transitions。specsの構造的な入力
+- `docs/reqs/user-stories.md` — ストーリーと受け入れ条件。テスト仕様の入力
+- `docs/reqs/design-details.md` — 設計原則の操作的定義（存在する場合）
 
 ## Output
 
 以下のspecsファイルを生成または更新する。
 
-| ファイル | 生成元 | 生成ルール |
+| ファイル | 主な生成元 | PRD/MRDから反映すること |
 |---|---|---|
-| `db-schema.md` | entities | entity → テーブル。共通カラム規約に従う |
-| `api-spec.md` | entities + actors + screens | CRUD → エンドポイント。命名規則に従う |
-| `auth-spec.md` | actors の touches | actor → ロール、touches → 権限マトリクス |
-| `test-spec.md` | user-stories + specs | 受け入れ条件 → テスト項目 |
+| `db-schema.md` | entities | 設計原則に基づく制約、ビジネスルール |
+| `api-spec.md` | entities + actors + screens | 機能定義のスコープ、エラーハンドリング方針 |
+| `auth-spec.md` | actors の touches | MRDのBuyer構造、PRDのロール定義 |
+| `test-spec.md` | user-stories + specs | 受け入れ条件、エッジケース |
 
 ## 生成しないファイル（人間主導）
 
@@ -36,8 +37,9 @@ description: 企画書（reqs）から設計書（specs）を生成・更新す�
 
 ### Step 1: 企画書を読み込む
 
-`docs/reqs/product-model.json`、`prd.md`、`user-stories.md` を読む。
-ファイルが存在しない、またはテンプレート状態の場合はユーザーに報告して中断する。
+reqs全体を読み込み、プロダクトの目的・ユーザー・制約を理解する。
+`prd.md` と `product-model.json` は必須。存在しないかテンプレート状態の場合は中断する。
+`mrd.md`、`user-stories.md`、`design-details.md` は存在すれば読み込む。
 
 ### Step 2: 既存specsを確認する
 
