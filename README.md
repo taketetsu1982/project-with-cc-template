@@ -28,13 +28,16 @@ Claude Code でプロダクト開発とブログ制作を行うためのプロ�
 
 #### Step 1：プロジェクトの初期設定
 
+`/setup-project` を実行すると、CLAUDE.md・rules・settings.json のプレースホルダーを技術スタックに合わせて一括セットアップできる。
+
+```
+> /setup-project
+```
+
+手動で設定する場合:
 1. `CLAUDE.md` の `{プレースホルダー}` を埋める（プロジェクト名、技術スタック、コマンド等）
 2. `.claude/rules/` の各ファイルのプレースホルダーを技術スタックに合わせて設定する
 3. `CLAUDE.local.md` にローカル環境のURL・テストデータ等を記入する
-
-```
-> バックエンドはFastAPI、フロントエンドはNext.jsで開発する。CLAUDE.mdとrules/を技術スタックに合わせて更新して
-```
 
 #### Step 2：Product Goals を定義する
 
