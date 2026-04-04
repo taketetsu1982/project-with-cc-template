@@ -54,6 +54,7 @@
 | `/spec-gen` | 企画書 → specs一式生成 + 整合性チェック |
 | `/impl-plan` | ストーリー → タスクカード生成 |
 | `/test-run` | test-specに基づくテスト実行 |
+| `/user-test` | Chrome操作によるペルソナ視点の操作テスト（定性） |
 
 ### ブログ制作
 
